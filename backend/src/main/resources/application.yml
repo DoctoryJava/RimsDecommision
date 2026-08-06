@@ -1,0 +1,57 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  datasource:
+    # 本地开发默认 MySQL；无 MySQL 时可注释并用 H2 测试：见 application-dev.yml
+    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/rims_decommission?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai}
+    username: ${MYSQL_USERNAME:rims}
+    password: ${MYSQL_PASSWORD:rims123}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath*:mapper/*.xml
+  type-aliases-package: com.rims.decommission.entity
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-change-in-prod-32chars-min-length!!}
+    expiration-ms: 86400000
+  databricks:
+    host: ${DATABRICKS_HOST:https://mock.databricks.net}
+    token: ${DATABRICKS_TOKEN:mock-token}
+    warehouse-id: ${DATABRICKS_WAREHOUSE_ID:mock-warehouse}
+    catalog: lake
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.rims.decommission: DEBUG
+    org.springframework.security: INFO
