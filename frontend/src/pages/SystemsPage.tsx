@@ -28,7 +28,7 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
-import { systems } from '@/data/mockData';
+import { systems as mockSystems } from '@/data/mockData';
 import type { SystemRecord, LifecycleStage, SyncStatus } from '@/types';
 import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
@@ -55,10 +55,20 @@ interface SystemsPageProps {
 export default function SystemsPage({ onNavigateSystems }: SystemsPageProps) {
   const [selectedSystem, setSelectedSystem] = useState<SystemRecord | null>(null);
   const [filter, setFilter] = useState<LifecycleStage | 'all'>('all');
+  const [systemsData, setSystemsData] = useState<SystemRecord[]>(mockSystems);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    getSystems({ pageNum: 1, pageSize: 100 }).then(p => {
+      if (mounted && p?.list?.length) setSystemsData(p.list as unknown as SystemRecord[]);
+    }).catch(e => console.warn('[API] Systems fallback to mock', e)).finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []);
   const [search, setSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const filtered = systems.filter((s) => {
+  const filtered = systemsData.filter((s) => {
     if (filter !== 'all' && s.stage !== filter) return false;
     if (search && !s.name.toLowerCase().includes(search.toLowerCase()) && !s.code.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
