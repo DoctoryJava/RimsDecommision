@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar, { type PageKey, TopBar } from '@/components/Sidebar';
 import LoginPage from '@/pages/LoginPage';
 import DashboardPage from '@/pages/DashboardPage';
@@ -32,17 +32,30 @@ const pageTitles: Record<PageKey, string> = {
 };
 
 export default function App() {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(() => !!localStorage.getItem('rims_token'));
   const [page, setPage] = useState<PageKey>('dashboard');
   const [queryConfigs, setQueryConfigs] = useState<QueryConfig[]>(initialQueryConfigs);
 
+  // 若刷新后 token 仍在，保持登录态；也可在此预加载 user-info
+  useEffect(() => {
+    const token = localStorage.getItem('rims_token');
+    if (token) setLoggedIn(true);
+  }, []);
+
+  const handleLogin = () => setLoggedIn(true);
+  const handleLogout = () => {
+    localStorage.removeItem('rims_token');
+    localStorage.removeItem('rims_user');
+    setLoggedIn(false);
+  };
+
   if (!loggedIn) {
-    return <LoginPage onLogin={() => setLoggedIn(true)} />;
+    return <LoginPage onLogin={handleLogin} />;
   }
 
   return (
     <div className="flex h-screen bg-neutral-50 overflow-hidden">
-      <Sidebar current={page} onNavigate={setPage} onLogout={() => setLoggedIn(false)} />
+      <Sidebar current={page} onNavigate={setPage} onLogout={handleLogout} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <TopBar title={pageTitles[page]} />
         <main className="flex-1 overflow-y-auto">

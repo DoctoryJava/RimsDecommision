@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { HardDrive, Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Database, Archive } from 'lucide-react';
+import { login } from '@/lib/api';
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -10,14 +11,37 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [password, setPassword] = useState('demo1234');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    setError(null);
+    try {
+      // 优先走真实后端，失败回退到 mock 以保证 Demo 始终可用
+      const useApi = import.meta.env.VITE_USE_API !== 'false';
+      if (useApi) {
+        try {
+          const data = await login(email, password);
+          localStorage.setItem('rims_token', data.token);
+          localStorage.setItem('rims_user', JSON.stringify({ username: data.username, realName: data.realName }));
+        } catch (apiErr: unknown) {
+          const msg = apiErr instanceof Error ? apiErr.message : String(apiErr);
+          // 网络不通时（如后端未启动）回退为 mock 登录，保证演示
+          if (msg.includes('Network') || msg.includes('网络') || msg.includes('Failed to fetch')) {
+            console.warn('[Login] API unreachable, fallback to mock:', msg);
+          } else {
+            throw apiErr;
+          }
+        }
+      }
       onLogin();
-    }, 800);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '登录失败';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -129,6 +153,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               </div>
             </div>
 
+            {error && (
+              <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-600">
+                {error}
+              </div>
+            )}
+
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-neutral-300 text-primary-500 focus:ring-primary-200" />
               <span className="text-sm text-neutral-600">Keep me signed in for 30 days</span>
@@ -152,7 +182,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
           <div className="mt-6 p-3 rounded-lg bg-primary-50 border border-primary-100">
             <p className="text-xs text-primary-700 text-center">
-              Demo credentials are pre-filled — just click <span className="font-semibold">Sign in</span> to explore the prototype.
+              Demo: <span className="font-mono">sarah.chen@company.com / demo1234</span>（任意 mock 用户均可，密码 demo1234）
             </p>
           </div>
         </div>
