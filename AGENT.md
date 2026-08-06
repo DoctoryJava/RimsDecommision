@@ -48,77 +48,19 @@
 
 ## 三、领域模型设计 (Domain Models)
 
-### 3.1 元数据库核心表 (MySQL)
+### 3.1 元数据库核心概念 (MySQL) — 概念层
 
-> 以下仅展示退役管理相关的核心表。RBAC 权限表 (`sys_user`, `sys_role`, `sys_menu` 等) 详见 `scripts/sql/V1__init_schema.sql`。
+> **单一数据源原则**：所有表结构以 `README.md §🗄️ 数据库设计` 与 `scripts/sql/V1__init_schema.sql` 为准，本文件不复制 DDL。AI 编程时如需建表/改表，必须通过 Flyway 迁移脚本（`V3__*.sql`）实现，禁止在本文件或代码中手写 `CREATE TABLE`。
 
-#### 退役系统注册表
+本节仅从**领域含义与设计意图**高度描述三个退役域核心实体，供 AI 理解业务边界与关联关系：
 
-```sql
-CREATE TABLE decomm_system (
-    id              BIGINT PRIMARY KEY,
-    system_name     VARCHAR(128) NOT NULL,       -- 系统名称: '旧CRM系统'
-    system_code     VARCHAR(64) NOT NULL,        -- 系统编码: 'CRM_V1' (全局唯一，用于 UC catalog 命名)
-    description     TEXT,                        -- 系统描述
-    department      VARCHAR(128),                -- 所属部门
-    owner           VARCHAR(64),                 -- 负责人
-    owner_email     VARCHAR(128),                -- 负责人邮箱
-    status          VARCHAR(32) NOT NULL DEFAULT 'REGISTERED',
-                    -- REGISTERED → CONFIGURED → SYNCING → ARCHIVED → EXPIRING → DESTROYED
-    retention_years INT NOT NULL DEFAULT 7,      -- 数据保留年限
-    decommission_date    DATE,                   -- 计划退役日期
-    sync_completed_date  DATE,                   -- 同步完成日期 (开始计算保留期的起点)
-    destroy_after_date   DATE,                   -- 到期销毁日期 = sync_completed_date + retention_years
-    uc_schema_name  VARCHAR(128),                -- Unity Catalog schema 名: lake.{system_code}
-    created_by      BIGINT,
-    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted         TINYINT DEFAULT 0,
-    UNIQUE KEY uk_system_code (system_code)
-);
-```
+| 实体 | 表名 | 职责 | 关键属性（概念） | 设计意图 |
+|------|------|------|------------------|----------|
+| **退役系统注册** | `decomm_system` | 记录退役系统的元信息与生命周期状态 | `system_code`(全局唯一，映射 UC `lake.{code}`)、`status`(状态机 REGISTERED→DESTROYED)、`retention_years`(保留年限)、`sync_completed_date`/`destroy_after_date`(保留期起算与到期)、`uc_schema_name` | 驱动状态机与生命周期策略；所有同步、查询、销毁均以 `system_code` 为分区键 |
+| **Schema Registry** | `decomm_schema_registry` | 以 JSON 形式承载源表结构、敏感标记与查询控件配置，是**动态前端渲染的唯一数据源** | `system_id`+`table_name` 联合唯一、`schema_json`(含 columns、queryType、alias、isPii、maskPolicy)、`is_attachment_table`/`attachment_config`、`row_count`/`data_size_bytes`、`status` | 1:1 原样映射源表结构（红线5），通过 `alias` 提供中文；前端 `DynamicFilterForm`/`DynamicDataTable` 完全由该 JSON 驱动 |
+| **生命周期策略** | `decomm_lifecycle_policy` | 配置到期前通知与销毁策略 | `policy_type`(NOTIFY/DESTROY)、`trigger_days_before`、`auto_destroy`(是否自动)、`notify_emails`、`destroy_status`(PENDING/APPROVED/EXECUTING...) | 支撑 `EXPIRING`→`DESTROYED` 自动流转，默认 `auto_destroy=0` 需人工确认 |
 
-#### Schema Registry 表（核心！驱动动态前端）
-
-```sql
-CREATE TABLE decomm_schema_registry (
-    id              BIGINT PRIMARY KEY,
-    system_id       BIGINT NOT NULL,             -- 关联退役系统
-    table_name      VARCHAR(256) NOT NULL,       -- 源表名: 'CUSTOMER_ORDER'
-    table_alias     VARCHAR(256),                -- 中文别名: '客户订单'
-    primary_key     VARCHAR(128),                -- 主键列名
-    uc_full_name    VARCHAR(512),                -- UC 全限定名: 'lake.CRM_V1.CUSTOMER_ORDER'
-    schema_json     JSON NOT NULL,               -- 完整 Schema 描述符 (JSON)
-    is_attachment_table TINYINT DEFAULT 0,       -- 是否为附件表
-    attachment_base_path  VARCHAR(512),          -- 附件在 Blob 中的基础路径
-    row_count       BIGINT DEFAULT 0,            -- 实际行数 (同步完成后更新)
-    data_size_bytes BIGINT DEFAULT 0,            -- 实际数据大小
-    status          VARCHAR(16) DEFAULT 'PENDING',-- PENDING/SYNCED/DESTROYED
-    sort_order      INT DEFAULT 0,               -- 显示排序
-    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_system_table (system_id, table_name)
-);
-```
-
-#### 生命周期策略表
-
-```sql
-CREATE TABLE decomm_lifecycle_policy (
-    id              BIGINT PRIMARY KEY,
-    system_id       BIGINT NOT NULL,             -- 关联退役系统
-    policy_type     VARCHAR(32) NOT NULL,        -- NOTIFY / DESTROY
-    trigger_days_before INT DEFAULT 30,          -- 到期前 N 天触发通知
-    auto_destroy    TINYINT DEFAULT 0,           -- 是否自动销毁 (0=手动确认)
-    notify_emails   VARCHAR(512),                -- 通知邮箱列表
-    last_notified_at DATETIME,                   -- 最后通知时间
-    destroy_status  VARCHAR(16) DEFAULT 'PENDING',-- PENDING/APPROVED/EXECUTING/COMPLETED/FAILED
-    destroy_job_id  VARCHAR(64),                 -- Databricks 销毁 Job ID
-    destroyed_at    DATETIME,                    -- 实际销毁时间
-    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-```
+其他支撑表（`decomm_db_config`/`decomm_storage_config`/`decomm_sync_job`/`decomm_sync_log`/`sys_audit_log` 等）及完整的 RBAC 权限表（`sys_user`/`sys_role`/`sys_menu`/`sys_permission` 及其关联表）请直接查阅 `README.md` 与 `V1__init_schema.sql`。
 
 ### 3.2 Schema Registry JSON 完整结构
 
@@ -543,7 +485,7 @@ const queryParams = {
 
 | 文档 | 说明 |
 |------|------|
-| `README.md` | 项目架构总览、技术栈、业务流程 |
+| `README.md` | 项目架构总览、技术栈、业务流程、**数据库设计（单一 DDL 源）** |
 | `CLAUDE.md` | AI 编码规范、架构红线、API 设计 |
 | `scripts/sql/` | Flyway 迁移脚本 (完整 DDL + 初始数据) |
 | `scripts/databricks/` | Databricks Notebook (同步/合并/销毁) |

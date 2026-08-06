@@ -185,6 +185,8 @@ RIMS Decommission 解决的核心问题：
 
 > **核心原则**: 元数据库仅存储系统配置、Schema 注册、RBAC 权限和审计日志。
 > **绝不**直接存储或查询归档的业务数据。所有业务数据查询统一走 Databricks SQL。
+>
+> **单一数据源**：本节为 AI 与人工查阅的唯一 DDL 说明源，与 `scripts/sql/V1__init_schema.sql` 保持一致。`CLAUDE.md` 与 `AGENT.md` 不再复制表结构，所有建表/改表必须通过 Flyway 迁移脚本（`V3__*.sql`）实现。
 
 ### 权限管理模块
 
@@ -202,7 +204,7 @@ RIMS Decommission 解决的核心问题：
 
 | 表名 | 说明 |
 |------|------|
-| `decomm_system` | 退役系统注册（状态：CONFIGURED → SYNCING → ARCHIVED → DESTROYED） |
+| `decomm_system` | 退役系统注册（状态：REGISTERED → CONFIGURED → SYNCING → ARCHIVED → EXPIRING → DESTROYED） |
 | `sys_role_system` | 角色-系统映射（不同角色管理不同退役系统） |
 | `decomm_db_config` | 源数据库配置（连接信息加密存储） |
 | `decomm_storage_config` | 目标存储配置（ADLS/Blob 连接加密） |
@@ -211,6 +213,93 @@ RIMS Decommission 解决的核心问题：
 | `decomm_sync_log` | 同步任务执行日志 |
 | `decomm_lifecycle_policy` | 数据生命周期策略（保留年限、销毁规则） |
 | `sys_audit_log` | 全局审计日志 |
+
+> 完整 DDL 共 12 张表，详见 `scripts/sql/V1__init_schema.sql`（303 行）。以下摘录 3 张退役域核心表的建表语句（已与 `V1` 保持一致，生产以 `V1` 为准）：
+
+#### 退役系统注册表 `decomm_system`
+
+```sql
+CREATE TABLE `decomm_system` (
+    `id` BIGINT NOT NULL COMMENT '主键ID',
+    `system_name` VARCHAR(128) NOT NULL COMMENT '系统名称 (e.g. 旧CRM系统)',
+    `system_code` VARCHAR(64) NOT NULL COMMENT '系统编码 (e.g. CRM_V1, 用于UC schema命名)',
+    `description` TEXT DEFAULT NULL COMMENT '系统描述',
+    `department` VARCHAR(128) DEFAULT NULL COMMENT '所属部门',
+    `owner` VARCHAR(64) DEFAULT NULL COMMENT '负责人',
+    `owner_email` VARCHAR(128) DEFAULT NULL COMMENT '负责人邮箱',
+    `status` VARCHAR(32) NOT NULL DEFAULT 'REGISTERED'
+        COMMENT '状态: REGISTERED/CONFIGURED/SYNCING/ARCHIVED/EXPIRING/DESTROYED',
+    `retention_years` INT NOT NULL DEFAULT 7 COMMENT '数据保留年限',
+    `decommission_date` DATE DEFAULT NULL COMMENT '计划退役日期',
+    `actual_decommission_date` DATE DEFAULT NULL COMMENT '实际退役日期',
+    `sync_completed_date` DATE DEFAULT NULL COMMENT '同步完成日期 (保留期起算点)',
+    `destroy_after_date` DATE DEFAULT NULL COMMENT '到期销毁日期 = sync_completed + retention_years',
+    `actual_destroy_date` DATE DEFAULT NULL COMMENT '实际销毁日期',
+    `uc_catalog_name` VARCHAR(64) DEFAULT 'lake' COMMENT 'Unity Catalog catalog 名',
+    `uc_schema_name` VARCHAR(128) DEFAULT NULL COMMENT 'Unity Catalog schema: lake.{system_code}',
+    `created_by` BIGINT DEFAULT NULL COMMENT '创建人ID',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `deleted` TINYINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_system_code` (`system_code`),
+    KEY `idx_status` (`status`),
+    KEY `idx_department` (`department`),
+    KEY `idx_destroy_after` (`destroy_after_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='退役系统注册表';
+```
+
+#### Schema Registry 表 `decomm_schema_registry`（核心！驱动动态前端）
+
+```sql
+CREATE TABLE `decomm_schema_registry` (
+    `id` BIGINT NOT NULL,
+    `system_id` BIGINT NOT NULL COMMENT '退役系统ID',
+    `table_name` VARCHAR(256) NOT NULL COMMENT '源表名 (e.g. CUSTOMER_ORDER)',
+    `table_alias` VARCHAR(256) DEFAULT NULL COMMENT '中文别名 (e.g. 客户订单)',
+    `primary_key` VARCHAR(128) DEFAULT NULL COMMENT '主键列名',
+    `uc_full_name` VARCHAR(512) DEFAULT NULL COMMENT 'UC 全限定名: lake.CRM_V1.CUSTOMER_ORDER',
+    `schema_json` JSON NOT NULL COMMENT '完整 Schema 描述符 (JSON, 详见 AGENT.md §3.2)',
+    `is_attachment_table` TINYINT NOT NULL DEFAULT 0 COMMENT '是否为附件表',
+    `attachment_config` JSON DEFAULT NULL COMMENT '附件表配置 (objectKeyField, blobContainer 等)',
+    `row_count` BIGINT DEFAULT 0 COMMENT '实际行数 (同步完成后更新)',
+    `data_size_bytes` BIGINT DEFAULT 0 COMMENT '实际数据大小 (bytes)',
+    `status` VARCHAR(16) NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING/SYNCED/DESTROYED',
+    `sort_order` INT NOT NULL DEFAULT 0 COMMENT '前端显示排序',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_system_table` (`system_id`, `table_name`),
+    KEY `idx_system_id` (`system_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Schema Registry 表 (动态前端驱动)';
+```
+
+#### 生命周期策略表 `decomm_lifecycle_policy`
+
+```sql
+CREATE TABLE `decomm_lifecycle_policy` (
+    `id` BIGINT NOT NULL,
+    `system_id` BIGINT NOT NULL COMMENT '退役系统ID',
+    `policy_type` VARCHAR(32) NOT NULL COMMENT 'NOTIFY/DESTROY',
+    `trigger_days_before` INT NOT NULL DEFAULT 30 COMMENT '到期前N天触发通知',
+    `auto_destroy` TINYINT NOT NULL DEFAULT 0 COMMENT '是否自动销毁 (0=需手动确认)',
+    `notify_emails` VARCHAR(512) DEFAULT NULL COMMENT '通知邮箱列表 (逗号分隔)',
+    `last_notified_at` DATETIME DEFAULT NULL COMMENT '最后通知时间',
+    `destroy_status` VARCHAR(16) DEFAULT 'PENDING'
+        COMMENT 'PENDING/APPROVED/EXECUTING/COMPLETED/FAILED',
+    `destroy_approved_by` BIGINT DEFAULT NULL COMMENT '批准销毁的管理员ID',
+    `destroy_approved_at` DATETIME DEFAULT NULL COMMENT '批准时间',
+    `destroy_job_id` VARCHAR(64) DEFAULT NULL COMMENT 'Databricks 销毁 Job ID',
+    `destroyed_at` DATETIME DEFAULT NULL COMMENT '实际销毁完成时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_system_id` (`system_id`),
+    KEY `idx_destroy_status` (`destroy_status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='数据生命周期策略表';
+```
+
+> 其他 9 张表（`sys_user`/`sys_role`/`sys_menu`/`sys_permission`/`sys_user_role`/`sys_role_menu`/`sys_role_permission`/`decomm_db_config`/`decomm_storage_config`/`decomm_sync_job`/`decomm_sync_log`/`sys_audit_log` 等）及初始数据 `V2__init_data.sql` 请直接查阅 `scripts/sql/`。**禁止在 `AGENT.md` / `CLAUDE.md` 中重复复制 DDL。**
 
 ### Schema Registry JSON 结构示例
 

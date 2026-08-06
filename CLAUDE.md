@@ -236,6 +236,9 @@ public class DynamicQueryBuilder {
 
 ---
 
+
+> **数据库设计单一数据源**：所有表结构以 `README.md §🗄️ 数据库设计` 与 `scripts/sql/V1__init_schema.sql` 为准，本文件不复制 DDL。AI 生成建表/改表代码时必须通过 Flyway `V3__*.sql` 实现。
+
 ## 前端编码规范 (Vue 3 + TypeScript)
 
 ### 1. 组件规范
