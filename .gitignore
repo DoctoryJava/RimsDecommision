@@ -1,0 +1,41 @@
+# ===== Java / Maven =====
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+*.iml
+.idea/
+.settings/
+.classpath
+.project
+*.factorypath
+
+# ===== Node.js =====
+node_modules/
+dist/
+.vite/
+*.local
+
+# ===== IDE =====
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ===== Environment =====
+.env
+.env.local
+.env.*.local
+*.env
+
+# ===== Docker =====
+docker-compose.override.yml
+
+# ===== Misc =====
+coverage/
+*.map
+.cache/
