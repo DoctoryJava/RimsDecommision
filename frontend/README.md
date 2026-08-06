@@ -1,6 +1,6 @@
 # Frontend — Bolt.new Prototype (React 19 + Vite + Tailwind)
 
-> **来源**：`project-bolt-sb1-pt4jvqwm.zip`（Bolt.new 生成）已解压至 `frontend/`。此为**高保真原型**，非 RIMS 规范的 Vue 3 + Element Plus 生产前端，但可直接用于 Demo 与后端联调。
+> **来源**：`project-bolt-sb1-pt4jvqwm.zip`（Bolt.new 生成）已解压至 `frontend/`。此为**生产前端**（已按规范切为 React 19 + Tailwind，详见 AGENTS.md/CLAUDE.md）
 
 ## 技术栈
 - React 19.2.8 + Vite 8.2.0 + Tailwind CSS 4.3.3 (`@tailwindcss/vite`)
@@ -46,6 +46,6 @@ npm run build # tsc -b && vite build
 
 ## 后续
 
-- 生产建议按 `AGENTS.md` 重构为 Vue 3 + Element Plus + Pinia + Vue Router，或在当前 React 基础上持续迭代（需团队决策）。
+- 已确定沿用 React 19 + Tailwind 方案，后续迭代保持该栈。
 - 详见 `docs/BOLT_FRONTEND_ANALYSIS.md` §六 后端初始化方案。
 

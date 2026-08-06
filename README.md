@@ -22,7 +22,7 @@ RIMS Decommission 解决的核心问题：
 
 ```
                           ┌──────────────────────────────────────────┐
-                          │         Frontend (Vue 3 + Element Plus)   │
+                          │         Frontend (React 19 + Tailwind CSS)   │
                           │                                           │
                           │  ┌──────────┐ ┌──────────┐ ┌───────────┐ │
                           │  │ RBAC 管理│ │ 系统配置 │ │ 动态查询  │ │
@@ -71,7 +71,7 @@ RIMS Decommission 解决的核心问题：
 | **数据治理** | Unity Catalog (UC) | 表级权限管控、COLUMN MASK 字段脱敏、全局审计 |
 | **元数据库** | MySQL 8.0 | 仅存配置元数据（系统信息、Schema Registry、销毁策略、审计日志） |
 | **后端 API** | Java 17 + Spring Boot 3 | 元数据管理、初始化编排、SAS 签发、查询代理 |
-| **前端** | Vue 3 + Element Plus + TypeScript | RBAC 管理页（静态）+ 动态查询页（Schema Registry 驱动渲染） |
+| **前端** | React 19 + Tailwind CSS + TypeScript | RBAC 管理页 + 动态查询页（Schema Registry 驱动） |
 
 ---
 
@@ -346,10 +346,10 @@ CREATE TABLE `decomm_lifecycle_policy` (
 
 | 层级 | 技术 | 版本 | 说明 |
 |------|------|------|------|
-| **前端框架** | Vue 3 + TypeScript | 3.4+ | Composition API |
+| **前端框架** | React | 19.2.8 | Hooks |
 | **UI 组件库** | Element Plus | 2.x | 企业级组件 |
-| **状态管理** | Pinia | 2.x | Vue 3 推荐 |
-| **路由** | Vue Router | 4.x | 动态路由 |
+| **状态管理** | React Hooks + Context | 19 | 轻量 |
+| **路由** | React Router (App.tsx PageKey) | 手写 | 动态 |
 | **HTTP** | Axios | 1.x | 请求封装 |
 | **构建** | Vite | 5.x | 前端构建 |
 | **后端框架** | Java + Spring Boot | 17 / 3.2+ | 主力框架 |
@@ -403,7 +403,7 @@ RimsDecommision/
 │       │   ├── SchemaRegistryService  # Schema CRUD
 │       │   └── DynamicQueryBuilder    # JSON→SQL 转换
 │       └── common/                    # 通用模块
-├── frontend/                          # Vue 3 前端
+├── frontend/                          # React 19 + Tailwind 前端（Bolt 原型）
 │   └── src/
 │       ├── api/                       # 按业务域拆分的 API
 │       ├── views/

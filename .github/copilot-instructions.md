@@ -4,7 +4,7 @@ You are working on **RIMS Decommission**, an enterprise data archive lifecycle m
 
 ## Tech Stack
 - **Backend**: Java 17, Spring Boot 3.2, MyBatis-Plus 3.5, Spring Security + JWT
-- **Frontend**: Vue 3.4 (Composition API), TypeScript (strict), Element Plus, Pinia, Vite
+- **Frontend**: React 19 + Vite 8 + Tailwind CSS 4, TypeScript (strict), Hooks
 - **Database**: MySQL 8.0 (metadata only), Redis 6
 - **Big Data**: Databricks Java SDK (Jobs + SQL Statement Execution API)
 - **Storage**: Azure ADLS Gen2 (Iceberg), Azure Blob Storage (attachments)

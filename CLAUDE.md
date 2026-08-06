@@ -6,7 +6,7 @@
 
 ## Project overview
 
-RIMS Decommission is enterprise Lakehouse for decommissioned-system **archive → query → destroy**: 1:1 ingest to **ADLS Gen2 Iceberg**, governed by **Unity Catalog**, queried via **Databricks SQL**, rendered by **Schema Registry-driven Vue 3** dynamic forms/tables.
+RIMS Decommission is enterprise Lakehouse for decommissioned-system **archive → query → destroy**: 1:1 ingest to **ADLS Gen2 Iceberg**, governed by **Unity Catalog**, queried via **Databricks SQL**, rendered by **Schema Registry-driven React 19 + Tailwind 4** dynamic forms/tables.
 
 - Status: production-track, branch `arena/019fd5f0-rimsdecommision`
 - Repo: single app, not monorepo. Primary users: SYSTEM_ADMIN / DATA_OPERATOR / AUDITOR / VIEWER
@@ -20,7 +20,7 @@ RIMS Decommission is enterprise Lakehouse for decommissioned-system **archive �
 | Meta DB | MySQL 8.0 (config only), Redis 6 | `docker-compose.yml` |
 | Big data | Databricks Java SDK (Jobs + Statement Execution API), UC, Iceberg | `scripts/databricks/` |
 | Storage | ADLS Gen2 (Iceberg) + Azure Blob (attachments) + Key Vault | `storage/` |
-| Frontend | Vue 3.4 + TS strict + Element Plus + Pinia + Vite + pnpm | `frontend/src/` |
+| Frontend | React 19.2.8 + Vite 8.2 + Tailwind 4.3.3 + TypeScript 6 + pnpm | `frontend/src/` |
 
 ## Commands — exact strings
 

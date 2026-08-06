@@ -4,13 +4,13 @@
 
 ## Project overview
 
-RIMS Decommission = Lakehouse platform (Databricks + ADLS Gen2 Iceberg + Unity Catalog + Vue 3) that **1:1 archives, queries and destroys** decommissioned systems (ERP/CRM/OA) before servers are wiped. Detailed pain points & 4-phase flows: `README.md §📋/§🧩`.
+RIMS Decommission = Lakehouse platform (Databricks + ADLS Gen2 Iceberg + Unity Catalog + React 19 + Tailwind 4) that **1:1 archives, queries and destroys** decommissioned systems (ERP/CRM/OA) before servers are wiped. Detailed pain points & 4-phase flows: `README.md §📋/§🧩`.
 
 ## Repo layout
 
 ```text
 backend/src/main/java/com/rims/decommission/  # Spring Boot 3: controller→service→mapper→MySQL + databricks/storage/schema
-frontend/src/                                  # Vue 3 + TS strict + Element Plus + Pinia + Vite
+frontend/src/                                  # React 19 + Vite 8 + Tailwind 4 + TypeScript strict
 scripts/sql/                                   # Flyway V1/V2 — SSOT for DB (README §🗄️ is summary)
 scripts/databricks/                            # data_sync/compaction/destroy notebooks
 docs/                                          # PHASE1/2/3_TASK_PLAN.md + phase*_tasks.csv (task.csv subsets)
