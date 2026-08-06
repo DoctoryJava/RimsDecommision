@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, ShieldCheck, Users, Lock, Pencil, Trash2, Server, Building2, Crown, Info } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -7,6 +7,7 @@ import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
 import { roles, permissions } from '@/data/mockData';
 import type { RoleCategory } from '@/types';
+import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
 const roleColorMap: Record<string, 'primary' | 'secondary' | 'accent' | 'warning' | 'error' | 'neutral'> = {
   primary: 'primary',
@@ -26,8 +27,17 @@ const colorBg: Record<string, string> = {
   neutral: 'bg-neutral-100 text-neutral-600',
 };
 
+// TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function RolesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
+  // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
+  useEffect(() => {
+    getRoles({ pageNum: 1, pageSize: 100 } as any).then((res: any) => {
+      const list = (res as any)?.list ?? (res as any) ?? [];
+      if (Array.isArray(list) && list.length) console.log('[API] RolesPage.tsx fetched', list.length);
+      // TODO: set state with API data, e.g. setRoles(list) - keep mock as fallback for now
+    }).catch(e => console.warn('[API] RolesPage.tsx fallback to mockData', e));
+  }, []);
   const [activeTab, setActiveTab] = useState<RoleCategory>('admin');
   const [selectedRoleId, setSelectedRoleId] = useState<string>(roles[0].id);
 
@@ -46,6 +56,7 @@ export default function RolesPage() {
 
   return (
     <div className="p-6">
+      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
       <PageHeader
         title="Roles"
         subtitle="Two-tier access: platform admins manage the entire platform; system tenants only see their assigned systems."

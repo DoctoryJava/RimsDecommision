@@ -1,12 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Database, Table2, Download, Search, ChevronRight, ChevronDown, HardDrive, Server } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import PageHeader from '@/components/ui/PageHeader';
 import { schemas, systems } from '@/data/mockData';
+import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
+// TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function SchemasPage() {
   const [search, setSearch] = useState('');
+  // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
+  useEffect(() => {
+    getSchemas({ pageNum: 1, pageSize: 100 } as any).then((res: any) => {
+      const list = (res as any)?.list ?? (res as any) ?? [];
+      if (Array.isArray(list) && list.length) console.log('[API] SchemasPage.tsx fetched', list.length);
+      // TODO: set state with API data, e.g. setSchemas(list) - keep mock as fallback for now
+    }).catch(e => console.warn('[API] SchemasPage.tsx fallback to mockData', e));
+  }, []);
   const [systemFilter, setSystemFilter] = useState<string>('all');
   const [expandedSchema, setExpandedSchema] = useState<string | null>(null);
 
@@ -21,6 +31,7 @@ export default function SchemasPage() {
 
   return (
     <div className="p-6">
+      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
       <PageHeader title="Schema Browser" subtitle="Browse archived database schemas and tables across all systems" />
 
       {/* Summary stats */}

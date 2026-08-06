@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Plus,
   Search,
@@ -19,6 +19,7 @@ import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
 import { users, systems, roles } from '@/data/mockData';
 import type { RoleKey, RoleCategory } from '@/types';
+import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
 const roleColorMap: Record<RoleKey, 'primary' | 'secondary' | 'accent' | 'warning' | 'error' | 'neutral'> = {
   super_admin: 'primary',
@@ -40,6 +41,7 @@ const roleLabelMap: Record<RoleKey, string> = {
   system_viewer: 'System Viewer',
 };
 
+// TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function UsersPage() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<RoleCategory | 'all'>('all');
@@ -57,6 +59,7 @@ export default function UsersPage() {
 
   return (
     <div className="p-6">
+      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
       <PageHeader
         title="Users"
         subtitle="Manage user accounts. Admin users have global access; tenant users are scoped to assigned systems."

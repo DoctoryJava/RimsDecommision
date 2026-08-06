@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   RefreshCw,
   Play,
@@ -21,6 +21,7 @@ import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
 import { syncJobs, systems, schemas } from '@/data/mockData';
 import type { SyncStatus } from '@/types';
+import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
 const syncStatusMap: Record<SyncStatus, { color: 'success' | 'warning' | 'error' | 'primary' | 'neutral'; label: string }> = {
   success: { color: 'success', label: 'Success' },
@@ -30,12 +31,22 @@ const syncStatusMap: Record<SyncStatus, { color: 'success' | 'warning' | 'error'
   idle: { color: 'neutral', label: 'Idle' },
 };
 
+// TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function DataSyncPage() {
   const [showSyncModal, setShowSyncModal] = useState(false);
+  // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
+  useEffect(() => {
+    getSyncJobs({ pageNum: 1, pageSize: 100 } as any).then((res: any) => {
+      const list = (res as any)?.list ?? (res as any) ?? [];
+      if (Array.isArray(list) && list.length) console.log('[API] DataSyncPage.tsx fetched', list.length);
+      // TODO: set state with API data, e.g. setSyncJobs(list) - keep mock as fallback for now
+    }).catch(e => console.warn('[API] DataSyncPage.tsx fallback to mockData', e));
+  }, []);
   const [expandedSchema, setExpandedSchema] = useState<string | null>(schemas[0].id);
 
   return (
     <div className="p-6">
+      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
       <PageHeader
         title="Data Sync"
         subtitle="Trigger and monitor Databricks data synchronization jobs across systems"

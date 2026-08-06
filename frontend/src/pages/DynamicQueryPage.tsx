@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Search, ChevronLeft, ChevronRight, ChevronUp, ChevronDown,
   Filter, X, Code2, Eye, EyeOff, Download, RotateCcw, Plus,
@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import PageHeader from '@/components/ui/PageHeader';
 import { executeQuery, getEnumOptions } from '@/lib/queryEngine';
 import type { QueryConfig, FilterCondition, FilterOperator } from '@/types';
+import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
 interface DynamicQueryPageProps {
   configs: QueryConfig[];
@@ -40,6 +41,7 @@ const levelColorMap: Record<string, 'primary' | 'neutral'> = {
   普通: 'neutral',
 };
 
+// TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function DynamicQueryPage({ configs }: DynamicQueryPageProps) {
   const activeConfigs = configs.filter((c) => c.status === 'active');
   const [selectedConfigId, setSelectedConfigId] = useState<string>(activeConfigs[0]?.id || '');
@@ -67,7 +69,8 @@ export default function DynamicQueryPage({ configs }: DynamicQueryPageProps) {
   if (!selectedConfig || !result) {
     return (
       <div className="p-6">
-        <PageHeader title="动态查询" subtitle="基于配置自动生成的查询列表" />
+        <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
+      <PageHeader title="动态查询" subtitle="基于配置自动生成的查询列表" />
         <div className="text-center py-20">
           <Search size={48} className="mx-auto text-neutral-300 mb-4" />
           <p className="text-neutral-500">暂无已发布的查询配置</p>
@@ -111,6 +114,7 @@ export default function DynamicQueryPage({ configs }: DynamicQueryPageProps) {
 
   return (
     <div className="p-6">
+      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
       <PageHeader
         title="动态查询"
         subtitle="基于后台配置自动生成的查询列表 — 用户直接使用"

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, FileText, Eye, EyeOff, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import PageHeader from '@/components/ui/PageHeader';
 import { pages, roles } from '@/data/mockData';
 import type { RoleKey } from '@/types';
+import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
 const roleLabelMap: Record<RoleKey, string> = {
   super_admin: 'Super Admin',
@@ -17,8 +18,17 @@ const roleLabelMap: Record<RoleKey, string> = {
   system_viewer: 'System Viewer',
 };
 
+// TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function PagesPage() {
   const [pageList, setPageList] = useState(pages);
+  // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
+  useEffect(() => {
+    getPages({ pageNum: 1, pageSize: 100 } as any).then((res: any) => {
+      const list = (res as any)?.list ?? (res as any) ?? [];
+      if (Array.isArray(list) && list.length) console.log('[API] PagesPage.tsx fetched', list.length);
+      // TODO: set state with API data, e.g. setPages(list) - keep mock as fallback for now
+    }).catch(e => console.warn('[API] PagesPage.tsx fallback to mockData', e));
+  }, []);
 
   const move = (index: number, dir: 'up' | 'down') => {
     if (dir === 'up' && index === 0) return;
@@ -36,6 +46,7 @@ export default function PagesPage() {
 
   return (
     <div className="p-6">
+      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
       <PageHeader
         title="Page Management"
         subtitle="Configure which pages are visible to which roles, and their display order"

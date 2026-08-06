@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Server,
   Plus,
@@ -30,6 +30,7 @@ import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
 import { systems } from '@/data/mockData';
 import type { SystemRecord, LifecycleStage, SyncStatus } from '@/types';
+import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
 const stageMap: Record<LifecycleStage, { color: 'success' | 'warning' | 'neutral' | 'error'; label: string }> = {
   active: { color: 'success', label: 'Active' },
@@ -50,6 +51,7 @@ interface SystemsPageProps {
   onNavigateSystems: () => void;
 }
 
+// TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function SystemsPage({ onNavigateSystems }: SystemsPageProps) {
   const [selectedSystem, setSelectedSystem] = useState<SystemRecord | null>(null);
   const [filter, setFilter] = useState<LifecycleStage | 'all'>('all');

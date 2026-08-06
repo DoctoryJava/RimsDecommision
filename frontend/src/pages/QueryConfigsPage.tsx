@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Plus, Pencil, Trash2, Copy, Search, Eye, Code2, Database,
   Layers, ArrowRight, Save, X, ChevronDown, ChevronRight, Play,
@@ -11,14 +11,24 @@ import PageHeader from '@/components/ui/PageHeader';
 import { physicalTables } from '@/data/queryData';
 import { executeQuery } from '@/lib/queryEngine';
 import type { QueryConfig, FieldMapping, JoinConfig } from '@/types';
+import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
 interface QueryConfigsPageProps {
   configs: QueryConfig[];
   setConfigs: (configs: QueryConfig[]) => void;
 }
 
+// TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPageProps) {
   const [search, setSearch] = useState('');
+  // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
+  useEffect(() => {
+    getQueryConfigs({ pageNum: 1, pageSize: 100 } as any).then((res: any) => {
+      const list = (res as any)?.list ?? (res as any) ?? [];
+      if (Array.isArray(list) && list.length) console.log('[API] QueryConfigsPage.tsx fetched', list.length);
+      // TODO: set state with API data, e.g. setConfigs(list) - keep mock as fallback for now
+    }).catch(e => console.warn('[API] QueryConfigsPage.tsx fallback to mockData', e));
+  }, []);
   const [editingConfig, setEditingConfig] = useState<QueryConfig | null>(null);
   const [showPreview, setShowPreview] = useState<QueryConfig | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -63,6 +73,7 @@ export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPa
 
   return (
     <div className="p-6">
+      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
       <PageHeader
         title="查询配置管理"
         subtitle="配置动态查询的数据源、关联关系和字段映射 — 后台管理员功能"

@@ -72,3 +72,132 @@ export async function logout() {
   const res = await api.post<Result<null>>('/auth/logout');
   return res.data;
 }
+
+// Systems
+export async function getSystems(params: { pageNum?: number; pageSize?: number; search?: string; stage?: string } = {}) {
+  const res = await api.get<Result<PageResult<any>>>('/systems', { params });
+  return (res.data as Result<PageResult<any>>).data;
+}
+export async function createSystem(data: any) {
+  const res = await api.post<Result<any>>('/systems', data);
+  return (res.data as Result<any>).data;
+}
+export async function updateSystem(id: string, data: any) {
+  const res = await api.put<Result<any>>(`/systems/${id}`, data);
+  return (res.data as Result<any>).data;
+}
+export async function deleteSystem(id: string) {
+  const res = await api.delete<Result<null>>(`/systems/${id}`);
+  return res.data;
+}
+
+// Users
+export async function getUsers(params: any = {}) {
+  const res = await api.get<Result<PageResult<any>>>('/users', { params });
+  return (res.data as Result<PageResult<any>>).data;
+}
+export async function createUser(data: any) {
+  const res = await api.post<Result<any>>('/users', data);
+  return (res.data as Result<any>).data;
+}
+export async function updateUser(id: string, data: any) {
+  const res = await api.put<Result<any>>(`/users/${id}`, data);
+  return (res.data as Result<any>).data;
+}
+export async function deleteUser(id: string) {
+  const res = await api.delete<Result<null>>(`/users/${id}`);
+  return res.data;
+}
+
+// Roles
+export async function getRoles(params: any = {}) {
+  const res = await api.get<Result<any[]>>('/roles', { params });
+  return (res.data as Result<any[]>).data;
+}
+export async function createRole(data: any) {
+  const res = await api.post<Result<any>>('/roles', data);
+  return (res.data as Result<any>).data;
+}
+export async function updateRole(id: string, data: any) {
+  const res = await api.put<Result<any>>(`/roles/${id}`, data);
+  return (res.data as Result<any>).data;
+}
+export async function deleteRole(id: string) {
+  const res = await api.delete<Result<null>>(`/roles/${id}`);
+  return res.data;
+}
+
+// Permissions
+export async function getPermissions() {
+  const res = await api.get<Result<any[]>>('/permissions');
+  return (res.data as Result<any[]>).data;
+}
+
+// Pages
+export async function getPages() {
+  const res = await api.get<Result<any[]>>('/pages');
+  return (res.data as Result<any[]>).data;
+}
+
+// Dashboard
+export async function getSystemStats() {
+  const res = await api.get<Result<any>>('/systems/stats');
+  return (res.data as Result<any>).data;
+}
+export async function getStorageUsage() {
+  const res = await api.get<Result<any[]>>('/storage/usage');
+  return (res.data as Result<any[]>).data;
+}
+
+// Sync
+export async function getSyncJobs(params: any = {}) {
+  const res = await api.get<Result<PageResult<any>>>('/sync/jobs', { params });
+  return (res.data as Result<PageResult<any>>).data;
+}
+export async function createSyncJob(data: any) {
+  const res = await api.post<Result<any>>('/sync/jobs', data);
+  return (res.data as Result<any>).data;
+}
+
+// Schemas
+export async function getSchemas(params: any = {}) {
+  const res = await api.get<Result<any[]>>('/schemas', { params });
+  return (res.data as Result<any[]>).data;
+}
+export async function getTables() {
+  const res = await api.get<Result<any[]>>('/tables');
+  return (res.data as Result<any[]>).data;
+}
+export async function getTableData(table: string, params: any = {}) {
+  const res = await api.get<Result<any>>(`/tables/${table}/data`, { params });
+  // fallback to /tables/{name} if needed
+  return (res.data as Result<any>).data;
+}
+
+// Query
+export async function getQueryConfigs() {
+  const res = await api.get<Result<any[]>>('/query-configs');
+  return (res.data as Result<any[]>).data;
+}
+export async function createQueryConfig(data: any) {
+  const res = await api.post<Result<any>>('/query-configs', data);
+  return (res.data as Result<any>).data;
+}
+export async function updateQueryConfig(id: string, data: any) {
+  const res = await api.put<Result<any>>(`/query-configs/${id}`, data);
+  return (res.data as Result<any>).data;
+}
+export async function deleteQueryConfig(id: string) {
+  const res = await api.delete<Result<null>>(`/query-configs/${id}`);
+  return res.data;
+}
+export async function executeQuery(data: any) {
+  const res = await api.post<Result<PageResult<any>>>('/query/execute', data);
+  // backend returns Result<PageResult> with sql in message
+  const r = res.data as Result<PageResult<any>>;
+  return { page: r.data, sql: r.message };
+}
+export async function getSasUrl(systemId: string, objectKey: string) {
+  const res = await api.get<Result<{ sasUrl: string }>>(`/systems/${systemId}/attachments/sas`, { params: { objectKey }});
+  return (res.data as Result<{ sasUrl: string }>).data;
+}

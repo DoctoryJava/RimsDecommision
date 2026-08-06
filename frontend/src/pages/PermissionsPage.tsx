@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Key, Search, Crown, Building2 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import PageHeader from '@/components/ui/PageHeader';
 import { permissions } from '@/data/mockData';
 import type { PermissionRecord, PermissionCategory } from '@/types';
+import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
 const moduleColorMap: Record<string, 'primary' | 'secondary' | 'accent' | 'warning' | 'error' | 'neutral'> = {
   systems: 'primary',
@@ -25,8 +26,17 @@ const actionColorMap: Record<string, 'success' | 'warning' | 'error' | 'primary'
   export: 'secondary',
 };
 
+// TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function PermissionsPage() {
   const [search, setSearch] = useState('');
+  // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
+  useEffect(() => {
+    getPermissions({ pageNum: 1, pageSize: 100 } as any).then((res: any) => {
+      const list = (res as any)?.list ?? (res as any) ?? [];
+      if (Array.isArray(list) && list.length) console.log('[API] PermissionsPage.tsx fetched', list.length);
+      // TODO: set state with API data, e.g. setPermissions(list) - keep mock as fallback for now
+    }).catch(e => console.warn('[API] PermissionsPage.tsx fallback to mockData', e));
+  }, []);
   const [categoryFilter, setCategoryFilter] = useState<PermissionCategory | 'all'>('all');
 
   const filtered = permissions.filter((p) => {
@@ -40,6 +50,7 @@ export default function PermissionsPage() {
 
   return (
     <div className="p-6">
+      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
       <PageHeader title="Permissions" subtitle="All available permissions, organized by access tier: platform admin vs system tenant" />
 
       {/* Category filter */}

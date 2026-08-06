@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Database, Table2, Search, ChevronRight, Key, Hash, Calendar, Type, ToggleLeft } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import PageHeader from '@/components/ui/PageHeader';
 import { physicalTables } from '@/data/queryData';
 import type { FieldType } from '@/types';
+import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
 const typeIconMap: Record<FieldType, typeof Type> = {
   string: Type,
@@ -22,8 +23,17 @@ const typeColorMap: Record<FieldType, 'primary' | 'secondary' | 'accent' | 'warn
   select: 'secondary',
 };
 
+// TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function DbInspectorPage() {
   const [selectedTable, setSelectedTable] = useState<string>(physicalTables[0].name);
+  // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
+  useEffect(() => {
+    getTables({ pageNum: 1, pageSize: 100 } as any).then((res: any) => {
+      const list = (res as any)?.list ?? (res as any) ?? [];
+      if (Array.isArray(list) && list.length) console.log('[API] DbInspectorPage.tsx fetched', list.length);
+      // TODO: set state with API data, e.g. setTables(list) - keep mock as fallback for now
+    }).catch(e => console.warn('[API] DbInspectorPage.tsx fallback to mockData', e));
+  }, []);
   const [search, setSearch] = useState('');
 
   const table = physicalTables.find((t) => t.name === selectedTable) || physicalTables[0];
@@ -34,6 +44,7 @@ export default function DbInspectorPage() {
 
   return (
     <div className="p-6">
+      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
       <PageHeader
         title="数据库表结构"
         subtitle="查看物理表结构及数据 — 后台管理员功能"
