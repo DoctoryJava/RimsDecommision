@@ -19,8 +19,10 @@ export default function SchemasPage() {
   }, []);
   const [systemFilter, setSystemFilter] = useState<string>('all');
   const [expandedSchema, setExpandedSchema] = useState<string | null>(null);
+  const [schemasData, setSchemasData] = useState(schemas);
+  useEffect(() => { getSchemas().then(list => { if(list?.length) setSchemasData(list as any); }).catch(()=>{}); }, []);
 
-  const filteredSchemas = schemas.filter((s) => {
+  const filteredSchemas = schemasData.filter((s) => {
     if (systemFilter !== 'all' && s.systemId !== systemFilter) return false;
     if (search && !s.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;

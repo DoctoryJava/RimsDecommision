@@ -17,7 +17,7 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
-import { users, systems, roles } from '@/data/mockData';
+import { users as mockUsers, systems as mockSystems, roles as mockRoles } from '@/data/mockData';
 import type { RoleKey, RoleCategory } from '@/types';
 import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
@@ -46,16 +46,22 @@ export default function UsersPage() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<RoleCategory | 'all'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [usersData, setUsersData] = useState(mockUsers);
+  const [systemsData] = useState(mockSystems);
+  const [rolesData] = useState(mockRoles);
+  useEffect(() => {
+    getUsers({ pageNum: 1, pageSize: 100 }).then(p => { if(p?.list?.length) setUsersData(p.list as any); }).catch(()=>{});
+  }, []);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
-  const filtered = users.filter((u) => {
+  const filtered = usersData.filter((u) => {
     if (categoryFilter !== 'all' && u.category !== categoryFilter) return false;
     if (search && !u.name.toLowerCase().includes(search.toLowerCase()) && !u.email.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
-  const adminCount = users.filter((u) => u.category === 'admin').length;
-  const tenantCount = users.filter((u) => u.category === 'tenant').length;
+  const adminCount = usersData.filter((u) => u.category === 'admin').length;
+  const tenantCount = usersData.filter((u) => u.category === 'tenant').length;
 
   return (
     <div className="p-6">

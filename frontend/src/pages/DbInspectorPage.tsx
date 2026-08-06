@@ -25,7 +25,7 @@ const typeColorMap: Record<FieldType, 'primary' | 'secondary' | 'accent' | 'warn
 
 // TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function DbInspectorPage() {
-  const [selectedTable, setSelectedTable] = useState<string>(physicalTables[0].name);
+  const [selectedTable, setSelectedTable] = useState<string>(tablesData[0].name);
   // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
   useEffect(() => {
     getTables({ pageNum: 1, pageSize: 100 } as any).then((res: any) => {
@@ -35,8 +35,10 @@ export default function DbInspectorPage() {
     }).catch(e => console.warn('[API] DbInspectorPage.tsx fallback to mockData', e));
   }, []);
   const [search, setSearch] = useState('');
+  const [tablesData, setTablesData] = useState(physicalTables);
+  useEffect(() => { getTables().then(list => { if(list?.length) setTablesData(list as any); }).catch(()=>{}); }, []);
 
-  const table = physicalTables.find((t) => t.name === selectedTable) || physicalTables[0];
+  const table = tablesData.find((t) => t.name === selectedTable) || tablesData[0];
 
   const filteredRows = table.rows.filter((row) =>
     Object.values(row).some((val) => String(val).toLowerCase().includes(search.toLowerCase())),

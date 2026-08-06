@@ -3,7 +3,7 @@ import { Key, Search, Crown, Building2 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import PageHeader from '@/components/ui/PageHeader';
-import { permissions } from '@/data/mockData';
+import { permissions as mockPermissions } from '@/data/mockData';
 import type { PermissionRecord, PermissionCategory } from '@/types';
 import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
@@ -28,6 +28,8 @@ const actionColorMap: Record<string, 'success' | 'warning' | 'error' | 'primary'
 
 // TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function PermissionsPage() {
+  const [permsData, setPermsData] = useState(mockPermissions);
+  useEffect(() => { getPermissions().then(list => { if(list?.length) setPermsData(list as any); }).catch(()=>{}); }, []);
   const [search, setSearch] = useState('');
   // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
   useEffect(() => {
@@ -39,7 +41,7 @@ export default function PermissionsPage() {
   }, []);
   const [categoryFilter, setCategoryFilter] = useState<PermissionCategory | 'all'>('all');
 
-  const filtered = permissions.filter((p) => {
+  const filtered = permsData.filter((p) => {
     if (categoryFilter !== 'all' && p.category !== categoryFilter) return false;
     if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.code.toLowerCase().includes(search.toLowerCase())) return false;
     return true;

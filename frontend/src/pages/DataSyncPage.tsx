@@ -43,6 +43,8 @@ export default function DataSyncPage() {
     }).catch(e => console.warn('[API] DataSyncPage.tsx fallback to mockData', e));
   }, []);
   const [expandedSchema, setExpandedSchema] = useState<string | null>(schemas[0].id);
+  const [jobsData, setJobsData] = useState(syncJobs);
+  useEffect(() => { getSyncJobs({ pageNum: 1, pageSize: 20 }).then(p => { if(p?.list) setJobsData(p.list as any); }).catch(()=>{}); }, []);
 
   return (
     <div className="p-6">

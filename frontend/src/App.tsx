@@ -14,6 +14,7 @@ import QueryConfigsPage from '@/pages/QueryConfigsPage';
 import DynamicQueryPage from '@/pages/DynamicQueryPage';
 import DbInspectorPage from '@/pages/DbInspectorPage';
 import { initialQueryConfigs } from '@/data/queryData';
+import { getQueryConfigs } from '@/lib/api';
 import type { QueryConfig } from '@/types';
 
 const pageTitles: Record<PageKey, string> = {
@@ -35,6 +36,9 @@ export default function App() {
   const [loggedIn, setLoggedIn] = useState(() => !!localStorage.getItem('rims_token'));
   const [page, setPage] = useState<PageKey>('dashboard');
   const [queryConfigs, setQueryConfigs] = useState<QueryConfig[]>(initialQueryConfigs);
+  useEffect(() => {
+    getQueryConfigs().then(list => { if(list?.length) setQueryConfigs(list as unknown as QueryConfig[]); }).catch(()=>{});
+  }, []);
 
   // 若刷新后 token 仍在，保持登录态；也可在此预加载 user-info
   useEffect(() => {

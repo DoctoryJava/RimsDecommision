@@ -5,7 +5,7 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
-import { roles, permissions } from '@/data/mockData';
+import { roles as mockRoles, permissions as mockPermissions } from '@/data/mockData';
 import type { RoleCategory } from '@/types';
 import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
@@ -39,18 +39,24 @@ export default function RolesPage() {
     }).catch(e => console.warn('[API] RolesPage.tsx fallback to mockData', e));
   }, []);
   const [activeTab, setActiveTab] = useState<RoleCategory>('admin');
-  const [selectedRoleId, setSelectedRoleId] = useState<string>(roles[0].id);
+  const [selectedRoleId, setSelectedRoleId] = useState<string>(mockRoles[0].id);
+  const [rolesData, setRolesData] = useState(mockRoles);
+  const [permsData, setPermsData] = useState(mockPermissions);
+  useEffect(() => {
+    getRoles().then(list => { if(list?.length) setRolesData(list as any); }).catch(()=>{});
+    getPermissions().then(list => { if(list?.length) setPermsData(list as any); }).catch(()=>{});
+  }, []);
 
-  const filteredRoles = roles.filter((r) => r.category === activeTab);
-  const selectedRole = roles.find((r) => r.id === selectedRoleId) || filteredRoles[0] || roles[0];
+  const filteredRoles = rolesData.filter((r) => r.category === activeTab);
+  const selectedRole = rolesData.find((r) => r.id === selectedRoleId) || filteredRoles[0] || rolesData[0];
 
   const rolePerms = selectedRole.permissions.includes('*')
-    ? permissions.filter((p) => p.category === selectedRole.category)
-    : permissions.filter((p) => selectedRole.permissions.includes(p.code));
+    ? permsData.filter((p) => p.category === selectedRole.category)
+    : permsData.filter((p) => selectedRole.permissions.includes(p.code));
 
   const handleTabChange = (tab: RoleCategory) => {
     setActiveTab(tab);
-    const firstInTab = roles.find((r) => r.category === tab);
+    const firstInTab = rolesData.find((r) => r.category === tab);
     if (firstInTab) setSelectedRoleId(firstInTab.id);
   };
 
@@ -102,7 +108,7 @@ export default function RolesPage() {
             }`}
           >
             {tab === 'admin' ? 'Platform Admin' : 'System Tenant'}
-            <span className="ml-1.5 text-xs text-neutral-400">({roles.filter((r) => r.category === tab).length})</span>
+            <span className="ml-1.5 text-xs text-neutral-400">({rolesData.filter((r) => r.category === tab).length})</span>
             {activeTab === tab && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500 rounded-full" />}
           </button>
         ))}
