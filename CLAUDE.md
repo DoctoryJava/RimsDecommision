@@ -1,8 +1,8 @@
 # CLAUDE.md — Claude Code project memory
 
-> Read every session. Keep **<150 lines / <2500 tokens** — longer files reduce adherence [1](https://www.anthropic.com/engineering/claude-code-best-practices). This file gives Claude the context a new senior teammate needs. For tool-agnostic rules see `@AGENT.md`; for deep docs link to `docs/`.
+> Read every session. Keep **<150 lines / <2500 tokens** — longer files reduce adherence [1](https://www.anthropic.com/engineering/claude-code-best-practices). This file gives Claude the context a new senior teammate needs. For tool-agnostic rules see `@AGENTS.md`; for deep docs link to `docs/`.
 
-@AGENT.md
+@AGENTS.md
 
 ## Project overview
 
@@ -44,7 +44,7 @@ docker-compose up -d mysql redis && docker-compose down -v
 - **NEVER** store DB/Storage/Databricks Token in plaintext — **YOU MUST** use Key Vault/Secret Scope/env + `@JsonIgnore`.
 - **NEVER** desensitize in JS/TS or Java — **YOU MUST** configure UC COLUMN MASK; `isPii` columns are masked by UC automatically.
 
-The other two red lines (SAS ≤15 min, 1:1 lakehouse) are in `AGENT.md §Constraints`; they are equally enforced but not repeated to save budget.
+The other two red lines (SAS ≤15 min, 1:1 lakehouse) are in `AGENTS.md §Constraints`; they are equally enforced but not repeated to save budget.
 
 ## Conventions
 

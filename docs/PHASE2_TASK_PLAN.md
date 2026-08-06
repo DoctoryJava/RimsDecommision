@@ -5,7 +5,7 @@
 > **分支**：`arena/019fd5f0-rimsdecommision`  
 > **基线数据**：`task.csv` (114 行，含表头) → 本阶段 63 项  
 > **关联文件**：`docs/phase2_tasks.csv` (Phase2 子集, 64 行含表头) / `docs/PHASE1_TASK_PLAN.md` / `docs/PHASE3_TASK_PLAN.md`  
-> **上游文档**：`README.md` / `AGENT.md` / `CLAUDE.md` / `scripts/sql/` / `scripts/databricks/`
+> **上游文档**：`README.md` / `AGENTS.md` / `CLAUDE.md` / `scripts/sql/` / `scripts/databricks/`
 
 ---
 

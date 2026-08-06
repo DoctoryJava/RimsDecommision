@@ -186,7 +186,7 @@ RIMS Decommission 解决的核心问题：
 > **核心原则**: 元数据库仅存储系统配置、Schema 注册、RBAC 权限和审计日志。
 > **绝不**直接存储或查询归档的业务数据。所有业务数据查询统一走 Databricks SQL。
 >
-> **单一数据源**：本节为 AI 与人工查阅的唯一 DDL 说明源，与 `scripts/sql/V1__init_schema.sql` 保持一致。`CLAUDE.md` 与 `AGENT.md` 不再复制表结构，所有建表/改表必须通过 Flyway 迁移脚本（`V3__*.sql`）实现。
+> **单一数据源**：本节为 AI 与人工查阅的唯一 DDL 说明源，与 `scripts/sql/V1__init_schema.sql` 保持一致。`CLAUDE.md` 与 `AGENTS.md` 不再复制表结构，所有建表/改表必须通过 Flyway 迁移脚本（`V3__*.sql`）实现。
 
 ### 权限管理模块
 
@@ -259,7 +259,7 @@ CREATE TABLE `decomm_schema_registry` (
     `table_alias` VARCHAR(256) DEFAULT NULL COMMENT '中文别名 (e.g. 客户订单)',
     `primary_key` VARCHAR(128) DEFAULT NULL COMMENT '主键列名',
     `uc_full_name` VARCHAR(512) DEFAULT NULL COMMENT 'UC 全限定名: lake.CRM_V1.CUSTOMER_ORDER',
-    `schema_json` JSON NOT NULL COMMENT '完整 Schema 描述符 (JSON, 详见 AGENT.md §3.2)',
+    `schema_json` JSON NOT NULL COMMENT '完整 Schema 描述符 (JSON, 详见 AGENTS.md §3.2)',
     `is_attachment_table` TINYINT NOT NULL DEFAULT 0 COMMENT '是否为附件表',
     `attachment_config` JSON DEFAULT NULL COMMENT '附件表配置 (objectKeyField, blobContainer 等)',
     `row_count` BIGINT DEFAULT 0 COMMENT '实际行数 (同步完成后更新)',
@@ -299,7 +299,7 @@ CREATE TABLE `decomm_lifecycle_policy` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='数据生命周期策略表';
 ```
 
-> 其他 9 张表（`sys_user`/`sys_role`/`sys_menu`/`sys_permission`/`sys_user_role`/`sys_role_menu`/`sys_role_permission`/`decomm_db_config`/`decomm_storage_config`/`decomm_sync_job`/`decomm_sync_log`/`sys_audit_log` 等）及初始数据 `V2__init_data.sql` 请直接查阅 `scripts/sql/`。**禁止在 `AGENT.md` / `CLAUDE.md` 中重复复制 DDL。**
+> 其他 9 张表（`sys_user`/`sys_role`/`sys_menu`/`sys_permission`/`sys_user_role`/`sys_role_menu`/`sys_role_permission`/`decomm_db_config`/`decomm_storage_config`/`decomm_sync_job`/`decomm_sync_log`/`sys_audit_log` 等）及初始数据 `V2__init_data.sql` 请直接查阅 `scripts/sql/`。**禁止在 `AGENTS.md` / `CLAUDE.md` 中重复复制 DDL。**
 
 ### Schema Registry JSON 结构示例
 
@@ -375,7 +375,7 @@ CREATE TABLE `decomm_lifecycle_policy` (
 RimsDecommision/
 ├── README.md                          # 项目主文档（本文件）
 ├── CLAUDE.md                          # AI 编码规范与指令集
-├── AGENT.md                           # AI 业务领域知识库
+├── AGENTS.md                           # AI 业务领域知识库
 ├── .github/
 │   └── copilot-instructions.md        # GitHub Copilot 指令
 ├── docker-compose.yml                 # 容器编排

@@ -1,4 +1,4 @@
-# AGENT.md — Operational guide for AI coding agents
+# AGENTS.md — Operational guide for AI coding agents
 
 > **Scope**: Read by Codex, Cursor, Copilot, Claude Code and 28+ tools at session start. Keep it **operational, not explanatory**. Every line must change what the agent does; if removing it wouldn't cause a mistake, delete it. For deep design, see `README.md` and `docs/` (progressive disclosure). [1](https://thepromptshelf.dev/blog/agents-md-codex-setup-guide-2026/) [2](https://developers.openai.com/codex/learn/best-practices)
 
@@ -68,7 +68,7 @@ cd backend && mvn flyway:info  # if DB touched
 ## Pointers — load only when needed (avoid bloating every session)
 
 - DB schema SSOT: `README.md §🗄️ 数据库设计` + `scripts/sql/V1__init_schema.sql` (24477 bytes). **Never duplicate DDL here.**
-- Business flows (5 logics): `README.md §🧩 核心业务流程` + prior detailed edition archived at `git show HEAD~1:AGENT.md`.
+- Business flows (5 logics): `README.md §🧩 核心业务流程` + prior detailed edition archived at `git show HEAD~1:AGENTS.md`.
 - API surface: `CLAUDE.md §API` + SpringDoc (`/swagger-ui`), `docs/api/` if present.
 - Phase plans & task CSVs: `docs/PHASE*_TASK_PLAN.md`, `docs/phase*_tasks.csv` (26/63/24 items), `task.csv`.
 - Copilot short rules: `.github/copilot-instructions.md`.

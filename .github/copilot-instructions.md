@@ -29,4 +29,4 @@ You are working on **RIMS Decommission**, an enterprise data archive lifecycle m
 - **Schema Registry**: JSON metadata describing table structure, driving dynamic UI rendering
 - **Data Lifecycle**: Retention period after which data must be physically destroyed (DROP + VACUUM)
 
-For full details, read `CLAUDE.md` (coding rules) and `AGENT.md` (domain knowledge).
+For full details, read `CLAUDE.md` (coding rules) and `AGENTS.md` (domain knowledge).

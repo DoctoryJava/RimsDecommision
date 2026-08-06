@@ -5,7 +5,7 @@
 > **分支**：`arena/019fd5f0-rimsdecommision`  
 > **基线数据**：`task.csv` (114 行，含表头) → 本阶段 26 项  
 > **关联文件**：`docs/phase1_tasks.csv` (Phase1 子集)  
-> **上游文档**：`README.md` / `AGENT.md` / `CLAUDE.md` / `scripts/sql/` / `scripts/databricks/`
+> **上游文档**：`README.md` / `AGENTS.md` / `CLAUDE.md` / `scripts/sql/` / `scripts/databricks/`
 
 ---
 
@@ -75,7 +75,7 @@ Phase1 按模块分布：
 
 ### 2.2 承接的业务痛点
 
-来自 `AGENT.md - 一、业务背景`：
+来自 `AGENTS.md - 一、业务背景`：
 
 1. **不合规**：审计要求历史数据保留 N 年（3/5/7/10 年），服务器销毁即丢失风险；
 2. **不可查**：分散在旧 ERP/CRM/OA 中，出问题时无法快速溯源；
@@ -200,7 +200,7 @@ Phase1：基础归档与查询
 
 | 关键功能 | 具体功能 | 要点 |
 |----------|----------|------|
-| 历史数据批量导入 | 结构化批量导入 | JDBC 并行抽取（MySQL/Oracle/PostgreSQL/SQL Server），Iceberg 写入 ADLS，支持 `OVERWRITE` 幂等重试；参数组装见 `AGENT.md 逻辑一` |
+| 历史数据批量导入 | 结构化批量导入 | JDBC 并行抽取（MySQL/Oracle/PostgreSQL/SQL Server），Iceberg 写入 ADLS，支持 `OVERWRITE` 幂等重试；参数组装见 `AGENTS.md 逻辑一` |
 | | 非结构化/离线包导入 | 支持附件/普通文件/DB备份包/压缩包；大文件分片续传、中断重传；保留原始文件名/时间戳/路径；压缩包自动解压与清单解析 |
 | 迁移规则配置 | 数据导入规则配置 | 源字段→RIMS 标准字段映射、类型转换、正则校验、必填校验；在 `Schema Registry` 配置层可视化编辑 |
 | 迁移任务管理 | 导入任务调度与监控 | 项目/批次维度调度，实时进度（PENDING/RUNNING/SUCCESS/FAILED）、错误明细、重试入口 |
@@ -262,7 +262,7 @@ Phase1：基础归档与查询
 
 ## 5. 技术实现映射
 
-### 5.1 架构对应（来自 README / AGENT）
+### 5.1 架构对应（来自 README / AGENTS）
 
 | Phase1 能力 | 后端实现 | 前端实现 | 存储/计算 |
 |-------------|----------|----------|-----------|
