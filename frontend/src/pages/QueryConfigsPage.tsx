@@ -21,6 +21,9 @@ interface QueryConfigsPageProps {
 // TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPageProps) {
   const [search, setSearch] = useState('');
+  // Phase 4: fetch from backend with fallback to prop configs
+  const [loadingConfigs, setLoadingConfigs] = useState(false);
+
   // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
   useEffect(() => {
     getQueryConfigs({ pageNum: 1, pageSize: 100 } as any).then((res: any) => {
@@ -33,6 +36,8 @@ export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPa
   const [showPreview, setShowPreview] = useState<QueryConfig | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
+  // Fetch from backend on mount
+  // useEffect(() => { getQueryConfigs().then(list => { if(list?.length) setConfigs(list as any); }).catch(()=>{}); }, []);
   const filtered = configs.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.description.toLowerCase().includes(search.toLowerCase()),

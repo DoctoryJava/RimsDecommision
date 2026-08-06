@@ -7,7 +7,8 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import PageHeader from '@/components/ui/PageHeader';
-import { executeQuery, getEnumOptions } from '@/lib/queryEngine';
+import { executeQuery as localExecuteQuery, getEnumOptions } from '@/lib/queryEngine';
+import { executeQuery as apiExecuteQuery } from '@/lib/api';
 import type { QueryConfig, FilterCondition, FilterOperator } from '@/types';
 import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
