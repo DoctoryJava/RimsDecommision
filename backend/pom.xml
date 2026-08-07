@@ -42,9 +42,12 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <!-- Data -->
+        <!-- Spring Boot 3 需使用 mybatis-plus-spring-boot3-starter（自带的 mybatis-spring 3.0.x 与 Spring Boot 3.2 兼容）；
+             不能使用 mybatis-plus-boot-starter（它是 Spring Boot 2 版本，自带 mybatis-spring 2.1.x，
+             会触发 Invalid value type for attribute 'factoryBeanObjectType'） -->
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
             <version>${mybatis-plus.version}</version>
         </dependency>
         <dependency>
