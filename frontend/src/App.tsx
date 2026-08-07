@@ -22,22 +22,22 @@ import { getQueryConfigs } from '@/lib/api';
 import type { QueryConfig } from '@/types';
 
 const pageTitles: Record<PageKey, string> = {
-  dashboard: 'Dashboard',
-  systems: 'Systems',
-  'data-sync': 'Data Sync',
-  schemas: 'Schema Browser',
+  dashboard: '仪表盘',
+  systems: '退役系统',
+  'data-sync': '数据同步',
+  schemas: 'Schema 浏览器',
   'query-configs': '查询配置管理',
   'dynamic-query': '动态查询',
-  'db-inspector': '数据库表结构',
+  'db-inspector': '表结构管理',
   'data-sources': '数据源',
   archive: '归档产物',
   retention: '保留与合规',
   tags: '标签管理',
-  users: 'Users',
-  roles: 'Roles',
-  permissions: 'Permissions',
-  pages: 'Page Management',
-  settings: 'Settings',
+  users: '用户管理',
+  roles: '角色管理',
+  permissions: '权限管理',
+  pages: '页面管理',
+  settings: '系统设置',
 };
 
 export default function App() {

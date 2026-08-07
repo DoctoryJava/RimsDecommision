@@ -20,6 +20,8 @@ import {
   Search as SearchIcon,
   Archive,
   Tag as TagIcon,
+  Monitor,
+  Wrench,
 } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
 
@@ -47,51 +49,67 @@ interface SidebarProps {
   onLogout: () => void;
 }
 
-const navGroups: { label: string; items: { key: PageKey; label: string; icon: typeof LayoutDashboard; badge?: string }[] }[] = [
+type NavItem = { key: PageKey; label: string; icon: typeof LayoutDashboard; badge?: string };
+type NavGroup = { label: string; items: NavItem[] };
+type NavSection = { title: string; icon: typeof LayoutDashboard; groups: NavGroup[] };
+
+/** 一级分类：用户使用端 + 后台管理端；每类下面再分二级分组。 */
+const navSections: NavSection[] = [
   {
-    label: 'Overview',
-    items: [{ key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }],
-  },
-  {
-    label: 'Lifecycle',
-    items: [{ key: 'systems', label: 'Systems', icon: Server, badge: '6' }],
-  },
-  {
-    label: 'Data',
-    items: [
-      { key: 'data-sync', label: 'Data Sync', icon: RefreshCw },
-      { key: 'schemas', label: 'Schema Browser', icon: Database },
+    title: '用户使用',
+    icon: Monitor,
+    groups: [
+      {
+        label: '概览',
+        items: [{ key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }],
+      },
+      {
+        label: '数据使用',
+        items: [
+          { key: 'dynamic-query', label: '动态查询', icon: SearchIcon },
+          { key: 'data-sources', label: '数据源', icon: Database },
+        ],
+      },
     ],
   },
   {
-    label: 'Query System',
-    items: [
-      { key: 'dynamic-query', label: '动态查询', icon: SearchIcon },
-      { key: 'query-configs', label: '查询配置', icon: SlidersHorizontal },
-      { key: 'db-inspector', label: '表结构管理', icon: TableProperties },
+    title: '后台管理',
+    icon: Wrench,
+    groups: [
+      {
+        label: '权限管理',
+        items: [
+          { key: 'users', label: '用户', icon: Users },
+          { key: 'roles', label: '角色', icon: ShieldCheck },
+          { key: 'permissions', label: '权限', icon: Key },
+          { key: 'pages', label: '页面管理', icon: FileText },
+        ],
+      },
+      {
+        label: '配置管理',
+        items: [
+          { key: 'query-configs', label: '查询配置', icon: SlidersHorizontal },
+          { key: 'db-inspector', label: '表结构管理', icon: TableProperties },
+          { key: 'settings', label: '系统设置', icon: Settings },
+        ],
+      },
+      {
+        label: '系统与数据',
+        items: [
+          { key: 'systems', label: '退役系统', icon: Server, badge: '6' },
+          { key: 'data-sync', label: '数据同步', icon: RefreshCw },
+          { key: 'schemas', label: 'Schema 浏览器', icon: Database },
+        ],
+      },
+      {
+        label: '归档与合规',
+        items: [
+          { key: 'archive', label: '归档产物', icon: Archive },
+          { key: 'retention', label: '保留与合规', icon: ShieldCheck },
+          { key: 'tags', label: '标签管理', icon: TagIcon },
+        ],
+      },
     ],
-  },
-  {
-    label: 'Archive & Compliance',
-    items: [
-      { key: 'data-sources', label: '数据源', icon: Database },
-      { key: 'archive', label: '归档产物', icon: Archive },
-      { key: 'retention', label: '保留与合规', icon: ShieldCheck },
-      { key: 'tags', label: '标签管理', icon: TagIcon },
-    ],
-  },
-  {
-    label: 'Access Control',
-    items: [
-      { key: 'users', label: 'Users', icon: Users },
-      { key: 'roles', label: 'Roles', icon: ShieldCheck },
-      { key: 'permissions', label: 'Permissions', icon: Key },
-      { key: 'pages', label: 'Page Management', icon: FileText },
-    ],
-  },
-  {
-    label: 'System',
-    items: [{ key: 'settings', label: 'Settings', icon: Settings }],
   },
 ];
 
@@ -117,42 +135,64 @@ export default function Sidebar({ current, onNavigate, onLogout }: SidebarProps)
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4 px-2">
-        {navGroups.map((group) => (
-          <div key={group.label} className="mb-5">
-            {!collapsed && (
-              <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-neutral-600">
-                {group.label}
-              </p>
-            )}
-            {group.items.map((item) => {
-              const Icon = item.icon;
-              const active = current === item.key;
-              return (
-                <button
-                  key={item.key}
-                  onClick={() => onNavigate(item.key)}
-                  title={collapsed ? item.label : undefined}
-                  className={`group w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 mb-0.5 ${
-                    active
-                      ? 'bg-primary-500/10 text-primary-300'
-                      : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/50'
-                  }`}
-                >
-                  <Icon size={18} className={`shrink-0 ${active ? 'text-primary-400' : ''}`} />
-                  {!collapsed && <span className="flex-1 text-left whitespace-nowrap">{item.label}</span>}
-                  {!collapsed && item.badge && (
-                    <Badge color={active ? 'primary' : 'neutral'} variant={active ? 'soft' : 'solid'} size="sm">
-                      {item.badge}
-                    </Badge>
-                  )}
-                  {collapsed && item.badge && (
-                    <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary-400" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        ))}
+        {navSections.map((section) => {
+          const SectionIcon = section.icon;
+          return (
+            <div key={section.title} className="mb-6">
+              {!collapsed && (
+                <div className="flex items-center gap-2 px-3 mb-2">
+                  <SectionIcon size={13} className="text-primary-400" />
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-300/80">
+                    {section.title}
+                  </p>
+                </div>
+              )}
+              {collapsed && (
+                <div className="px-2 mb-2">
+                  <SectionIcon size={15} className="text-primary-400/70 mx-auto" />
+                </div>
+              )}
+              <div className="space-y-4">
+                {section.groups.map((group) => (
+                  <div key={group.label}>
+                    {!collapsed && (
+                      <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-neutral-600">
+                        {group.label}
+                      </p>
+                    )}
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      const active = current === item.key;
+                      return (
+                        <button
+                          key={item.key}
+                          onClick={() => onNavigate(item.key)}
+                          title={collapsed ? item.label : undefined}
+                          className={`group w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 mb-0.5 ${
+                            active
+                              ? 'bg-primary-500/10 text-primary-300'
+                              : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/50'
+                          }`}
+                        >
+                          <Icon size={18} className={`shrink-0 ${active ? 'text-primary-400' : ''}`} />
+                          {!collapsed && <span className="flex-1 text-left whitespace-nowrap">{item.label}</span>}
+                          {!collapsed && item.badge && (
+                            <Badge color={active ? 'primary' : 'neutral'} variant={active ? 'soft' : 'solid'} size="sm">
+                              {item.badge}
+                            </Badge>
+                          )}
+                          {collapsed && item.badge && (
+                            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary-400" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </nav>
 
       {/* User & Collapse */}
