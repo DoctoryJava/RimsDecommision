@@ -232,6 +232,25 @@ RIMS Decommission 解决的核心问题：
 | `r_physical_table` | 物理表元数据（列定义+示例行，驱动动态查询） | `MockStore.physicalTables()` |
 | `r_query_config` | 动态查询配置 | `MockStore.queryConfigs()` |
 
+#### 归档与保留扩展表（对应设计类图，`scripts/sql/V5__create_r_extended_tables.sql` / `V6__seed_r_extended_data.sql`）
+
+| 表名 | 对应类图 | 说明 |
+|------|----------|------|
+| `r_source_database` | SourceDatabase | 源数据库（一个系统可有多个库；凭据走密钥引用） |
+| `r_unstructured_source` | UnstructuredSource | 非结构化数据源（文件共享/Blob/S3/MinIO） |
+| `r_unstructured_item` | UnstructuredItem | 非结构化文件条目（路径/大小/哈希/推导日期） |
+| `r_archive_batch` | ArchiveBatch | 归档批次（一次 Job 运行，记录行数/字节/结果） |
+| `r_archive_file` | ArchiveFile | 结构化表归档产物（parquet/blob 地址/校验和） |
+| `r_archive_set` | ArchiveSet | 非结构化文件集归档产物（目录/条目数/总字节） |
+| `r_archive_set_item` | ArchiveSetItem | 归档集内的单文件条目 |
+| `r_retention_policy` | RetentionPolicy | 保留策略（保留天数 + 起算触发点） |
+| `r_retention_assignment` | RetentionAssignment | 保留指派（策略→对象，起止日期与法定保留状态） |
+| `r_legal_hold_event` | LegalHoldEvent | 法定保留事件（HOLD/RELEASE 审计） |
+| `r_tag` | Tag | 标签键值 |
+| `r_object_tag` | ObjectTag | 对象-标签关联（多对多） |
+
+> 关联约定：`r_source_database/r_unstructured_source/r_unstructured_item` 关联 `r_system`；`r_archive_batch` 关联 `r_sync_job`（ArchiveJob）；`r_archive_file`/`r_archive_set` 关联 `r_archive_batch`；`r_archive_set_item` 关联 `r_archive_set`；`r_retention_assignment` 关联 `r_retention_policy`；`r_legal_hold_event` 关联 `r_retention_assignment`；`r_object_tag` 关联 `r_tag`。
+
 > 完整 DDL 共 12 张表，详见 `scripts/sql/V1__init_schema.sql`（303 行）。以下摘录 3 张退役域核心表的建表语句（已与 `V1` 保持一致，生产以 `V1` 为准）：
 
 #### 退役系统注册表 `decomm_system`

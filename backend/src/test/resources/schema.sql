@@ -139,3 +139,73 @@ CREATE TABLE IF NOT EXISTS `r_query_config` (
     `updated_at`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `deleted`      TINYINT NOT NULL DEFAULT 0
 );
+
+-- ========== 扩展表（V5，对齐 scripts/sql/V5__create_r_extended_tables.sql） ==========
+CREATE TABLE IF NOT EXISTS `r_source_database` (
+    `id` VARCHAR(64) PRIMARY KEY, `source_system_id` VARCHAR(64) NOT NULL,
+    `db_type` VARCHAR(32) NOT NULL, `server` VARCHAR(255), `database_name` VARCHAR(128) NOT NULL,
+    `connection_secret_ref` VARCHAR(512), `conn_string_hash` VARCHAR(128), `description` VARCHAR(512),
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
+
+CREATE TABLE IF NOT EXISTS `r_unstructured_source` (
+    `id` VARCHAR(64) PRIMARY KEY, `source_system_id` VARCHAR(64) NOT NULL, `source_type` VARCHAR(32) NOT NULL,
+    `location_uri` VARCHAR(512), `mount_path` VARCHAR(255), `file_pattern` VARCHAR(255),
+    `date_extraction_rule` VARCHAR(255), `description` VARCHAR(512),
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
+
+CREATE TABLE IF NOT EXISTS `r_unstructured_item` (
+    `id` VARCHAR(64) PRIMARY KEY, `unstructured_source_id` VARCHAR(64) NOT NULL, `original_path` VARCHAR(512),
+    `original_name` VARCHAR(255) NOT NULL, `size_bytes` BIGINT NOT NULL DEFAULT 0, `content_type` VARCHAR(128),
+    `last_modified` DATETIME, `derived_date` DATE, `hash` VARCHAR(128),
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
+
+CREATE TABLE IF NOT EXISTS `r_archive_batch` (
+    `id` VARCHAR(64) PRIMARY KEY, `archive_job_id` VARCHAR(64) NOT NULL, `batch_year` INT,
+    `started_at` DATETIME, `finished_at` DATETIME, `rows_out` BIGINT NOT NULL DEFAULT 0, `bytes_out` BIGINT NOT NULL DEFAULT 0,
+    `result` VARCHAR(32) NOT NULL DEFAULT 'RUNNING', `log_url` VARCHAR(512), `correlation_id` VARCHAR(64),
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
+
+CREATE TABLE IF NOT EXISTS `r_archive_file` (
+    `id` VARCHAR(64) PRIMARY KEY, `archive_batch_id` VARCHAR(64) NOT NULL, `schema_name` VARCHAR(128),
+    `table_name` VARCHAR(128) NOT NULL, `blob_url` VARCHAR(512) NOT NULL, `size_bytes` BIGINT NOT NULL DEFAULT 0,
+    `checksum` VARCHAR(128), `etag` VARCHAR(128), `created_on` DATETIME,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
+
+CREATE TABLE IF NOT EXISTS `r_archive_set` (
+    `id` VARCHAR(64) PRIMARY KEY, `archive_batch_id` VARCHAR(64) NOT NULL, `set_name` VARCHAR(128) NOT NULL,
+    `blob_dir_url` VARCHAR(512), `items_count` INT NOT NULL DEFAULT 0, `bytes_total` BIGINT NOT NULL DEFAULT 0, `created_on` DATETIME,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
+
+CREATE TABLE IF NOT EXISTS `r_archive_set_item` (
+    `id` VARCHAR(64) PRIMARY KEY, `archive_set_id` VARCHAR(64) NOT NULL, `original_path` VARCHAR(512),
+    `original_name` VARCHAR(255) NOT NULL, `blob_url` VARCHAR(512), `size_bytes` BIGINT NOT NULL DEFAULT 0,
+    `checksum` VARCHAR(128), `content_type` VARCHAR(128), `copied_at` DATETIME,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
+
+CREATE TABLE IF NOT EXISTS `r_retention_policy` (
+    `id` VARCHAR(64) PRIMARY KEY, `code` VARCHAR(64) NOT NULL, `name` VARCHAR(128) NOT NULL,
+    `description` VARCHAR(512), `period_days` INT NOT NULL, `start_trigger` VARCHAR(32) NOT NULL DEFAULT 'SYNC_COMPLETED', `created_on` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_r_retention_code ON `r_retention_policy`(`code`);
+
+CREATE TABLE IF NOT EXISTS `r_retention_assignment` (
+    `id` VARCHAR(64) PRIMARY KEY, `policy_id` VARCHAR(64) NOT NULL, `object_type` VARCHAR(32) NOT NULL,
+    `object_id` VARCHAR(64) NOT NULL, `start_date` DATE, `due_date` DATE, `status` VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
+    `current_hold_start` DATETIME, `current_hold_end` DATETIME, `assigned_by` VARCHAR(64), `created_on` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
+
+CREATE TABLE IF NOT EXISTS `r_legal_hold_event` (
+    `id` VARCHAR(64) PRIMARY KEY, `assignment_id` VARCHAR(64) NOT NULL, `action` VARCHAR(32) NOT NULL,
+    `hold_start` DATETIME, `hold_end` DATETIME, `reason` VARCHAR(512), `actor_id` VARCHAR(64), `ts` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
+
+CREATE TABLE IF NOT EXISTS `r_tag` (
+    `id` VARCHAR(64) PRIMARY KEY, `tag_key` VARCHAR(128) NOT NULL, `tag_value` VARCHAR(255),
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_r_tag_kv ON `r_tag`(`tag_key`, `tag_value`);
+
+CREATE TABLE IF NOT EXISTS `r_object_tag` (
+    `id` VARCHAR(64) PRIMARY KEY, `object_type` VARCHAR(32) NOT NULL, `object_id` VARCHAR(64) NOT NULL,
+    `tag_id` VARCHAR(64) NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_r_object_tag ON `r_object_tag`(`object_type`, `object_id`, `tag_id`);
