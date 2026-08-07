@@ -65,7 +65,7 @@ export default function UsersPage() {
 
   return (
     <div className="p-6">
-      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
+      {/* API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData */}
       <PageHeader
         title="Users"
         subtitle="Manage user accounts. Admin users have global access; tenant users are scoped to assigned systems."

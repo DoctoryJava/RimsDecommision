@@ -52,7 +52,7 @@ export default function PermissionsPage() {
 
   return (
     <div className="p-6">
-      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
+      {/* API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData */}
       <PageHeader title="Permissions" subtitle="All available permissions, organized by access tier: platform admin vs system tenant" />
 
       {/* Category filter */}

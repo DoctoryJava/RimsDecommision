@@ -48,7 +48,7 @@ export default function DataSyncPage() {
 
   return (
     <div className="p-6">
-      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
+      {/* API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData */}
       <PageHeader
         title="Data Sync"
         subtitle="Trigger and monitor Databricks data synchronization jobs across systems"

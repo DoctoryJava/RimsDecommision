@@ -46,7 +46,7 @@ export default function PagesPage() {
 
   return (
     <div className="p-6">
-      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
+      {/* API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData */}
       <PageHeader
         title="Page Management"
         subtitle="Configure which pages are visible to which roles, and their display order"

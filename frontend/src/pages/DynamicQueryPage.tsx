@@ -70,7 +70,7 @@ export default function DynamicQueryPage({ configs }: DynamicQueryPageProps) {
   if (!selectedConfig || !result) {
     return (
       <div className="p-6">
-        <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
+        {/* API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData */}
       <PageHeader title="动态查询" subtitle="基于配置自动生成的查询列表" />
         <div className="text-center py-20">
           <Search size={48} className="mx-auto text-neutral-300 mb-4" />
@@ -115,7 +115,7 @@ export default function DynamicQueryPage({ configs }: DynamicQueryPageProps) {
 
   return (
     <div className="p-6">
-      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
+      {/* API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData */}
       <PageHeader
         title="动态查询"
         subtitle="基于后台配置自动生成的查询列表 — 用户直接使用"

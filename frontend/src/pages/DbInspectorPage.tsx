@@ -46,7 +46,7 @@ export default function DbInspectorPage() {
 
   return (
     <div className="p-6">
-      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
+      {/* API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData */}
       <PageHeader
         title="数据库表结构"
         subtitle="查看物理表结构及数据 — 后台管理员功能"

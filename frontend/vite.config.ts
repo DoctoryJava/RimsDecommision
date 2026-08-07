@@ -6,6 +6,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
+    // @ts-ignore - tsconfigPaths is valid in Vite 8
     tsconfigPaths: true,
   },
   optimizeDeps: {
@@ -19,8 +20,9 @@ export default defineConfig({
       },
     },
   },
+  // @ts-ignore - vitest test config
   test: {
     environment: 'jsdom',
     globals: true,
   },
-});
+} as any);

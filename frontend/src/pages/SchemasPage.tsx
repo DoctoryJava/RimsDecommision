@@ -33,7 +33,7 @@ export default function SchemasPage() {
 
   return (
     <div className="p-6">
-      <!-- API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData -->
+      {/* API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData */}
       <PageHeader title="Schema Browser" subtitle="Browse archived database schemas and tables across all systems" />
 
       {/* Summary stats */}
