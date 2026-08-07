@@ -3,9 +3,8 @@ import { Database, Table2, Search, ChevronRight, Key, Hash, Calendar, Type, Togg
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import PageHeader from '@/components/ui/PageHeader';
-import { physicalTables } from '@/data/queryData';
-import type { FieldType } from '@/types';
-import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
+import type { FieldType, PhysicalTable } from '@/types';
+import { getTables } from '@/lib/api';
 
 const typeIconMap: Record<FieldType, typeof Type> = {
   string: Type,
@@ -26,14 +25,25 @@ const typeColorMap: Record<FieldType, 'primary' | 'secondary' | 'accent' | 'warn
 // TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function DbInspectorPage() {
   const [search, setSearch] = useState('');
-  const [tablesData, setTablesData] = useState(physicalTables);
-  // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
+  const [tablesData, setTablesData] = useState<PhysicalTable[]>([]);
   useEffect(() => {
-    getTables().then(list => { if(list?.length) setTablesData(list as any); }).catch(()=>{});
+    getTables().then((list: any) => { if(list?.length) setTablesData(list as unknown as PhysicalTable[]); }).catch(()=>{});
   }, []);
-  const [selectedTable, setSelectedTable] = useState<string>(physicalTables[0]?.name || '');
+  const [selectedTable, setSelectedTable] = useState<string>('');
 
   const table = tablesData.find((t) => t.name === selectedTable) || tablesData[0];
+
+  if (!table) {
+    return (
+      <div className="p-6">
+        <PageHeader title="数据库表结构" subtitle="查看物理表结构及数据" />
+        <div className="text-center py-20">
+          <Database size={48} className="mx-auto text-neutral-300 mb-4" />
+          <p className="text-neutral-500">暂无物理表数据</p>
+        </div>
+      </div>
+    );
+  }
 
   const filteredRows = table.rows.filter((row) =>
     Object.values(row).some((val) => String(val).toLowerCase().includes(search.toLowerCase())),
@@ -53,11 +63,11 @@ export default function DbInspectorPage() {
           <Card className="overflow-hidden">
             <div className="px-4 py-3 border-b border-neutral-100">
               <p className="text-sm font-semibold text-neutral-700 flex items-center gap-2">
-                <Database size={16} /> 物理表 ({physicalTables.length})
+                <Database size={16} /> 物理表 ({tablesData.length})
               </p>
             </div>
             <div className="p-2">
-              {physicalTables.map((t) => (
+              {tablesData.map((t) => (
                 <button
                   key={t.name}
                   onClick={() => setSelectedTable(t.name)}

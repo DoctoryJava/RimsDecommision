@@ -28,9 +28,8 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
-import { systems as mockSystems } from '@/data/mockData';
 import type { SystemRecord, LifecycleStage, SyncStatus } from '@/types';
-import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
+import { getSystems } from '@/lib/api';
 
 const stageMap: Record<LifecycleStage, { color: 'success' | 'warning' | 'neutral' | 'error'; label: string }> = {
   active: { color: 'success', label: 'Active' },
@@ -55,7 +54,7 @@ interface SystemsPageProps {
 export default function SystemsPage({ onNavigateSystems }: SystemsPageProps) {
   const [selectedSystem, setSelectedSystem] = useState<SystemRecord | null>(null);
   const [filter, setFilter] = useState<LifecycleStage | 'all'>('all');
-  const [systemsData, setSystemsData] = useState<SystemRecord[]>(mockSystems);
+  const [systemsData, setSystemsData] = useState<SystemRecord[]>([]);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
     let mounted = true;

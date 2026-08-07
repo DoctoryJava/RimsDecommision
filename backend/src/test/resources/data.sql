@@ -65,3 +65,13 @@ INSERT INTO `r_physical_table` (`id`,`name`,`label`,`system_id`,`columns`,`rows`
 INSERT INTO `r_query_config` (`id`,`name`,`description`,`base_table`,`joins`,`fields`,`default_sort`,`page_size`,`status`,`created_by`,`created_at`,`updated_at`) VALUES
 ('qc-001','订单综合查询','关联订单客户产品','orders','[{"id":"j1","leftTable":"orders","leftColumn":"customer_id","rightTable":"customers","rightColumn":"customer_id","joinType":"left"}]','[{"alias":"order_id","table":"orders","column":"order_id","label":"订单编号"}]','{"field":"order_id","direction":"desc"}',10,'active','Sarah Chen','2026-06-01 00:00:00','2026-07-15 00:00:00'),
 ('qc-002','客户订单统计','按客户汇总','customers','[]','[{"alias":"name","table":"customers","column":"name","label":"客户名称"}]','{"field":"name","direction":"asc"}',10,'active','Robert Kim','2026-06-10 00:00:00','2026-07-20 00:00:00');
+
+-- 仪表盘同步活跃度
+INSERT INTO `r_sync_activity` (`id`,`day_label`,`activity_date`,`success_count`,`failed_count`,`partial_count`,`running_count`) VALUES
+('sa-001','Mon','2026-07-31',4,1,0,0),
+('sa-002','Tue','2026-08-01',5,0,1,0),
+('sa-003','Wed','2026-08-02',3,2,0,0),
+('sa-004','Thu','2026-08-03',6,0,0,0),
+('sa-005','Fri','2026-08-04',4,1,1,0),
+('sa-006','Sat','2026-08-05',2,0,0,1),
+('sa-007','Sun','2026-08-06',3,0,0,2);

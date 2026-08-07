@@ -249,6 +249,12 @@ RIMS Decommission 解决的核心问题：
 | `r_tag` | Tag | 标签键值 |
 | `r_object_tag` | ObjectTag | 对象-标签关联（多对多） |
 
+#### 仪表盘聚合表（`scripts/sql/V7__create_dashboard_tables.sql` / `V8__seed_dashboard_data.sql`）
+
+| 表名 | 说明 |
+|------|------|
+| `r_sync_activity` | 按日聚合的同步活跃度（success/failed/partial/running），供 Dashboard「同步活跃度」图表 |
+
 > 关联约定：`r_source_database/r_unstructured_source/r_unstructured_item` 关联 `r_system`；`r_archive_batch` 关联 `r_sync_job`（ArchiveJob）；`r_archive_file`/`r_archive_set` 关联 `r_archive_batch`；`r_archive_set_item` 关联 `r_archive_set`；`r_retention_assignment` 关联 `r_retention_policy`；`r_legal_hold_event` 关联 `r_retention_assignment`；`r_object_tag` 关联 `r_tag`。
 
 > 完整 DDL 共 12 张表，详见 `scripts/sql/V1__init_schema.sql`（303 行）。以下摘录 3 张退役域核心表的建表语句（已与 `V1` 保持一致，生产以 `V1` 为准）：

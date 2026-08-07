@@ -4,9 +4,8 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import PageHeader from '@/components/ui/PageHeader';
-import { pages, roles } from '@/data/mockData';
-import type { RoleKey } from '@/types';
-import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
+import type { RoleKey, PageRecord } from '@/types';
+import { getPages } from '@/lib/api';
 
 const roleLabelMap: Record<RoleKey, string> = {
   super_admin: 'Super Admin',
@@ -20,10 +19,9 @@ const roleLabelMap: Record<RoleKey, string> = {
 
 // TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function PagesPage() {
-  const [pageList, setPageList] = useState(pages);
-  // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
+  const [pageList, setPageList] = useState<PageRecord[]>([]);
   useEffect(() => {
-    getPages().then(list => { if(list?.length) setPageList(list as any); }).catch(()=>{});
+    getPages().then(list => { if(list?.length) setPageList(list as unknown as PageRecord[]); }).catch(()=>{});
   }, []);
 
   const move = (index: number, dir: 'up' | 'down') => {
@@ -121,9 +119,9 @@ export default function PagesPage() {
                 <div key={page.id} className="p-3 rounded-lg border border-neutral-100">
                   <p className="text-sm font-medium text-neutral-800 mb-2">{page.name}</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {page.visibleTo.map((roleKey) => (
+                    {(page.visibleTo ?? []).map((roleKey) => (
                       <span key={roleKey} className="text-xs px-2 py-0.5 rounded-md bg-primary-50 text-primary-700 font-medium">
-                        {roleLabelMap[roleKey]}
+                        {roleLabelMap[roleKey as RoleKey] || roleKey}
                       </span>
                     ))}
                   </div>

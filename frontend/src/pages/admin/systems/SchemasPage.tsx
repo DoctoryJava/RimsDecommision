@@ -3,24 +3,19 @@ import { Database, Table2, Download, Search, ChevronRight, ChevronDown, HardDriv
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import PageHeader from '@/components/ui/PageHeader';
-import { schemas, systems } from '@/data/mockData';
-import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
+import { getSchemas, getSystems } from '@/lib/api';
+import type { SchemaRecord, SystemRecord } from '@/types';
 
-// TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function SchemasPage() {
   const [search, setSearch] = useState('');
-  // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
-  useEffect(() => {
-    getSchemas({ pageNum: 1, pageSize: 100 } as any).then((res: any) => {
-      const list = (res as any)?.list ?? (res as any) ?? [];
-      if (Array.isArray(list) && list.length) console.log('[API] SchemasPage.tsx fetched', list.length);
-      // TODO: set state with API data, e.g. setSchemas(list) - keep mock as fallback for now
-    }).catch(e => console.warn('[API] SchemasPage.tsx fallback to mockData', e));
-  }, []);
   const [systemFilter, setSystemFilter] = useState<string>('all');
   const [expandedSchema, setExpandedSchema] = useState<string | null>(null);
-  const [schemasData, setSchemasData] = useState(schemas);
-  useEffect(() => { getSchemas().then(list => { if(list?.length) setSchemasData(list as any); }).catch(()=>{}); }, []);
+  const [schemasData, setSchemasData] = useState<SchemaRecord[]>([]);
+  const [systemsData, setSystemsData] = useState<SystemRecord[]>([]);
+  useEffect(() => {
+    getSchemas().then((list: any) => { if(list?.length) setSchemasData(list as unknown as SchemaRecord[]); }).catch(()=>{});
+    getSystems({ pageNum: 1, pageSize: 100 }).then((p: any) => { if(p?.list) setSystemsData(p.list as SystemRecord[]); }).catch(()=>{});
+  }, []);
 
   const filteredSchemas = schemasData.filter((s) => {
     if (systemFilter !== 'all' && s.systemId !== systemFilter) return false;
@@ -91,7 +86,7 @@ export default function SchemasPage() {
           className="px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all"
         >
           <option value="all">All Systems</option>
-          {systems.map((s) => (
+          {systemsData.map((s) => (
             <option key={s.id} value={s.id}>{s.name}</option>
           ))}
         </select>
@@ -101,7 +96,7 @@ export default function SchemasPage() {
       <div className="space-y-2">
         {filteredSchemas.map((schema) => {
           const isExpanded = expandedSchema === schema.id;
-          const system = systems.find((s) => s.id === schema.systemId);
+          const system = systemsData.find((s) => s.id === schema.systemId);
           return (
             <Card key={schema.id} className="overflow-hidden">
               <button

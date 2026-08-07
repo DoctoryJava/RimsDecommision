@@ -148,6 +148,10 @@ export async function getStorageUsage() {
   const res = await api.get<Result<any[]>>('/storage/usage');
   return (res.data as Result<any[]>).data;
 }
+export async function getSyncActivity() {
+  const res = await api.get<Result<any[]>>('/sync/activity');
+  return (res.data as Result<any[]>).data;
+}
 
 // Sync
 export async function getSyncJobs(params: any = {}) {

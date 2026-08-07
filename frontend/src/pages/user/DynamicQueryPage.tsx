@@ -1,13 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Search, ChevronLeft, ChevronRight, ChevronUp, ChevronDown,
-  Filter, X, Code2, Eye, EyeOff, Download, RotateCcw, Plus,
+  Filter, X, Code2, Eye, EyeOff, Download, RotateCcw, Plus, RefreshCw,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import PageHeader from '@/components/ui/PageHeader';
-import { executeQuery as localExecuteQuery, getEnumOptions } from '@/lib/queryEngine';
 import { executeQuery as apiExecuteQuery } from '@/lib/api';
 import type { QueryConfig, FilterCondition, FilterOperator } from '@/types';
 import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
@@ -54,24 +53,40 @@ export default function DynamicQueryPage({ configs }: DynamicQueryPageProps) {
   const [showFilterPanel, setShowFilterPanel] = useState(true);
 
   const selectedConfig = activeConfigs.find((c) => c.id === selectedConfigId) || activeConfigs[0];
+  const [result, setResult] = useState<{ rows: Record<string, any>[]; total: number; page: number; pageSize: number; sql: string } | null>(null);
+  const [queryLoading, setQueryLoading] = useState(false);
 
-  const result = useMemo(() => {
-    if (!selectedConfig) return null;
-    return localExecuteQuery(
-      selectedConfig,
+  // 从后端 /query/execute（基于 r_physical_table 等数据库表）拉取查询结果
+  useEffect(() => {
+    if (!selectedConfig) { setResult(null); return; }
+    let cancelled = false;
+    setQueryLoading(true);
+    apiExecuteQuery({
+      configId: selectedConfig.id,
       filters,
       sortField,
       sortDirection,
       page,
-      selectedConfig.pageSize,
-    );
+      pageSize: selectedConfig.pageSize,
+    }).then((res) => {
+      if (cancelled) return;
+      const rows = res?.page?.list ?? [];
+      setResult({
+        rows,
+        total: res?.page?.total ?? 0,
+        page,
+        pageSize: selectedConfig.pageSize,
+        sql: res?.sql ?? '',
+      });
+    }).catch(() => { if (!cancelled) setResult({ rows: [], total: 0, page, pageSize: selectedConfig.pageSize, sql: '' }); })
+      .finally(() => { if (!cancelled) setQueryLoading(false); });
+    return () => { cancelled = true; };
   }, [selectedConfig, filters, sortField, sortDirection, page]);
 
-  if (!selectedConfig || !result) {
+  if (!selectedConfig) {
     return (
       <div className="p-6">
-        {/* API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData */}
-      <PageHeader title="动态查询" subtitle="基于配置自动生成的查询列表" />
+        <PageHeader title="动态查询" subtitle="基于配置自动生成的查询列表" />
         <div className="text-center py-20">
           <Search size={48} className="mx-auto text-neutral-300 mb-4" />
           <p className="text-neutral-500">暂无已发布的查询配置</p>
@@ -79,6 +94,20 @@ export default function DynamicQueryPage({ configs }: DynamicQueryPageProps) {
       </div>
     );
   }
+
+  if (queryLoading && !result) {
+    return (
+      <div className="p-6">
+        <PageHeader title="动态查询" subtitle="基于配置自动生成的查询列表" />
+        <div className="text-center py-20">
+          <RefreshCw size={48} className="mx-auto text-neutral-300 mb-4 animate-spin" />
+          <p className="text-neutral-500">加载中…</p>
+        </div>
+      </div>
+    );
+  }
+
+  const current = result ?? { rows: [] as any[], total: 0, page: 1, pageSize: selectedConfig.pageSize, sql: '' };
 
   const visibleFields = selectedConfig.fields.filter((f) => f.visible);
   const filterableFields = selectedConfig.fields.filter((f) => f.filterable);
@@ -111,7 +140,7 @@ export default function DynamicQueryPage({ configs }: DynamicQueryPageProps) {
     setPage(1);
   };
 
-  const totalPages = Math.ceil(result.total / selectedConfig.pageSize) || 1;
+  const totalPages = Math.ceil(current.total / selectedConfig.pageSize) || 1;
 
   return (
     <div className="p-6">
@@ -172,7 +201,7 @@ export default function DynamicQueryPage({ configs }: DynamicQueryPageProps) {
           <div className="px-3 pb-3 space-y-2">
             {filters.map((filter, i) => {
               const field = selectedConfig.fields.find((f) => f.alias === filter.field);
-              const options = field ? getEnumOptions(selectedConfig, filter.field) : [];
+              const options = field?.options || [];
               return (
                 <div key={i} className="flex items-center gap-2">
                   <select
@@ -242,7 +271,7 @@ export default function DynamicQueryPage({ configs }: DynamicQueryPageProps) {
             <span className="text-xs font-medium">生成的 SQL</span>
           </div>
           <pre className="text-xs font-mono text-neutral-100 bg-neutral-900 p-4 overflow-x-auto whitespace-pre-wrap">
-            {result.sql}
+            {current.sql}
           </pre>
         </Card>
       )}
@@ -251,7 +280,7 @@ export default function DynamicQueryPage({ configs }: DynamicQueryPageProps) {
       <Card className="overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100">
           <p className="text-sm text-neutral-600">
-            共 <span className="font-semibold text-neutral-900">{result.total}</span> 条记录
+            共 <span className="font-semibold text-neutral-900">{current.total}</span> 条记录
           </p>
           <p className="text-xs text-neutral-400">第 {page} / {totalPages} 页</p>
         </div>
@@ -282,7 +311,7 @@ export default function DynamicQueryPage({ configs }: DynamicQueryPageProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
-              {result.rows.length === 0 ? (
+              {current.rows.length === 0 ? (
                 <tr>
                   <td colSpan={visibleFields.length} className="text-center py-12 text-sm text-neutral-400">
                     <Search size={32} className="mx-auto mb-2 text-neutral-300" />
@@ -290,7 +319,7 @@ export default function DynamicQueryPage({ configs }: DynamicQueryPageProps) {
                   </td>
                 </tr>
               ) : (
-                result.rows.map((row, i) => (
+                current.rows.map((row, i) => (
                   <tr key={i} className="hover:bg-neutral-50/50 transition-colors">
                     {visibleFields.map((field) => (
                       <td key={field.id} className="px-4 py-3 text-sm text-neutral-700 whitespace-nowrap">

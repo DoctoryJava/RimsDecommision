@@ -8,10 +8,8 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
-import { physicalTables } from '@/data/queryData';
-import { executeQuery } from '@/lib/queryEngine';
 import type { QueryConfig, FieldMapping, JoinConfig } from '@/types';
-import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
+import { getTables, executeQuery as apiExecuteQuery } from '@/lib/api';
 
 interface QueryConfigsPageProps {
   configs: QueryConfig[];
@@ -21,15 +19,15 @@ interface QueryConfigsPageProps {
 // TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPageProps) {
   const [search, setSearch] = useState('');
-  // Phase 4: fetch from backend with fallback to prop configs
-  const [loadingConfigs, setLoadingConfigs] = useState(false);
-
   const [editingConfig, setEditingConfig] = useState<QueryConfig | null>(null);
   const [showPreview, setShowPreview] = useState<QueryConfig | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [tablesData, setTablesData] = useState<any[]>([]);
 
-  // Fetch from backend on mount
-  // useEffect(() => { getQueryConfigs().then(list => { if(list?.length) setConfigs(list as any); }).catch(()=>{}); }, []);
+  // 物理表元数据来自后端 /tables（r_physical_table 表）
+  useEffect(() => {
+    getTables().then((list: any) => { if (Array.isArray(list) && list.length) setTablesData(list as any[]); }).catch(()=>{});
+  }, []);
   const filtered = configs.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.description.toLowerCase().includes(search.toLowerCase()),
@@ -196,6 +194,7 @@ export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPa
       {editingConfig && (
         <ConfigEditorModal
           config={editingConfig}
+          tables={tablesData}
           onSave={handleSave}
           onClose={() => setEditingConfig(null)}
         />
@@ -208,8 +207,9 @@ export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPa
   );
 }
 
-function ConfigEditorModal({ config, onSave, onClose }: {
+function ConfigEditorModal({ config, tables, onSave, onClose }: {
   config: QueryConfig;
+  tables: any[];
   onSave: (c: QueryConfig) => void;
   onClose: () => void;
 }) {
@@ -254,8 +254,11 @@ function ConfigEditorModal({ config, onSave, onClose }: {
     setDraft({ ...draft, joins: draft.joins.filter((j) => j.id !== id) });
   };
 
-  const availableTables = physicalTables;
-  const getColumns = (tableName: string) => getTableColumns(tableName);
+  const availableTables = tables;
+  const getColumns = (tableName: string) => {
+    const t = tables.find((x: any) => x.name === tableName);
+    return (t?.columns || []) as any[];
+  };
 
   return (
     <Modal
@@ -511,8 +514,22 @@ function ConfigEditorModal({ config, onSave, onClose }: {
 }
 
 function PreviewModal({ config, onClose }: { config: QueryConfig; onClose: () => void }) {
-  const result = executeQuery(config, [], config.defaultSort.field, config.defaultSort.direction, 1, 5);
+  const [rows, setRows] = useState<any[]>([]);
+  const [sql, setSql] = useState('');
+  const [total, setTotal] = useState(0);
   const visibleFields = config.fields.filter((f) => f.visible);
+
+  // 预览数据来自后端 /query/execute（数据库表）
+  useEffect(() => {
+    let cancelled = false;
+    apiExecuteQuery({ configId: config.id, page: 1, pageSize: 5 }).then((res) => {
+      if (cancelled) return;
+      setRows((res?.page?.list ?? []) as any[]);
+      setTotal(res?.page?.total ?? 0);
+      setSql(res?.sql ?? '');
+    }).catch(() => { if (!cancelled) { setRows([]); setTotal(0); setSql(''); } });
+    return () => { cancelled = true; };
+  }, [config.id]);
 
   return (
     <Modal
@@ -525,7 +542,7 @@ function PreviewModal({ config, onClose }: { config: QueryConfig; onClose: () =>
     >
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-xs text-neutral-500">
-          <Badge color="primary" size="sm">{result.total} 条记录</Badge>
+          <Badge color="primary" size="sm">{total} 条记录</Badge>
           <Badge color="neutral" size="sm">{visibleFields.length} 个字段</Badge>
           <Badge color="neutral" size="sm">{config.joins.length} 个关联</Badge>
         </div>
@@ -541,7 +558,7 @@ function PreviewModal({ config, onClose }: { config: QueryConfig; onClose: () =>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
-              {result.rows.map((row, i) => (
+              {rows.map((row, i) => (
                 <tr key={i} className="hover:bg-neutral-50/50">
                   {visibleFields.map((f) => (
                     <td key={f.id} className="px-3 py-2 text-xs text-neutral-700 whitespace-nowrap">
@@ -556,7 +573,7 @@ function PreviewModal({ config, onClose }: { config: QueryConfig; onClose: () =>
         <div>
           <p className="text-xs font-semibold text-neutral-600 mb-2 flex items-center gap-1.5"><Code2 size={14} /> 生成的 SQL</p>
           <pre className="text-xs font-mono text-neutral-700 bg-neutral-900 text-neutral-100 rounded-lg p-4 overflow-x-auto whitespace-pre-wrap">
-            {result.sql}
+            {sql}
           </pre>
         </div>
       </div>
@@ -564,7 +581,3 @@ function PreviewModal({ config, onClose }: { config: QueryConfig; onClose: () =>
   );
 }
 
-function getTableColumns(tableName: string) {
-  const table = physicalTables.find((t) => t.name === tableName);
-  return table?.columns || [];
-}

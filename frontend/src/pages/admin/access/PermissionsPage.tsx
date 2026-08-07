@@ -3,9 +3,8 @@ import { Key, Search, Crown, Building2 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import PageHeader from '@/components/ui/PageHeader';
-import { permissions as mockPermissions } from '@/data/mockData';
 import type { PermissionRecord, PermissionCategory } from '@/types';
-import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
+import { getPermissions } from '@/lib/api';
 
 const moduleColorMap: Record<string, 'primary' | 'secondary' | 'accent' | 'warning' | 'error' | 'neutral'> = {
   systems: 'primary',
@@ -28,7 +27,7 @@ const actionColorMap: Record<string, 'success' | 'warning' | 'error' | 'primary'
 
 // TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function PermissionsPage() {
-  const [permsData, setPermsData] = useState(mockPermissions);
+  const [permsData, setPermsData] = useState<PermissionRecord[]>([]);
   useEffect(() => { getPermissions().then(list => { if(list?.length) setPermsData(list as any); }).catch(()=>{}); }, []);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<PermissionCategory | 'all'>('all');

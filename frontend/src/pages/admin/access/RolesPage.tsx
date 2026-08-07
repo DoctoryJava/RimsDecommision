@@ -5,9 +5,8 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
-import { roles as mockRoles, permissions as mockPermissions } from '@/data/mockData';
 import type { RoleCategory } from '@/types';
-import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
+import { getRoles, getPermissions } from '@/lib/api';
 
 const roleColorMap: Record<string, 'primary' | 'secondary' | 'accent' | 'warning' | 'error' | 'neutral'> = {
   primary: 'primary',
@@ -30,21 +29,13 @@ const colorBg: Record<string, string> = {
 // TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function RolesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
-  // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
-  useEffect(() => {
-    getRoles({ pageNum: 1, pageSize: 100 } as any).then((res: any) => {
-      const list = (res as any)?.list ?? (res as any) ?? [];
-      if (Array.isArray(list) && list.length) console.log('[API] RolesPage.tsx fetched', list.length);
-      // TODO: set state with API data, e.g. setRoles(list) - keep mock as fallback for now
-    }).catch(e => console.warn('[API] RolesPage.tsx fallback to mockData', e));
-  }, []);
   const [activeTab, setActiveTab] = useState<RoleCategory>('admin');
-  const [selectedRoleId, setSelectedRoleId] = useState<string>(mockRoles[0].id);
-  const [rolesData, setRolesData] = useState(mockRoles);
-  const [permsData, setPermsData] = useState(mockPermissions);
+  const [selectedRoleId, setSelectedRoleId] = useState<string>('');
+  const [rolesData, setRolesData] = useState<any[]>([]);
+  const [permsData, setPermsData] = useState<any[]>([]);
   useEffect(() => {
-    getRoles().then(list => { if(list?.length) setRolesData(list as any); }).catch(()=>{});
-    getPermissions().then(list => { if(list?.length) setPermsData(list as any); }).catch(()=>{});
+    getRoles().then((list: any) => { if(list?.length) setRolesData(list as any[]); }).catch(()=>{});
+    getPermissions().then((list: any) => { if(list?.length) setPermsData(list as any[]); }).catch(()=>{});
   }, []);
 
   const filteredRoles = rolesData.filter((r) => r.category === activeTab);

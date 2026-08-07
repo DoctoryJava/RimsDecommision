@@ -209,3 +209,11 @@ CREATE TABLE IF NOT EXISTS `r_object_tag` (
     `tag_id` VARCHAR(64) NOT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
 CREATE UNIQUE INDEX IF NOT EXISTS uk_r_object_tag ON `r_object_tag`(`object_type`, `object_id`, `tag_id`);
+
+-- ========== 仪表盘表（V7） ==========
+CREATE TABLE IF NOT EXISTS `r_sync_activity` (
+    `id` VARCHAR(64) PRIMARY KEY, `day_label` VARCHAR(16) NOT NULL, `activity_date` DATE,
+    `success_count` INT NOT NULL DEFAULT 0, `failed_count` INT NOT NULL DEFAULT 0,
+    `partial_count` INT NOT NULL DEFAULT 0, `running_count` INT NOT NULL DEFAULT 0,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_r_sync_activity_day ON `r_sync_activity`(`day_label`);

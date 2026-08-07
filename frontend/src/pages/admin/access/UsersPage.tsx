@@ -17,9 +17,8 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
-import { users as mockUsers, systems as mockSystems, roles as mockRoles } from '@/data/mockData';
-import type { RoleKey, RoleCategory } from '@/types';
-import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
+import type { RoleKey, RoleCategory, UserRecord, SystemRecord, RoleRecord } from '@/types';
+import { getSystems, getUsers, getRoles } from '@/lib/api';
 
 const roleColorMap: Record<RoleKey, 'primary' | 'secondary' | 'accent' | 'warning' | 'error' | 'neutral'> = {
   super_admin: 'primary',
@@ -46,11 +45,13 @@ export default function UsersPage() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<RoleCategory | 'all'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [usersData, setUsersData] = useState(mockUsers);
-  const [systemsData] = useState(mockSystems);
-  const [rolesData] = useState(mockRoles);
+  const [usersData, setUsersData] = useState<UserRecord[]>([]);
+  const [systemsData, setSystemsData] = useState<SystemRecord[]>([]);
+  const [rolesData, setRolesData] = useState<RoleRecord[]>([]);
   useEffect(() => {
-    getUsers({ pageNum: 1, pageSize: 100 }).then(p => { if(p?.list?.length) setUsersData(p.list as any); }).catch(()=>{});
+    getUsers({ pageNum: 1, pageSize: 100 }).then(p => { if(p?.list?.length) setUsersData(p.list as UserRecord[]); }).catch(()=>{});
+    getSystems({ pageNum: 1, pageSize: 100 }).then(p => { if(p?.list) setSystemsData(p.list as SystemRecord[]); }).catch(()=>{});
+    getRoles().then((list: any) => { if(list?.length) setRolesData(list as RoleRecord[]); }).catch(()=>{});
   }, []);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 

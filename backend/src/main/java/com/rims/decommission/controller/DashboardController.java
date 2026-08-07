@@ -1,7 +1,10 @@
 package com.rims.decommission.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.rims.decommission.common.Result;
+import com.rims.decommission.entity.RSyncActivity;
 import com.rims.decommission.entity.RSystem;
+import com.rims.decommission.mapper.RSyncActivityMapper;
 import com.rims.decommission.service.RSystemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,9 +18,11 @@ import java.util.stream.Collectors;
 public class DashboardController {
 
     private final RSystemService systemService;
+    private final RSyncActivityMapper syncActivityMapper;
 
-    public DashboardController(RSystemService systemService) {
+    public DashboardController(RSystemService systemService, RSyncActivityMapper syncActivityMapper) {
         this.systemService = systemService;
+        this.syncActivityMapper = syncActivityMapper;
     }
 
     @GetMapping("/systems/stats")
@@ -38,6 +43,7 @@ public class DashboardController {
                 .map(s -> {
                     Map<String,Object> m = new LinkedHashMap<>();
                     m.put("system", s.getCode());
+                    m.put("name", s.getName());
                     m.put("gb", s.getDataSizeGb() != null ? s.getDataSizeGb() : 0);
                     return m;
                 })
@@ -46,12 +52,20 @@ public class DashboardController {
     }
 
     @GetMapping("/sync/activity")
-    @Operation(summary = "同步活跃度")
+    @Operation(summary = "同步活跃度（r_sync_activity 表）")
     public Result<List<Map<String,Object>>> activity() {
-        return Result.success(List.of(
-            Map.<String,Object>of("day","Mon","success",4,"failed",1),
-            Map.<String,Object>of("day","Tue","success",5,"failed",0),
-            Map.<String,Object>of("day","Wed","success",3,"failed",2)
-        ));
+        List<RSyncActivity> rows = syncActivityMapper.selectList(
+                new LambdaQueryWrapper<RSyncActivity>()
+                        .orderByAsc(RSyncActivity::getActivityDate)
+                        .last("LIMIT 7"));
+        List<Map<String,Object>> list = rows.stream().map(a -> {
+            Map<String,Object> m = new LinkedHashMap<>();
+            m.put("day", a.getDayLabel());
+            m.put("success", a.getSuccessCount() != null ? a.getSuccessCount() : 0);
+            m.put("failed", a.getFailedCount() != null ? a.getFailedCount() : 0);
+            m.put("partial", a.getPartialCount() != null ? a.getPartialCount() : 0);
+            return m;
+        }).collect(Collectors.toList());
+        return Result.success(list);
     }
 }

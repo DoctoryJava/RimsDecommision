@@ -16,7 +16,6 @@ import DataSourcesPage from '@/pages/user/DataSourcesPage';
 import ArchivePage from '@/pages/admin/archive/ArchivePage';
 import RetentionPage from '@/pages/admin/archive/RetentionPage';
 import TagsPage from '@/pages/admin/archive/TagsPage';
-import { initialQueryConfigs } from '@/data/queryData';
 import { getQueryConfigs } from '@/lib/api';
 import type { QueryConfig } from '@/types';
 
@@ -71,7 +70,7 @@ function pageFromHash(): PageKey {
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(() => !!localStorage.getItem('rims_token'));
   const [page, setPage] = useState<PageKey>(pageFromHash);
-  const [queryConfigs, setQueryConfigs] = useState<QueryConfig[]>(initialQueryConfigs);
+  const [queryConfigs, setQueryConfigs] = useState<QueryConfig[]>([]);
 
   useEffect(() => {
     getQueryConfigs().then(list => { if(list?.length) setQueryConfigs(list as unknown as QueryConfig[]); }).catch(()=>{});

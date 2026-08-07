@@ -19,9 +19,8 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
-import { syncJobs, systems, schemas } from '@/data/mockData';
-import type { SyncStatus } from '@/types';
-import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
+import type { SyncStatus, SyncJob, SchemaRecord, SystemRecord } from '@/types';
+import { getSystems, getSyncJobs, getSchemas } from '@/lib/api';
 
 const syncStatusMap: Record<SyncStatus, { color: 'success' | 'warning' | 'error' | 'primary' | 'neutral'; label: string }> = {
   success: { color: 'success', label: 'Success' },
@@ -34,17 +33,17 @@ const syncStatusMap: Record<SyncStatus, { color: 'success' | 'warning' | 'error'
 // TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function DataSyncPage() {
   const [showSyncModal, setShowSyncModal] = useState(false);
-  // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
+  const [expandedSchema, setExpandedSchema] = useState<string | null>(null);
+  const [jobsData, setJobsData] = useState<SyncJob[]>([]);
+  const [schemasData, setSchemasData] = useState<SchemaRecord[]>([]);
+  const [systemsData, setSystemsData] = useState<SystemRecord[]>([]);
+
+  // 数据全部来自后端
   useEffect(() => {
-    getSyncJobs({ pageNum: 1, pageSize: 100 } as any).then((res: any) => {
-      const list = (res as any)?.list ?? (res as any) ?? [];
-      if (Array.isArray(list) && list.length) console.log('[API] DataSyncPage.tsx fetched', list.length);
-      // TODO: set state with API data, e.g. setSyncJobs(list) - keep mock as fallback for now
-    }).catch(e => console.warn('[API] DataSyncPage.tsx fallback to mockData', e));
+    getSyncJobs({ pageNum: 1, pageSize: 100 }).then((p: any) => { if(p?.list) setJobsData(p.list as SyncJob[]); }).catch(()=>{});
+    getSchemas().then((list: any) => { if(Array.isArray(list) && list.length) { setSchemasData(list as unknown as SchemaRecord[]); setExpandedSchema((list[0] as any).id); } }).catch(()=>{});
+    getSystems({ pageNum: 1, pageSize: 100 }).then((p: any) => { if(p?.list) setSystemsData(p.list as SystemRecord[]); }).catch(()=>{});
   }, []);
-  const [expandedSchema, setExpandedSchema] = useState<string | null>(schemas[0].id);
-  const [jobsData, setJobsData] = useState(syncJobs);
-  useEffect(() => { getSyncJobs({ pageNum: 1, pageSize: 20 }).then(p => { if(p?.list) setJobsData(p.list as any); }).catch(()=>{}); }, []);
 
   return (
     <div className="p-6">
@@ -91,7 +90,7 @@ export default function DataSyncPage() {
       <Card className="overflow-hidden mb-5">
         <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
           <h3 className="text-base font-semibold text-neutral-900">Sync Jobs</h3>
-          <Badge color="neutral" size="sm">{syncJobs.length} total</Badge>
+          <Badge color="neutral" size="sm">{jobsData.length} total</Badge>
         </div>
         <table className="w-full">
           <thead>
@@ -107,7 +106,7 @@ export default function DataSyncPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100">
-            {syncJobs.map((job) => {
+            {jobsData.map((job) => {
               const s = syncStatusMap[job.status];
               const Icon = job.status === 'success' ? CheckCircle2 : job.status === 'failed' ? AlertTriangle : job.status === 'syncing' ? RefreshCw : Clock;
               return (
@@ -139,9 +138,9 @@ export default function DataSyncPage() {
           <p className="text-xs text-neutral-500 mt-0.5">Browse synced schemas and tables across systems</p>
         </div>
         <div className="divide-y divide-neutral-100">
-          {schemas.map((schema) => {
+          {schemasData.map((schema) => {
             const isExpanded = expandedSchema === schema.id;
-            const system = systems.find((s) => s.id === schema.systemId);
+            const system = systemsData.find((s) => s.id === schema.systemId);
             return (
               <div key={schema.id}>
                 <button
@@ -223,7 +222,7 @@ export default function DataSyncPage() {
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">Select System</label>
             <select className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all">
-              {systems.map((s) => (
+              {systemsData.map((s) => (
                 <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
               ))}
             </select>
