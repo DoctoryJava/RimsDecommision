@@ -5,10 +5,10 @@ server:
 
 spring:
   datasource:
-    # 本地开发默认 MySQL；无 MySQL 时可注释并用 H2 测试：见 application-dev.yml
-    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/rims_decommission?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai}
-    username: ${MYSQL_USERNAME:rims}
-    password: ${MYSQL_PASSWORD:rims123}
+    # 生产/开发 MySQL 连接（AiCoder）。可通过 MYSQL_URL/MYSQL_USERNAME/MYSQL_PASSWORD 环境变量覆盖。
+    url: ${MYSQL_URL:jdbc:mysql://cq-cdb-9bf4xslt.sql.tencentcdb.com:63819/AiCoder?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}
+    username: ${MYSQL_USERNAME:AiCoder}
+    password: ${MYSQL_PASSWORD:AiCoder@2025}
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:

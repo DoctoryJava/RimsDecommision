@@ -1,11 +1,15 @@
 package com.rims.decommission.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.rims.decommission.common.PageResult;
 import com.rims.decommission.common.Result;
-import com.rims.decommission.mock.MockStore;
+import com.rims.decommission.entity.RSyncJob;
+import com.rims.decommission.mapper.RSyncJobMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -14,46 +18,91 @@ import java.util.stream.Collectors;
 @Tag(name = "数据同步")
 public class SyncController {
 
+    private final RSyncJobMapper mapper;
+
+    public SyncController(RSyncJobMapper mapper) {
+        this.mapper = mapper;
+    }
+
     @GetMapping("/jobs")
-    @Operation(summary = "同步任务列表")
+    @Operation(summary = "同步任务列表（r_sync_job 表）")
     public Result<PageResult<Map<String,Object>>> list(
             @RequestParam(defaultValue="1") int pageNum,
             @RequestParam(defaultValue="20") int pageSize,
             @RequestParam(required=false) String status) {
-        var list = MockStore.syncJobs();
+        LambdaQueryWrapper<RSyncJob> w = new LambdaQueryWrapper<>();
         if (status != null && !status.isBlank()) {
-            list = list.stream().filter(j -> status.equals(j.get("status"))).collect(Collectors.toList());
+            w.eq(RSyncJob::getStatus, status);
         }
-        int from = Math.min((pageNum-1)*pageSize, list.size());
-        int to = Math.min(from+pageSize, list.size());
-        return Result.success(PageResult.of(list.size(), list.subList(from,to), pageNum, pageSize));
+        w.orderByDesc(RSyncJob::getCreatedAt);
+        var ipage = mapper.selectPage(new Page<>(pageNum, pageSize), w);
+        List<Map<String,Object>> list = ipage.getRecords().stream().map(this::toMap).collect(Collectors.toList());
+        return Result.success(PageResult.of(ipage.getTotal(), list, pageNum, pageSize));
     }
 
     @PostMapping("/jobs")
     @Operation(summary = "创建同步任务")
     public Result<Map<String,Object>> create(@RequestBody Map<String,Object> body) {
-        body.putIfAbsent("id","job-"+System.currentTimeMillis());
-        body.put("status","syncing");
-        body.put("startedAt", java.time.LocalDateTime.now().toString());
-        return Result.success(body);
+        RSyncJob job = fromMap(body);
+        if (job.getId() == null || job.getId().isBlank()) job.setId("job-" + System.currentTimeMillis());
+        if (job.getStatus() == null) job.setStatus("syncing");
+        if (job.getStartedAt() == null) job.setStartedAt(LocalDateTime.now().toString());
+        mapper.insert(job);
+        return Result.success(toMap(mapper.selectById(job.getId())));
     }
 
     @GetMapping("/jobs/{id}")
     public Result<Map<String,Object>> detail(@PathVariable String id) {
-        return MockStore.syncJobs().stream().filter(j -> id.equals(j.get("id"))).findFirst()
-                .map(Result::success).orElse(Result.fail(404,"任务不存在"));
+        RSyncJob job = mapper.selectById(id);
+        if (job == null) return Result.fail(404, "任务不存在");
+        return Result.success(toMap(job));
     }
 
     @PostMapping("/jobs/{id}/cancel")
     public Result<Void> cancel(@PathVariable String id) {
+        RSyncJob job = mapper.selectById(id);
+        if (job != null) { job.setStatus("cancelled"); mapper.updateById(job); }
         return Result.success(null);
     }
 
     @GetMapping("/jobs/{id}/logs")
     public Result<List<Map<String,Object>>> logs(@PathVariable String id) {
+        RSyncJob job = mapper.selectById(id);
+        if (job == null) return Result.success(List.of());
+        if (job.getLogs() != null && !job.getLogs().isEmpty()) return Result.success(job.getLogs());
         return Result.success(List.of(
-            Map.of("time","2026-08-06 02:14","level","INFO","message","开始同步表 order_header"),
-            Map.of("time","2026-08-06 02:15","level","INFO","message","完成 4820000 行")
+            Map.of("time", job.getStartedAt() != null ? job.getStartedAt() : "", "level", "INFO", "message", "开始同步任务 " + job.getId()),
+            Map.of("time", "", "level", "INFO", "message", "完成 " + job.getRecords() + " 行")
         ));
     }
+
+    private Map<String,Object> toMap(RSyncJob job) {
+        Map<String,Object> m = new LinkedHashMap<>();
+        m.put("id", job.getId());
+        m.put("systemId", job.getSystemId());
+        m.put("systemName", job.getSystemName());
+        m.put("type", job.getType());
+        m.put("status", job.getStatus());
+        m.put("startedAt", job.getStartedAt());
+        m.put("duration", job.getDuration());
+        m.put("records", job.getRecords() != null ? job.getRecords() : 0);
+        m.put("triggeredBy", job.getTriggeredBy());
+        return m;
+    }
+
+    private RSyncJob fromMap(Map<String,Object> body) {
+        RSyncJob job = new RSyncJob();
+        if (body.get("id") != null) job.setId(body.get("id").toString());
+        job.setSystemId(str(body.get("systemId")));
+        job.setSystemName(str(body.get("systemName")));
+        job.setType(str(body.get("type")));
+        job.setStatus(str(body.get("status")));
+        job.setStartedAt(str(body.get("startedAt")));
+        job.setDuration(str(body.get("duration")));
+        if (body.get("records") instanceof Number n) job.setRecords(n.longValue());
+        job.setTriggeredBy(str(body.get("triggeredBy")));
+        return job;
+    }
+
+    private static String str(Object o) { return o != null ? o.toString() : null; }
 }

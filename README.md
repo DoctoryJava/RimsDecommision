@@ -214,6 +214,24 @@ RIMS Decommission 解决的核心问题：
 | `decomm_lifecycle_policy` | 数据生命周期策略（保留年限、销毁规则） |
 | `sys_audit_log` | 全局审计日志 |
 
+### r_* 业务数据表（替代 Mock 数据，后端已接入）
+
+> 原先后端 `MockStore` / `MockUserDetailsService` 返回的演示数据已全部迁移到真实 MySQL 表，表名统一以 `r_` 开头。
+> 完整 DDL 见 `scripts/sql/V3__create_r_tables.sql`，种子数据见 `scripts/sql/V4__seed_r_data.sql`（密码统一 `demo1234`，BCrypt）。
+> 默认数据库连接已配置为 `jdbc:mysql://cq-cdb-9bf4xslt.sql.tencentcdb.com:63819/AiCoder`（可用 `MYSQL_URL`/`MYSQL_USERNAME`/`MYSQL_PASSWORD` 覆盖）。
+
+| 表名 | 说明 | 替代的原 Mock |
+|------|------|---------------|
+| `r_user` | 用户（邮箱登录 + BCrypt 密码） | `MockStore.users()` / `MockUserDetailsService` |
+| `r_role` | 角色 | `MockStore.roles()` |
+| `r_permission` | 权限 | `MockStore.permissions()` |
+| `r_page` | 页面 | `MockStore.pages()` |
+| `r_system` | 退役系统（含 dbConfig/storageConfig/tags JSON） | `MockStore.systems()` |
+| `r_sync_job` | 同步任务 | `MockStore.syncJobs()` |
+| `r_schema` | Schema 注册 | `MockStore.schemas()` |
+| `r_physical_table` | 物理表元数据（列定义+示例行，驱动动态查询） | `MockStore.physicalTables()` |
+| `r_query_config` | 动态查询配置 | `MockStore.queryConfigs()` |
+
 > 完整 DDL 共 12 张表，详见 `scripts/sql/V1__init_schema.sql`（303 行）。以下摘录 3 张退役域核心表的建表语句（已与 `V1` 保持一致，生产以 `V1` 为准）：
 
 #### 退役系统注册表 `decomm_system`
@@ -466,12 +484,10 @@ docker-compose up -d mysql redis
 ### 环境变量（.env）
 
 ```properties
-# 元数据库
-MYSQL_HOST=localhost
-MYSQL_PORT=3306
-MYSQL_DATABASE=rims_decommission
-MYSQL_USERNAME=rims
-MYSQL_PASSWORD=***
+# 元数据库（默认已指向 AiCoder，可按需覆盖）
+MYSQL_URL=jdbc:mysql://cq-cdb-9bf4xslt.sql.tencentcdb.com:63819/AiCoder?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+MYSQL_USERNAME=AiCoder
+MYSQL_PASSWORD=AiCoder@2025
 
 # Redis
 REDIS_HOST=localhost
