@@ -13,6 +13,10 @@ import SettingsPage from '@/pages/SettingsPage';
 import QueryConfigsPage from '@/pages/QueryConfigsPage';
 import DynamicQueryPage from '@/pages/DynamicQueryPage';
 import DbInspectorPage from '@/pages/DbInspectorPage';
+import DataSourcesPage from '@/pages/DataSourcesPage';
+import ArchivePage from '@/pages/ArchivePage';
+import RetentionPage from '@/pages/RetentionPage';
+import TagsPage from '@/pages/TagsPage';
 import { initialQueryConfigs } from '@/data/queryData';
 import { getQueryConfigs } from '@/lib/api';
 import type { QueryConfig } from '@/types';
@@ -25,6 +29,10 @@ const pageTitles: Record<PageKey, string> = {
   'query-configs': '查询配置管理',
   'dynamic-query': '动态查询',
   'db-inspector': '数据库表结构',
+  'data-sources': '数据源',
+  archive: '归档产物',
+  retention: '保留与合规',
+  tags: '标签管理',
   users: 'Users',
   roles: 'Roles',
   permissions: 'Permissions',
@@ -70,6 +78,10 @@ export default function App() {
           {page === 'query-configs' && <QueryConfigsPage configs={queryConfigs} setConfigs={setQueryConfigs} />}
           {page === 'dynamic-query' && <DynamicQueryPage configs={queryConfigs} />}
           {page === 'db-inspector' && <DbInspectorPage />}
+          {page === 'data-sources' && <DataSourcesPage onNavigate={setPage} />}
+          {page === 'archive' && <ArchivePage />}
+          {page === 'retention' && <RetentionPage />}
+          {page === 'tags' && <TagsPage />}
           {page === 'users' && <UsersPage />}
           {page === 'roles' && <RolesPage />}
           {page === 'permissions' && <PermissionsPage />}

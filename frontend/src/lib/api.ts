@@ -201,3 +201,121 @@ export async function getSasUrl(systemId: string, objectKey: string) {
   const res = await api.get<Result<{ sasUrl: string }>>(`/systems/${systemId}/attachments/sas`, { params: { objectKey }});
   return (res.data as Result<{ sasUrl: string }>).data;
 }
+
+// ===== Source Databases =====
+export async function getSourceDatabases(params: any = {}) {
+  const res = await api.get<Result<any[]>>('/source-databases', { params });
+  return (res.data as Result<any[]>).data;
+}
+export async function createSourceDatabase(data: any) {
+  const res = await api.post<Result<any>>('/source-databases', data);
+  return (res.data as Result<any>).data;
+}
+export async function updateSourceDatabase(id: string, data: any) {
+  const res = await api.put<Result<any>>(`/source-databases/${id}`, data);
+  return (res.data as Result<any>).data;
+}
+export async function deleteSourceDatabase(id: string) {
+  const res = await api.delete<Result<null>>(`/source-databases/${id}`);
+  return res.data;
+}
+
+// ===== Unstructured sources & items =====
+export async function getUnstructuredSources(params: any = {}) {
+  const res = await api.get<Result<any[]>>('/unstructured-sources', { params });
+  return (res.data as Result<any[]>).data;
+}
+export async function createUnstructuredSource(data: any) {
+  const res = await api.post<Result<any>>('/unstructured-sources', data);
+  return (res.data as Result<any>).data;
+}
+export async function deleteUnstructuredSource(id: string) {
+  const res = await api.delete<Result<null>>(`/unstructured-sources/${id}`);
+  return res.data;
+}
+export async function getUnstructuredItems(params: any = {}) {
+  const res = await api.get<Result<any[]>>('/unstructured-items', { params });
+  return (res.data as Result<any[]>).data;
+}
+
+// ===== Archive =====
+export async function getArchiveBatches(params: any = {}) {
+  const res = await api.get<Result<PageResult<any>>>('/archive/batches', { params });
+  return (res.data as Result<PageResult<any>>).data;
+}
+export async function getArchiveFiles(params: any = {}) {
+  const res = await api.get<Result<any[]>>('/archive/files', { params });
+  return (res.data as Result<any[]>).data;
+}
+export async function getArchiveSets(params: any = {}) {
+  const res = await api.get<Result<any[]>>('/archive/sets', { params });
+  return (res.data as Result<any[]>).data;
+}
+export async function getArchiveSetItems(setId: string) {
+  const res = await api.get<Result<any[]>>(`/archive/sets/${setId}/items`);
+  return (res.data as Result<any[]>).data;
+}
+
+// ===== Retention =====
+export async function getRetentionPolicies() {
+  const res = await api.get<Result<any[]>>('/retention/policies');
+  return (res.data as Result<any[]>).data;
+}
+export async function createRetentionPolicy(data: any) {
+  const res = await api.post<Result<any>>('/retention/policies', data);
+  return (res.data as Result<any>).data;
+}
+export async function updateRetentionPolicy(id: string, data: any) {
+  const res = await api.put<Result<any>>(`/retention/policies/${id}`, data);
+  return (res.data as Result<any>).data;
+}
+export async function deleteRetentionPolicy(id: string) {
+  const res = await api.delete<Result<null>>(`/retention/policies/${id}`);
+  return res.data;
+}
+export async function getRetentionAssignments(params: any = {}) {
+  const res = await api.get<Result<any[]>>('/retention/assignments', { params });
+  return (res.data as Result<any[]>).data;
+}
+export async function createRetentionAssignment(data: any) {
+  const res = await api.post<Result<any>>('/retention/assignments', data);
+  return (res.data as Result<any>).data;
+}
+export async function getRetentionHolds(assignmentId: string) {
+  const res = await api.get<Result<any[]>>(`/retention/assignments/${assignmentId}/holds`);
+  return (res.data as Result<any[]>).data;
+}
+export async function holdRetention(assignmentId: string, data: any = {}) {
+  const res = await api.post<Result<any>>(`/retention/assignments/${assignmentId}/hold`, data);
+  return (res.data as Result<any>).data;
+}
+export async function releaseRetention(assignmentId: string, data: any = {}) {
+  const res = await api.post<Result<any>>(`/retention/assignments/${assignmentId}/release`, data);
+  return (res.data as Result<any>).data;
+}
+
+// ===== Tags =====
+export async function getTags() {
+  const res = await api.get<Result<any[]>>('/tags');
+  return (res.data as Result<any[]>).data;
+}
+export async function createTag(data: any) {
+  const res = await api.post<Result<any>>('/tags', data);
+  return (res.data as Result<any>).data;
+}
+export async function deleteTag(id: string) {
+  const res = await api.delete<Result<null>>(`/tags/${id}`);
+  return res.data;
+}
+export async function getObjectTags(params: any = {}) {
+  const res = await api.get<Result<any[]>>('/tags/objects', { params });
+  return (res.data as Result<any[]>).data;
+}
+export async function assignObjectTag(data: any) {
+  const res = await api.post<Result<any>>('/tags/objects', data);
+  return (res.data as Result<any>).data;
+}
+export async function deleteObjectTag(id: string) {
+  const res = await api.delete<Result<null>>(`/tags/objects/${id}`);
+  return res.data;
+}

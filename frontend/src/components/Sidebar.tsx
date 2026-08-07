@@ -18,6 +18,8 @@ import {
   TableProperties,
   SlidersHorizontal,
   Search as SearchIcon,
+  Archive,
+  Tag as TagIcon,
 } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
 
@@ -29,6 +31,10 @@ export type PageKey =
   | 'query-configs'
   | 'dynamic-query'
   | 'db-inspector'
+  | 'data-sources'
+  | 'archive'
+  | 'retention'
+  | 'tags'
   | 'users'
   | 'roles'
   | 'permissions'
@@ -63,6 +69,15 @@ const navGroups: { label: string; items: { key: PageKey; label: string; icon: ty
       { key: 'dynamic-query', label: '动态查询', icon: SearchIcon },
       { key: 'query-configs', label: '查询配置', icon: SlidersHorizontal },
       { key: 'db-inspector', label: '表结构管理', icon: TableProperties },
+    ],
+  },
+  {
+    label: 'Archive & Compliance',
+    items: [
+      { key: 'data-sources', label: '数据源', icon: Database },
+      { key: 'archive', label: '归档产物', icon: Archive },
+      { key: 'retention', label: '保留与合规', icon: ShieldCheck },
+      { key: 'tags', label: '标签管理', icon: TagIcon },
     ],
   },
   {

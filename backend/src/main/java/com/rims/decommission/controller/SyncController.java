@@ -29,10 +29,14 @@ public class SyncController {
     public Result<PageResult<Map<String,Object>>> list(
             @RequestParam(defaultValue="1") int pageNum,
             @RequestParam(defaultValue="20") int pageSize,
-            @RequestParam(required=false) String status) {
+            @RequestParam(required=false) String status,
+            @RequestParam(required=false) String systemId) {
         LambdaQueryWrapper<RSyncJob> w = new LambdaQueryWrapper<>();
         if (status != null && !status.isBlank()) {
             w.eq(RSyncJob::getStatus, status);
+        }
+        if (systemId != null && !systemId.isBlank()) {
+            w.eq(RSyncJob::getSystemId, systemId);
         }
         w.orderByDesc(RSyncJob::getCreatedAt);
         var ipage = mapper.selectPage(new Page<>(pageNum, pageSize), w);
