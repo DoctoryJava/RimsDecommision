@@ -14,7 +14,7 @@ import {
   getSyncJobs,
   createSyncJob,
 } from '@/lib/api';
-import type { PageKey } from '@/components/Sidebar';
+import type { PageKey } from '@/components/layout/Sidebar';
 
 const DB_TYPES = ['MYSQL', 'ORACLE', 'POSTGRESQL', 'SQLSERVER', 'MONGODB'];
 

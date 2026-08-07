@@ -14,7 +14,7 @@ import {
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import PageHeader from '@/components/ui/PageHeader';
-import type { PageKey } from '@/components/Sidebar';
+import type { PageKey } from '@/components/layout/Sidebar';
 import { systems, syncJobs, syncActivityData, storageUsageData } from '@/data/mockData';
 import { getSystemStats } from '@/lib/api';
 import type { SyncStatus } from '@/types';
