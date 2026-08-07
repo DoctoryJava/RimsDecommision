@@ -163,14 +163,14 @@ public class QueryController {
     public Result<Map<String,Object>> count(@PathVariable String id, @PathVariable String table) {
         RPhysicalTable t = tableMapper.selectOne(new LambdaQueryWrapper<RPhysicalTable>().eq(RPhysicalTable::getName, table));
         long cnt = t != null && t.getRows() != null ? t.getRows().size() : 0;
-        return Result.success(Map.of("table", table, "count", cnt));
+        return Result.success(Map.<String,Object>of("table", table, "count", cnt));
     }
 
     @GetMapping("/systems/{id}/attachments/sas")
     @Operation(summary = "签发 SAS URL（≤15min）")
     public Result<Map<String,String>> sas(@PathVariable String id, @RequestParam String objectKey) {
         String mockUrl = "https://mock.blob.core.windows.net/container/" + objectKey + "?sv=mock&sig=mock";
-        return Result.success(Map.of("sasUrl", mockUrl));
+        return Result.success(Map.<String,Object>of("sasUrl", mockUrl));
     }
 
     private Map<String,Map<String,Object>> index(RPhysicalTable t) {

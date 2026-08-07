@@ -122,7 +122,7 @@ public class RetentionController {
         ev.setActorId(body != null ? (String) body.get("actorId") : null);
         ev.setTs(now);
         holdMapper.insert(ev);
-        return Result.success(Map.of("assignmentId", id, "status", "ON_HOLD", "holdEventId", ev.getId()));
+        return Result.success(Map.<String,Object>of("assignmentId", id, "status", "ON_HOLD", "holdEventId", ev.getId()));
     }
 
     @PostMapping("/assignments/{id}/release")
@@ -143,7 +143,7 @@ public class RetentionController {
         ev.setActorId(body != null ? (String) body.get("actorId") : null);
         ev.setTs(now);
         holdMapper.insert(ev);
-        return Result.success(Map.of("assignmentId", id, "status", "ACTIVE", "holdEventId", ev.getId()));
+        return Result.success(Map.<String,Object>of("assignmentId", id, "status", "ACTIVE", "holdEventId", ev.getId()));
     }
 
     private Map<String,Object> policyMap(RRetentionPolicy e) {

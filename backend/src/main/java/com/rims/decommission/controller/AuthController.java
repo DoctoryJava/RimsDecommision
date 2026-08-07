@@ -75,7 +75,7 @@ public class AuthController {
         RUser user = userService.findByEmail(username);
         String displayName = username.contains("@") ? username.split("@")[0] : username;
         if (user != null && user.getName() != null) displayName = user.getName();
-        Map<String,Object> data = Map.of(
+        Map<String,Object> data = Map.<String,Object>of(
                 "username", displayName,
                 "email", username,
                 "roles", roles,

@@ -42,7 +42,7 @@ public class SchemaController {
     @PostMapping("/systems/{id}/schemas/discover")
     @Operation(summary = "自动探测源表结构")
     public Result<List<Map<String,Object>>> discover(@PathVariable String id) {
-        return Result.success(List.of(Map.of("tableName","CUSTOMER_ORDER","columns",12,"discovered",true)));
+        return Result.success(List.of(Map.<String,Object>of("tableName","CUSTOMER_ORDER","columns",12,"discovered",true)));
     }
 
     @GetMapping("/tables")

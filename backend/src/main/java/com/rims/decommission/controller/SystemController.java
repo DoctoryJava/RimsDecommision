@@ -71,7 +71,7 @@ public class SystemController {
     public Result<Map<String,Object>> status(@PathVariable String id) {
         RSystem e = service.getById(id);
         if (e == null) return Result.fail(404, "系统不存在");
-        return Result.success(Map.of("systemId", id, "status", e.getStatus(), "progress",
+        return Result.success(Map.<String,Object>of("systemId", id, "status", e.getStatus(), "progress",
                 "ARCHIVED".equals(e.getStatus()) ? 100 : 60));
     }
 

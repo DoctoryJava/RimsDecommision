@@ -64,7 +64,7 @@ public class RoleController {
         if (r == null) return Result.fail(404, "角色不存在");
         r.setPermissions(perms instanceof List<?> l ? castStr(l) : List.of());
         mapper.updateById(r);
-        return Result.success(Map.of("roleId", id, "permissions", r.getPermissions()));
+        return Result.success(Map.<String,Object>of("roleId", id, "permissions", r.getPermissions()));
     }
 
     private Map<String,Object> toMap(RRole r) {

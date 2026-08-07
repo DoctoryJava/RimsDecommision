@@ -75,8 +75,8 @@ public class SyncController {
         if (job == null) return Result.success(List.of());
         if (job.getLogs() != null && !job.getLogs().isEmpty()) return Result.success(job.getLogs());
         return Result.success(List.of(
-            Map.of("time", job.getStartedAt() != null ? job.getStartedAt() : "", "level", "INFO", "message", "开始同步任务 " + job.getId()),
-            Map.of("time", "", "level", "INFO", "message", "完成 " + job.getRecords() + " 行")
+            Map.<String,Object>of("time", job.getStartedAt() != null ? job.getStartedAt() : "", "level", "INFO", "message", "开始同步任务 " + job.getId()),
+            Map.<String,Object>of("time", "", "level", "INFO", "message", "完成 " + job.getRecords() + " 行")
         ));
     }
 
