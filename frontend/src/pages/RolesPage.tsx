@@ -273,7 +273,7 @@ export default function RolesPage() {
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-2">Permissions</label>
             <div className="space-y-1.5 max-h-48 overflow-y-auto border border-neutral-200 rounded-lg p-3">
-              {permissions.map((perm) => (
+              {permsData.map((perm) => (
                 <label key={perm.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-50 cursor-pointer transition-colors">
                   <input type="checkbox" className="w-4 h-4 rounded border-neutral-300 text-primary-500 focus:ring-primary-200" />
                   <div className="flex-1">

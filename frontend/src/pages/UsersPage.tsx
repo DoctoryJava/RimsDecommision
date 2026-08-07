@@ -140,7 +140,7 @@ export default function UsersPage() {
           </thead>
           <tbody className="divide-y divide-neutral-100">
             {filtered.map((user) => {
-              const userSystems = systems.filter((s) => user.systemIds.includes(s.id));
+              const userSystems = systemsData.filter((s) => user.systemIds.includes(s.id));
               const isAdmin = user.category === 'admin';
               return (
                 <tr key={user.id} className="hover:bg-neutral-50/50 transition-colors">
@@ -260,7 +260,7 @@ export default function UsersPage() {
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">Role</label>
             <select className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all">
-              {roles.filter((r) => r.key !== 'super_admin').map((r) => (
+              {rolesData.filter((r) => r.key !== 'super_admin').map((r) => (
                 <option key={r.key} value={r.key}>{r.name}</option>
               ))}
             </select>
@@ -269,7 +269,7 @@ export default function UsersPage() {
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-2">Assign Systems <span className="text-xs text-neutral-400 font-normal">(tenant users only)</span></label>
             <div className="space-y-2 max-h-48 overflow-y-auto border border-neutral-200 rounded-lg p-3">
-              {systems.map((s) => (
+              {systemsData.map((s) => (
                 <label key={s.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-50 cursor-pointer transition-colors">
                   <input type="checkbox" className="w-4 h-4 rounded border-neutral-300 text-primary-500 focus:ring-primary-200" />
                   <div className="flex items-center gap-2">

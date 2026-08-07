@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   Server,
   Archive,
@@ -15,8 +16,8 @@ import Badge from '@/components/ui/Badge';
 import PageHeader from '@/components/ui/PageHeader';
 import type { PageKey } from '@/components/Sidebar';
 import { systems, syncJobs, syncActivityData, storageUsageData } from '@/data/mockData';
+import { getSystemStats } from '@/lib/api';
 import type { SyncStatus } from '@/types';
-import { getSystems, getUsers, getRoles, getPermissions, getPages, getSystemStats, getSyncJobs, getSchemas, getTables, getQueryConfigs } from '@/lib/api'; // Phase 1-5 API integration (fallback to mockData)
 
 interface DashboardPageProps {
   onNavigate: (page: PageKey) => void;
@@ -30,10 +31,9 @@ const syncStatusMap: Record<SyncStatus, { color: 'success' | 'warning' | 'error'
   idle: { color: 'neutral', label: 'Idle' },
 };
 
-// TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function DashboardPage({ onNavigate }: DashboardPageProps) {
-  const [stats, setStats] = useState<any>(null);
-  useEffect(() => { getSystemStats().then(s => setStats(s)).catch(()=>{}); }, []);
+  const [apiStats, setApiStats] = useState<any>(null);
+  useEffect(() => { getSystemStats().then(s => setApiStats(s)).catch(()=>{}); }, []);
   const activeCount = systems.filter((s) => s.stage === 'active').length;
   const deprecatedCount = systems.filter((s) => s.stage === 'deprecated').length;
   const archivedCount = systems.filter((s) => s.stage === 'archived').length;
@@ -50,7 +50,6 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
 
   return (
     <div className="p-6 space-y-6">
-      {/* API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData */}
       <PageHeader
         title="Dashboard"
         subtitle="Overview of your system lifecycle, data retention, and sync activity"

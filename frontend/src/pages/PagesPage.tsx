@@ -20,6 +20,8 @@ const roleLabelMap: Record<RoleKey, string> = {
 
 // TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function PagesPage() {
+  const [pagesData, setPagesData] = useState(mockPages);
+  useEffect(() => { getPages().then(list => { if(list?.length) setPagesData(list as any); }).catch(()=>{}); }, []);
   const [pageList, setPageList] = useState(pages);
   // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
   useEffect(() => {
