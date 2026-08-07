@@ -24,14 +24,6 @@ export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPa
   // Phase 4: fetch from backend with fallback to prop configs
   const [loadingConfigs, setLoadingConfigs] = useState(false);
 
-  // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
-  useEffect(() => {
-    getQueryConfigs({ pageNum: 1, pageSize: 100 } as any).then((res: any) => {
-      const list = (res as any)?.list ?? (res as any) ?? [];
-      if (Array.isArray(list) && list.length) console.log('[API] QueryConfigsPage.tsx fetched', list.length);
-      // TODO: set state with API data, e.g. setConfigs(list) - keep mock as fallback for now
-    }).catch(e => console.warn('[API] QueryConfigsPage.tsx fallback to mockData', e));
-  }, []);
   const [editingConfig, setEditingConfig] = useState<QueryConfig | null>(null);
   const [showPreview, setShowPreview] = useState<QueryConfig | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());

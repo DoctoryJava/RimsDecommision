@@ -57,7 +57,7 @@ export default function DynamicQueryPage({ configs }: DynamicQueryPageProps) {
 
   const result = useMemo(() => {
     if (!selectedConfig) return null;
-    return executeQuery(
+    return localExecuteQuery(
       selectedConfig,
       filters,
       sortField,

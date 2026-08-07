@@ -31,14 +31,6 @@ export default function PermissionsPage() {
   const [permsData, setPermsData] = useState(mockPermissions);
   useEffect(() => { getPermissions().then(list => { if(list?.length) setPermsData(list as any); }).catch(()=>{}); }, []);
   const [search, setSearch] = useState('');
-  // Phase 1-5: API integration - try backend, fallback to mockData if unreachable
-  useEffect(() => {
-    getPermissions({ pageNum: 1, pageSize: 100 } as any).then((res: any) => {
-      const list = (res as any)?.list ?? (res as any) ?? [];
-      if (Array.isArray(list) && list.length) console.log('[API] PermissionsPage.tsx fetched', list.length);
-      // TODO: set state with API data, e.g. setPermissions(list) - keep mock as fallback for now
-    }).catch(e => console.warn('[API] PermissionsPage.tsx fallback to mockData', e));
-  }, []);
   const [categoryFilter, setCategoryFilter] = useState<PermissionCategory | 'all'>('all');
 
   const filtered = permsData.filter((p) => {
