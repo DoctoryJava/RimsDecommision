@@ -9,7 +9,6 @@ import UsersPage from '@/pages/UsersPage';
 import RolesPage from '@/pages/RolesPage';
 import PermissionsPage from '@/pages/PermissionsPage';
 import PagesPage from '@/pages/PagesPage';
-import SettingsPage from '@/pages/SettingsPage';
 import QueryConfigsPage from '@/pages/QueryConfigsPage';
 import DynamicQueryPage from '@/pages/DynamicQueryPage';
 import DbInspectorPage from '@/pages/DbInspectorPage';
@@ -22,22 +21,21 @@ import { getQueryConfigs } from '@/lib/api';
 import type { QueryConfig } from '@/types';
 
 const pageTitles: Record<PageKey, string> = {
-  dashboard: '仪表盘',
-  systems: '退役系统',
-  'data-sync': '数据同步',
-  schemas: 'Schema 浏览器',
-  'query-configs': '查询配置管理',
-  'dynamic-query': '动态查询',
-  'db-inspector': '表结构管理',
-  'data-sources': '数据源',
-  archive: '归档产物',
-  retention: '保留与合规',
-  tags: '标签管理',
-  users: '用户管理',
-  roles: '角色管理',
-  permissions: '权限管理',
-  pages: '页面管理',
-  settings: '系统设置',
+  dashboard: 'Dashboard',
+  systems: 'Decommissioned Systems',
+  'data-sync': 'Data Sync',
+  schemas: 'Schema Browser',
+  'query-configs': 'Query Configs',
+  'dynamic-query': 'Dynamic Query',
+  'db-inspector': 'Table Inspector',
+  'data-sources': 'Data Sources',
+  archive: 'Archive Artifacts',
+  retention: 'Retention & Compliance',
+  tags: 'Tags',
+  users: 'Users',
+  roles: 'Roles',
+  permissions: 'Permissions',
+  pages: 'Page Management',
 };
 
 export default function App() {
@@ -86,7 +84,6 @@ export default function App() {
           {page === 'roles' && <RolesPage />}
           {page === 'permissions' && <PermissionsPage />}
           {page === 'pages' && <PagesPage />}
-          {page === 'settings' && <SettingsPage />}
         </main>
       </div>
     </div>

@@ -8,7 +8,6 @@ import {
   ShieldCheck,
   Key,
   FileText,
-  Settings,
   ChevronLeft,
   ChevronsLeft,
   LogOut,
@@ -40,8 +39,7 @@ export type PageKey =
   | 'users'
   | 'roles'
   | 'permissions'
-  | 'pages'
-  | 'settings';
+  | 'pages';
 
 interface SidebarProps {
   current: PageKey;
@@ -53,60 +51,62 @@ type NavItem = { key: PageKey; label: string; icon: typeof LayoutDashboard; badg
 type NavGroup = { label: string; items: NavItem[] };
 type NavSection = { title: string; icon: typeof LayoutDashboard; groups: NavGroup[] };
 
-/** 一级分类：用户使用端 + 后台管理端；每类下面再分二级分组。 */
+/** Two top-level tiers based on who uses the app:
+ *  - End User (前台使用端): consumed by each system's own end users
+ *  - Admin (后台管理端): platform administrators / back-office
+ *  Each tier has second-level groups. Menu labels are English. */
 const navSections: NavSection[] = [
   {
-    title: '用户使用',
+    title: 'End User',
     icon: Monitor,
     groups: [
       {
-        label: '概览',
+        label: 'Overview',
         items: [{ key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }],
       },
       {
-        label: '数据使用',
+        label: 'Data',
         items: [
-          { key: 'dynamic-query', label: '动态查询', icon: SearchIcon },
-          { key: 'data-sources', label: '数据源', icon: Database },
+          { key: 'dynamic-query', label: 'Dynamic Query', icon: SearchIcon },
+          { key: 'data-sources', label: 'Data Sources', icon: Database },
         ],
       },
     ],
   },
   {
-    title: '后台管理',
+    title: 'Admin',
     icon: Wrench,
     groups: [
       {
-        label: '权限管理',
+        label: 'Access Control',
         items: [
-          { key: 'users', label: '用户', icon: Users },
-          { key: 'roles', label: '角色', icon: ShieldCheck },
-          { key: 'permissions', label: '权限', icon: Key },
-          { key: 'pages', label: '页面管理', icon: FileText },
+          { key: 'users', label: 'Users', icon: Users },
+          { key: 'roles', label: 'Roles', icon: ShieldCheck },
+          { key: 'permissions', label: 'Permissions', icon: Key },
+          { key: 'pages', label: 'Page Management', icon: FileText },
         ],
       },
       {
-        label: '配置管理',
+        label: 'Configuration',
         items: [
-          { key: 'query-configs', label: '查询配置', icon: SlidersHorizontal },
-          { key: 'db-inspector', label: '表结构管理', icon: TableProperties },
-          { key: 'settings', label: '系统设置', icon: Settings },
+          { key: 'query-configs', label: 'Query Configs', icon: SlidersHorizontal },
+          { key: 'db-inspector', label: 'Table Inspector', icon: TableProperties },
         ],
       },
       {
-        label: '系统与数据',
+        label: 'Systems & Data',
         items: [
-          { key: 'systems', label: '退役系统', icon: Server, badge: '6' },
-          { key: 'data-sync', label: '数据同步', icon: RefreshCw },
-          { key: 'schemas', label: 'Schema 浏览器', icon: Database },
+          { key: 'systems', label: 'Decommissioned Systems', icon: Server, badge: '6' },
+          { key: 'data-sync', label: 'Data Sync', icon: RefreshCw },
+          { key: 'schemas', label: 'Schema Browser', icon: Database },
         ],
       },
       {
-        label: '归档与合规',
+        label: 'Archive & Compliance',
         items: [
-          { key: 'archive', label: '归档产物', icon: Archive },
-          { key: 'retention', label: '保留与合规', icon: ShieldCheck },
-          { key: 'tags', label: '标签管理', icon: TagIcon },
+          { key: 'archive', label: 'Archive Artifacts', icon: Archive },
+          { key: 'retention', label: 'Retention & Compliance', icon: ShieldCheck },
+          { key: 'tags', label: 'Tags', icon: TagIcon },
         ],
       },
     ],
