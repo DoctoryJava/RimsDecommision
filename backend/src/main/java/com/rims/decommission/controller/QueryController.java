@@ -170,7 +170,7 @@ public class QueryController {
     @Operation(summary = "签发 SAS URL（≤15min）")
     public Result<Map<String,String>> sas(@PathVariable String id, @RequestParam String objectKey) {
         String mockUrl = "https://mock.blob.core.windows.net/container/" + objectKey + "?sv=mock&sig=mock";
-        return Result.success(Map.<String,Object>of("sasUrl", mockUrl));
+        return Result.success(Map.<String,String>of("sasUrl", mockUrl));
     }
 
     private Map<String,Map<String,Object>> index(RPhysicalTable t) {
