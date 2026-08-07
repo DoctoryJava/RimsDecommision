@@ -68,6 +68,8 @@ const navSections: NavSection[] = [
         label: 'Data',
         items: [
           { key: 'dynamic-query', label: 'Dynamic Query', icon: SearchIcon },
+          { key: 'query-configs', label: 'Query Configs', icon: SlidersHorizontal },
+          { key: 'db-inspector', label: 'Table Inspector', icon: TableProperties },
           { key: 'data-sources', label: 'Data Sources', icon: Database },
         ],
       },
@@ -84,13 +86,6 @@ const navSections: NavSection[] = [
           { key: 'roles', label: 'Roles', icon: ShieldCheck },
           { key: 'permissions', label: 'Permissions', icon: Key },
           { key: 'pages', label: 'Page Management', icon: FileText },
-        ],
-      },
-      {
-        label: 'Configuration',
-        items: [
-          { key: 'query-configs', label: 'Query Configs', icon: SlidersHorizontal },
-          { key: 'db-inspector', label: 'Table Inspector', icon: TableProperties },
         ],
       },
       {
