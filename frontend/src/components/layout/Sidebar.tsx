@@ -65,12 +65,15 @@ const navSections: NavSection[] = [
         items: [{ key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }],
       },
       {
+        label: 'Data Sources',
+        items: [{ key: 'data-sources', label: 'Data Sources', icon: Database }],
+      },
+      {
         label: 'Data',
         items: [
           { key: 'dynamic-query', label: 'Dynamic Query', icon: SearchIcon },
           { key: 'query-configs', label: 'Query Configs', icon: SlidersHorizontal },
           { key: 'db-inspector', label: 'Table Inspector', icon: TableProperties },
-          { key: 'data-sources', label: 'Data Sources', icon: Database },
         ],
       },
     ],

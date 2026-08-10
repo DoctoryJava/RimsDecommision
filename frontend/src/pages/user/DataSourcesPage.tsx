@@ -62,11 +62,16 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
   useEffect(() => { loadDbs(); }, [loadDbs]);
   useEffect(() => { loadJobs(); }, [loadJobs]);
 
-  const openCreate = () => { setEditing(null); setForm({ sourceSystemId: systemId, dbType: 'MYSQL' }); setShowModal(true); };
+  const openCreate = () => {
+    setEditing(null);
+    setForm({ sourceSystemId: systemId || systems[0]?.id || '', dbType: 'MYSQL' });
+    setShowModal(true);
+  };
   const openEdit = (row: any) => { setEditing(row); setForm({ ...row }); setShowModal(true); };
 
   const save = async () => {
-    const payload = { ...form, sourceSystemId: systemId };
+    const payload = { ...form, sourceSystemId: form.sourceSystemId || systemId };
+    if (!payload.sourceSystemId) { window.alert('请先选择所属系统'); return; }
     if (editing) await updateSourceDatabase(editing.id, payload);
     else await createSourceDatabase(payload);
     setShowModal(false);
@@ -96,7 +101,7 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
         actions={
           <>
             <Button variant="outline" icon={<RefreshCw size={16} />} onClick={() => { loadDbs(); loadJobs(); }}>刷新</Button>
-            <Button icon={<Plus size={16} />} onClick={openCreate} disabled={!systemId}>新增数据源</Button>
+            <Button icon={<Plus size={16} />} onClick={openCreate}>新增数据源</Button>
           </>
         }
       />
@@ -215,6 +220,15 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
         }
       >
         <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1.5">所属系统</label>
+            <select value={form.sourceSystemId || ''} onChange={(e) => setField('sourceSystemId', e.target.value)} className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 outline-none">
+              {systems.length === 0 && <option value="">暂无系统</option>}
+              {systems.map((s) => (
+                <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+              ))}
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">数据库类型</label>
             <select value={form.dbType || 'MYSQL'} onChange={(e) => setField('dbType', e.target.value)} className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 outline-none">
