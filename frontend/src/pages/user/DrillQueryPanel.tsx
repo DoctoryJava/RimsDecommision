@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import {
   ChevronRight, ChevronDown, ChevronLeft, X, Database, Table2, Layers, Search,
 } from 'lucide-react';
@@ -130,6 +130,8 @@ export default function DrillQueryPanel() {
   const [drawerCtx, setDrawerCtx] = useState<DrillCtx | null>(null);
   // 下钻路径栈（drawer 模式多级）
   const [path, setPath] = useState<DrillCtx[]>([]);
+  // 行内模式下，主表（订单）当前展开的行
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
   const drillFrom = demoDrillConfigs[0];
 
@@ -196,14 +198,33 @@ export default function DrillQueryPanel() {
               </thead>
               <tbody className="divide-y divide-neutral-100">
                 {drillTables.orders.rows.map((row) => (
-                  <tr key={row.order_id} className="hover:bg-neutral-50/50">
-                    {drillTables.orders.columns.map((c) => (
-                      <td key={c.name} className="px-4 py-3 text-sm text-neutral-700 whitespace-nowrap">{String(row[c.name])}</td>
-                    ))}
-                    <td className="px-4 py-3 text-right">
-                      <Button size="sm" variant="outline" icon={<Layers size={13} />} onClick={() => openDrawer({ parentRow: row, child: drillFrom })}>查看明细</Button>
-                    </td>
-                  </tr>
+                  <Fragment key={row.order_id}>
+                    <tr className="hover:bg-neutral-50/50">
+                      {drillTables.orders.columns.map((c) => (
+                        <td key={c.name} className="px-4 py-3 text-sm text-neutral-700 whitespace-nowrap">{String(row[c.name])}</td>
+                      ))}
+                      <td className="px-4 py-3 text-right">
+                        {uiMode === 'inline' ? (
+                          <Button size="sm" variant="outline" icon={expandedOrderId === row.order_id ? <ChevronDown size={13} /> : <Layers size={13} />} onClick={() => setExpandedOrderId(expandedOrderId === row.order_id ? null : row.order_id)}>
+                            查看明细
+                          </Button>
+                        ) : (
+                          <Button size="sm" variant="outline" icon={<Layers size={13} />} onClick={() => openDrawer({ parentRow: row, child: drillFrom })}>查看明细</Button>
+                        )}
+                      </td>
+                    </tr>
+                    {uiMode === 'inline' && expandedOrderId === row.order_id && (
+                      <tr>
+                        <td colSpan={drillTables.orders.columns.length + 1} className="px-4 py-3 bg-neutral-50/40">
+                          <div className="space-y-4">
+                            {drillFrom.children.map((sub) => (
+                              <DrillNode key={sub.id} row={row} child={sub} uiMode={uiMode} onDrill={onDrawerFromInline} depth={0} />
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 ))}
               </tbody>
             </table>
