@@ -41,6 +41,7 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
   const [form, setForm] = useState<any>({ dbType: 'MYSQL' });
   const [testingId, setTestingId] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<Record<string, { ok: boolean; message: string }>>({});
+  const [syncing, setSyncing] = useState(false);
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [jobTables, setJobTables] = useState<any[]>([]);
   const [jobTablesLoading, setJobTablesLoading] = useState(false);
@@ -149,11 +150,16 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
 
   const triggerSync = async () => {
     const sys = systems.find((s) => s.id === systemId);
-    if (!sys) return;
-    await createSyncJob({ systemId, systemName: sys.name, type: 'incremental', status: 'syncing', triggeredBy: 'Manual' });
-    loadJobs();
-    // 异步同步，稍后轮询刷新状态
-    window.setTimeout(loadJobs, 3000);
+    if (!sys || syncing) return;
+    setSyncing(true);
+    try {
+      await createSyncJob({ systemId, systemName: sys.name, type: 'incremental', status: 'syncing', triggeredBy: 'Manual' });
+      loadJobs();
+      // 异步同步，稍后轮询刷新状态
+      window.setTimeout(loadJobs, 3000);
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const setField = (k: string, v: any) => {
@@ -276,7 +282,14 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
               <History size={16} className="text-primary-500" />
               <h3 className="text-base font-semibold text-neutral-900">同步状态</h3>
             </div>
-            <Button size="sm" icon={<Play size={14} />} onClick={triggerSync} disabled={!systemId}>立即同步</Button>
+            <Button
+              size="sm"
+              icon={syncing ? <RefreshCw size={14} className="animate-spin" /> : <Play size={14} />}
+              onClick={triggerSync}
+              disabled={!systemId || syncing}
+            >
+              {syncing ? '同步中…' : '立即同步'}
+            </Button>
           </div>
           {jobs.length === 0 ? (
             <div className="p-8 text-center text-sm text-neutral-400">
