@@ -404,7 +404,8 @@ public class SeaTunnelSyncService {
             stat.setDatabaseName(src.getDatabaseName());
             stat.setTableName(t);
             stat.setSchemaName(src.getDatabaseName());
-            stat.setBlobUrl(tableDir != null ? "file://" + tableDir : null);
+            // blob_url：本地落盘目录地址（绝对路径）
+            stat.setBlobUrl(tableDir != null ? tableDir.toString() : null);
             stat.setChecksum("");
             stat.setEtag("");
             stat.setCreatedOn(LocalDateTime.now());
