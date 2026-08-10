@@ -9,7 +9,7 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
 import type { QueryConfig, FieldMapping, JoinConfig } from '@/types';
-import { getSystems, getQueryConfigs, getSystemSchema, executeQuery as apiExecuteQuery } from '@/lib/api';
+import { getSystems, getQueryConfigs, getSystemSchema, createQueryConfig, updateQueryConfig, deleteQueryConfig, executeQuery as apiExecuteQuery } from '@/lib/api';
 
 interface QueryConfigsPageProps {
   // 页面自管理系统与配置
@@ -66,31 +66,49 @@ export default function QueryConfigsPage(_props: QueryConfigsPageProps) {
     c.description.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const handleSave = (config: QueryConfig) => {
+  const handleSave = async (config: QueryConfig) => {
     const withSystem = { ...config, systemId: config.systemId || systemId };
     const exists = configs.find((c) => c.id === config.id);
-    if (exists) {
-      setLocalConfigs(configs.map((c) => (c.id === config.id ? withSystem : c)));
-    } else {
-      setLocalConfigs([...configs, withSystem]);
+    try {
+      if (exists) {
+        await updateQueryConfig(config.id, withSystem);
+        setLocalConfigs(configs.map((c) => (c.id === config.id ? withSystem : c)));
+      } else {
+        const created = await createQueryConfig(withSystem);
+        setLocalConfigs([...(configs.filter((c) => c.id !== withSystem.id)), created]);
+      }
+      setEditingConfig(null);
+    } catch (e: any) {
+      window.alert('保存失败：' + (e?.message || '请稍后重试'));
     }
-    setEditingConfig(null);
   };
 
-  const handleDelete = (id: string) => {
-    setLocalConfigs(configs.filter((c) => c.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('确认删除该查询配置？')) return;
+    try {
+      await deleteQueryConfig(id);
+      setLocalConfigs(configs.filter((c) => c.id !== id));
+    } catch (e: any) {
+      window.alert('删除失败：' + (e?.message || '请稍后重试'));
+    }
   };
 
-  const handleDuplicate = (config: QueryConfig) => {
+  const handleDuplicate = async (config: QueryConfig) => {
     const newConfig: QueryConfig = {
       ...config,
       id: `qc-${Date.now()}`,
+      systemId: config.systemId || systemId,
       name: `${config.name} (副本)`,
       status: 'draft',
       createdAt: new Date().toISOString().split('T')[0],
       updatedAt: new Date().toISOString().split('T')[0],
     };
-    setLocalConfigs([...configs, newConfig]);
+    try {
+      const created = await createQueryConfig(newConfig);
+      setLocalConfigs([...configs, created]);
+    } catch (e: any) {
+      window.alert('复制失败：' + (e?.message || '请稍后重试'));
+    }
   };
 
   const toggleRow = (id: string) => {

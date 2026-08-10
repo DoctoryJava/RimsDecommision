@@ -51,14 +51,36 @@ public class SparkQueryService {
     public List<Map<String, Object>> listSystemSchema(String systemId) {
         List<RSchema> schemas = schemaMapper.selectList(
                 new LambdaQueryWrapper<RSchema>().eq(RSchema::getSystemId, systemId));
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (RSchema s : schemas) {
-            Map<String, Object> m = new LinkedHashMap<>();
-            m.put("database", s.getName());
-            m.put("tables", s.getTables() != null ? s.getTables() : new ArrayList<>());
-            result.add(m);
+        // 优先用已保存的表结构（含字段）
+        if (!schemas.isEmpty()) {
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (RSchema s : schemas) {
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("database", s.getName());
+                m.put("tables", s.getTables() != null ? s.getTables() : new ArrayList<>());
+                result.add(m);
+            }
+            return result;
         }
-        return result;
+        // 回退：从 r_sync_table_stat 列出已同步的表（字段留空，提示需重新同步保存结构）
+        List<RSyncTableStat> stats = tableStatMapper.selectList(
+                new LambdaQueryWrapper<RSyncTableStat>().eq(RSyncTableStat::getSystemId, systemId));
+        Map<String, Map<String, Object>> grouped = new LinkedHashMap<>();
+        for (RSyncTableStat s : stats) {
+            String db = s.getDatabaseName() == null || s.getDatabaseName().isBlank() ? "default" : s.getDatabaseName();
+            if (s.getTableName() == null || s.getTableName().isBlank()) continue;
+            Map<String, Object> tableDef = new LinkedHashMap<>();
+            tableDef.put("name", s.getTableName());
+            tableDef.put("columns", new ArrayList<>());
+            grouped.computeIfAbsent(db, k -> {
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("database", db);
+                m.put("tables", new ArrayList<Object>());
+                return m;
+            });
+            ((List<Object>) grouped.get(db).get("tables")).add(tableDef);
+        }
+        return new ArrayList<>(grouped.values());
     }
 
     private List<Map<String, Object>> groupTables(List<RSyncTableStat> stats) {
