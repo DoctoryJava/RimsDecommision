@@ -72,8 +72,8 @@ const navSections: NavSection[] = [
       {
         label: 'Data',
         items: [
-          { key: 'dynamic-query', label: 'Dynamic Query', icon: SearchIcon },
           { key: 'query-configs', label: 'Query Configs', icon: SlidersHorizontal },
+          { key: 'dynamic-query', label: 'Dynamic Query', icon: SearchIcon },
         ],
       },
     ],
