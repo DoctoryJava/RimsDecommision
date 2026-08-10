@@ -21,6 +21,9 @@ public class RSourceDatabase {
     private String databaseName;
     private String connectionSecretRef;
     private String connStringHash;
+    private Integer port;
+    private String username;
+    private String password;
     private String description;
 
     @TableField(fill = FieldFill.INSERT)

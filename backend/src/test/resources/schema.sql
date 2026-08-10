@@ -145,6 +145,7 @@ CREATE TABLE IF NOT EXISTS `r_source_database` (
     `id` VARCHAR(64) PRIMARY KEY, `source_system_id` VARCHAR(64) NOT NULL,
     `db_type` VARCHAR(32) NOT NULL, `server` VARCHAR(255), `database_name` VARCHAR(128) NOT NULL,
     `connection_secret_ref` VARCHAR(512), `conn_string_hash` VARCHAR(128), `description` VARCHAR(512),
+    `port` INT NOT NULL DEFAULT 0, `username` VARCHAR(128), `password` VARCHAR(256),
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
 
 CREATE TABLE IF NOT EXISTS `r_unstructured_source` (

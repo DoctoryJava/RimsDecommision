@@ -62,12 +62,28 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
   useEffect(() => { loadDbs(); }, [loadDbs]);
   useEffect(() => { loadJobs(); }, [loadJobs]);
 
+  const defaultPort = (t: string) => {
+    switch (t) {
+      case 'MYSQL': return 3306;
+      case 'POSTGRESQL': return 5432;
+      case 'SQLSERVER': return 1433;
+      case 'ORACLE': return 1521;
+      case 'MONGODB': return 27017;
+      default: return 0;
+    }
+  };
+
   const openCreate = () => {
     setEditing(null);
-    setForm({ sourceSystemId: systemId || systems[0]?.id || '', dbType: 'MYSQL' });
+    setForm({ sourceSystemId: systemId || systems[0]?.id || '', dbType: 'MYSQL', port: 3306, username: '', password: '' });
     setShowModal(true);
   };
-  const openEdit = (row: any) => { setEditing(row); setForm({ ...row }); setShowModal(true); };
+  const openEdit = (row: any) => {
+    setEditing(row);
+    // 密码不回显明文；hasPassword 标记用于提示已配置
+    setForm({ ...row, password: '' });
+    setShowModal(true);
+  };
 
   const save = async () => {
     const payload = { ...form, sourceSystemId: form.sourceSystemId || systemId };
@@ -91,7 +107,14 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
     loadJobs();
   };
 
-  const setField = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
+  const setField = (k: string, v: any) => {
+    setForm((f: any) => {
+      const next = { ...f, [k]: v };
+      // 切换数据库类型时自动更新默认端口
+      if (k === 'dbType') next.port = defaultPort(v);
+      return next;
+    });
+  };
 
   return (
     <div className="p-6">
@@ -152,6 +175,8 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
                   <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-600 uppercase tracking-wider">数据库名</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-600 uppercase tracking-wider">类型</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-600 uppercase tracking-wider">服务器</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-600 uppercase tracking-wider">端口</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-600 uppercase tracking-wider">账号</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-600 uppercase tracking-wider">描述</th>
                   <th className="text-right px-5 py-3 text-xs font-semibold text-neutral-600 uppercase tracking-wider">操作</th>
                 </tr>
@@ -162,6 +187,8 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
                     <td className="px-5 py-3 text-sm font-medium text-neutral-800">{db.databaseName}</td>
                     <td className="px-5 py-3"><Badge color="neutral" size="sm">{db.dbType}</Badge></td>
                     <td className="px-5 py-3 text-sm text-neutral-500">{db.server}</td>
+                    <td className="px-5 py-3 text-sm text-neutral-500">{db.port || '—'}</td>
+                    <td className="px-5 py-3 text-sm text-neutral-500">{db.username || '—'}</td>
                     <td className="px-5 py-3 text-sm text-neutral-500">{db.description || '—'}</td>
                     <td className="px-5 py-3 text-right">
                       <div className="inline-flex items-center gap-1">
@@ -241,8 +268,22 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
               <input value={form.server || ''} onChange={(e) => setField('server', e.target.value)} placeholder="host.example.com" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">数据库名</label>
-              <input value={form.databaseName || ''} onChange={(e) => setField('databaseName', e.target.value)} placeholder="db_name" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 outline-none" />
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">端口</label>
+              <input type="number" value={form.port ?? ''} onChange={(e) => setField('port', parseInt(e.target.value) || 0)} className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 outline-none" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1.5">数据库名</label>
+            <input value={form.databaseName || ''} onChange={(e) => setField('databaseName', e.target.value)} placeholder="db_name" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 outline-none" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">账号</label>
+              <input value={form.username || ''} onChange={(e) => setField('username', e.target.value)} placeholder="username" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">密码</label>
+              <input type="password" value={form.password || ''} onChange={(e) => setField('password', e.target.value)} placeholder={editing && form.hasPassword ? '••••••••（留空则不修改）' : 'password'} className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 outline-none" />
             </div>
           </div>
           <div>

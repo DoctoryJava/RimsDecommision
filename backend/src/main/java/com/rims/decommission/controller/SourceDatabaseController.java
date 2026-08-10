@@ -56,8 +56,13 @@ public class SourceDatabaseController {
 
     @PutMapping("/{id}")
     public Result<Map<String,Object>> update(@PathVariable String id, @RequestBody Map<String,Object> body) {
+        RSourceDatabase existing = mapper.selectById(id);
         RSourceDatabase e = fromMap(body);
         e.setId(id);
+        // 未提交新密码时保留原密码
+        if ((e.getPassword() == null || e.getPassword().isBlank()) && existing != null) {
+            e.setPassword(existing.getPassword());
+        }
         mapper.updateById(e);
         return Result.success(toMap(mapper.selectById(id)));
     }
@@ -74,7 +79,11 @@ public class SourceDatabaseController {
         m.put("sourceSystemId", e.getSourceSystemId());
         m.put("dbType", e.getDbType());
         m.put("server", e.getServer());
+        m.put("port", e.getPort() != null ? e.getPort() : 0);
         m.put("databaseName", e.getDatabaseName());
+        m.put("username", e.getUsername());
+        // 密码不返回明文，仅标记是否已配置
+        m.put("hasPassword", e.getPassword() != null && !e.getPassword().isBlank());
         m.put("connectionSecretRef", e.getConnectionSecretRef());
         m.put("connStringHash", e.getConnStringHash());
         m.put("description", e.getDescription());
@@ -86,7 +95,11 @@ public class SourceDatabaseController {
         e.setSourceSystemId(str(m.get("sourceSystemId")));
         e.setDbType(str(m.get("dbType")));
         e.setServer(str(m.get("server")));
+        if (m.get("port") instanceof Number n) e.setPort(n.intValue());
+        else if (m.get("port") instanceof String s) { try { e.setPort(Integer.parseInt(s)); } catch (Exception ignored) {} }
         e.setDatabaseName(str(m.get("databaseName")));
+        e.setUsername(str(m.get("username")));
+        e.setPassword(str(m.get("password")));
         e.setConnectionSecretRef(str(m.get("connectionSecretRef")));
         e.setConnStringHash(str(m.get("connStringHash")));
         e.setDescription(str(m.get("description")));
