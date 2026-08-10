@@ -124,6 +124,8 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
     if (!sys) return;
     await createSyncJob({ systemId, systemName: sys.name, type: 'incremental', status: 'syncing', triggeredBy: 'Manual' });
     loadJobs();
+    // 异步同步，稍后轮询刷新状态
+    window.setTimeout(loadJobs, 3000);
   };
 
   const setField = (k: string, v: any) => {
@@ -188,7 +190,8 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
               尚未配置数据源，点击右上角「新增数据源」为该系统填写连接信息。
             </div>
           ) : (
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full whitespace-nowrap">
               <thead>
                 <tr className="bg-neutral-50 border-b border-neutral-200">
                   <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-600 uppercase tracking-wider">数据库名</th>
@@ -210,19 +213,21 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
                     <td className="px-5 py-3 text-sm text-neutral-500">{db.username || '—'}</td>
                     <td className="px-5 py-3 text-sm text-neutral-500">{db.description || '—'}</td>
                     <td className="px-5 py-3 text-right">
-                      <div className="inline-flex items-center gap-2">
-                        {testResults[db.id] && (
-                          <span className={`text-xs font-medium ${testResults[db.id].ok ? 'text-success-600' : 'text-error-600'} max-w-[180px] truncate`}>
-                            {testResults[db.id].ok ? '✓ ' : '✕ '}{testResults[db.id].message}
-                          </span>
-                        )}
+                      <div className="inline-flex items-center justify-end gap-1">
                         <button
                           onClick={() => testDb(db.id)}
                           disabled={testingId === db.id}
-                          className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border border-neutral-200 text-neutral-600 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 transition-colors"
+                          title={testResults[db.id] ? testResults[db.id].message : '测试连接'}
+                          className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border transition-colors disabled:opacity-50 ${
+                            testResults[db.id] && !testResults[db.id].ok
+                              ? 'border-error-200 text-error-600'
+                              : testResults[db.id]?.ok
+                                ? 'border-success-200 text-success-600'
+                                : 'border-neutral-200 text-neutral-600 hover:border-primary-300 hover:text-primary-600'
+                          }`}
                         >
                           {testingId === db.id ? <RefreshCw size={12} className="animate-spin" /> : <PlugZap size={12} />}
-                          Test
+                          {testResults[db.id] ? (testResults[db.id].ok ? '成功' : '失败') : 'Test'}
                         </button>
                         <button onClick={() => openEdit(db)} className="p-1.5 rounded text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100"><Pencil size={14} /></button>
                         <button onClick={() => del(db.id)} className="p-1.5 rounded text-neutral-400 hover:text-error-500 hover:bg-neutral-100"><Trash2 size={14} /></button>
@@ -232,6 +237,7 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </Card>
 

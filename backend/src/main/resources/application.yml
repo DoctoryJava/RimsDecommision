@@ -44,6 +44,14 @@ app:
     token: ${DATABRICKS_TOKEN:mock-token}
     warehouse-id: ${DATABRICKS_WAREHOUSE_ID:mock-warehouse}
     catalog: lake
+  # SeaTunnel 同步引擎配置（同步源库 -> 本地磁盘 Iceberg）
+  seatunnel:
+    home: ${SEATUNNEL_HOME:/opt/seatunnel}
+    # 本地磁盘 Iceberg warehouse 根路径（模拟存储桶）
+    warehouse-dir: ${SEATUNNEL_WAREHOUSE_DIR:/data/archive}
+    conf-dir: ${SEATUNNEL_CONF_DIR:/data/archive/.conf}
+    # 是否真正调用 SeaTunnel（false 时模拟成功，便于无环境调试）
+    enabled: ${SEATUNNEL_ENABLED:false}
 
 springdoc:
   api-docs:

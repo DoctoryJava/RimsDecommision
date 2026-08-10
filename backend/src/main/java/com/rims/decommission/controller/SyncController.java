@@ -6,6 +6,7 @@ import com.rims.decommission.common.PageResult;
 import com.rims.decommission.common.Result;
 import com.rims.decommission.entity.RSyncJob;
 import com.rims.decommission.mapper.RSyncJobMapper;
+import com.rims.decommission.service.SeaTunnelSyncService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -19,9 +20,11 @@ import java.util.stream.Collectors;
 public class SyncController {
 
     private final RSyncJobMapper mapper;
+    private final SeaTunnelSyncService seatunnel;
 
-    public SyncController(RSyncJobMapper mapper) {
+    public SyncController(RSyncJobMapper mapper, SeaTunnelSyncService seatunnel) {
         this.mapper = mapper;
+        this.seatunnel = seatunnel;
     }
 
     @GetMapping("/jobs")
@@ -45,13 +48,20 @@ public class SyncController {
     }
 
     @PostMapping("/jobs")
-    @Operation(summary = "创建同步任务")
+    @Operation(summary = "创建同步任务并触发 SeaTunnel 同步")
     public Result<Map<String,Object>> create(@RequestBody Map<String,Object> body) {
         RSyncJob job = fromMap(body);
         if (job.getId() == null || job.getId().isBlank()) job.setId("job-" + System.currentTimeMillis());
         if (job.getStatus() == null) job.setStatus("syncing");
         if (job.getStartedAt() == null) job.setStartedAt(LocalDateTime.now().toString());
         mapper.insert(job);
+
+        // 异步触发 SeaTunnel 同步（源库 -> 本地磁盘 Iceberg）
+        String sysId = job.getSystemId() != null ? job.getSystemId() : "";
+        String sysName = job.getSystemName() != null ? job.getSystemName() : "";
+        String triggeredBy = job.getTriggeredBy() != null ? job.getTriggeredBy() : "Manual";
+        seatunnel.triggerSync(sysId, sysName, job.getId(), triggeredBy);
+
         return Result.success(toMap(mapper.selectById(job.getId())));
     }
 
