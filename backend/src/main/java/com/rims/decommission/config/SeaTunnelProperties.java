@@ -15,7 +15,7 @@ public class SeaTunnelProperties {
     private String warehouseDir = "/Users/chenyong/Desktop/BigData/archive";
     /** 生成的 .conf 临时目录 */
     private String confDir = "/Users/chenyong/Desktop/BigData/archive/.conf";
-    /** 是否真正调用 SeaTunnel（true 时调用 seatunnel.sh 执行真实同步） */
+    /** 是否真正调用 SeaTunnel（false 时模拟成功，便于无环境调试） */
     private boolean enabled = true;
 
     public String getHome() { return home; }
