@@ -30,15 +30,14 @@ public class SparkQueryService {
 
     /** 列出某系统已同步的表（库 -> 表列表，按 databaseName 分组）。 */
     public List<Map<String, Object>> listSyncedTables(String systemId) {
+        // 直接查该系统全部表统计记录，内存去重分组（避免 groupBy 差异）
         List<RSyncTableStat> stats = tableStatMapper.selectList(
                 new LambdaQueryWrapper<RSyncTableStat>()
-                        .eq(RSyncTableStat::getSystemId, systemId)
-                        .select(RSyncTableStat::getDatabaseName, RSyncTableStat::getTableName)
-                        .groupBy(RSyncTableStat::getDatabaseName, RSyncTableStat::getTableName));
-        // 按库分组
+                        .eq(RSyncTableStat::getSystemId, systemId));
         Map<String, Set<String>> grouped = new LinkedHashMap<>();
         for (RSyncTableStat s : stats) {
-            String db = s.getDatabaseName() == null ? "default" : s.getDatabaseName();
+            String db = s.getDatabaseName() == null || s.getDatabaseName().isBlank() ? "default" : s.getDatabaseName();
+            if (s.getTableName() == null || s.getTableName().isBlank()) continue;
             grouped.computeIfAbsent(db, k -> new LinkedHashSet<>()).add(s.getTableName());
         }
         List<Map<String, Object>> result = new ArrayList<>();
