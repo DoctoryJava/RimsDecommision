@@ -304,8 +304,13 @@ public class SeaTunnelSyncService {
 
     private long nodeLong(com.fasterxml.jackson.databind.JsonNode node, String field) {
         com.fasterxml.jackson.databind.JsonNode v = node.get(field);
-        if (v == null || !v.isNumber()) return 0;
-        return v.asLong();
+        if (v == null || v.isNull()) return 0;
+        if (v.isNumber()) return v.asLong();
+        // Iceberg metadata 里 total-records/added-records 是字符串数字，如 "9"
+        if (v.isTextual()) {
+            try { return Long.parseLong(v.asText().trim()); } catch (NumberFormatException ignored) {}
+        }
+        return 0;
     }
 
     // ---------- helpers ----------
