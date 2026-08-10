@@ -62,6 +62,8 @@ public class SeaTunnelSyncService {
                 updateJob(job, "failed", 0L, logs, null);
                 return;
             }
+            // 每次同步前清空该系统旧的表统计与表结构（保证只保留最新一次同步的表和字段）
+            clearSystemSyncData(systemId);
             long totalRecords = 0;
             for (RSourceDatabase src : sources) {
                 addLog(logs, "INFO", "同步源库 " + src.getDatabaseName() + "@" + src.getServer());
@@ -102,6 +104,18 @@ public class SeaTunnelSyncService {
         // 保存该源库各表的表结构（字段名+类型）到 r_schema，供 Query Config 选字段
         saveTableSchema(job.getSystemId(), src, tables);
         return rows;
+    }
+
+    /** 每次同步前，清空该系统旧的表统计（r_sync_table_stat）与表结构（r_schema），保证只保留最新一次。 */
+    private void clearSystemSyncData(String systemId) {
+        try {
+            tableStatMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RSyncTableStat>()
+                    .eq(RSyncTableStat::getSystemId, systemId));
+        } catch (Exception ignored) {}
+        try {
+            schemaMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RSchema>()
+                    .eq(RSchema::getSystemId, systemId));
+        } catch (Exception ignored) {}
     }
 
     /** 读取源库每张表的列结构，写入 r_schema（按 systemId+databaseName 一条记录）。 */
