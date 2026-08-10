@@ -29,7 +29,7 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
 import type { SystemRecord, LifecycleStage, SyncStatus } from '@/types';
-import { getSystems, createSystem, testConnection } from '@/lib/api';
+import { getSystems, createSystem, testConnection, updateSystem } from '@/lib/api';
 
 const stageMap: Record<LifecycleStage, { color: 'success' | 'warning' | 'neutral' | 'error'; label: string }> = {
   active: { color: 'success', label: 'Active' },
@@ -110,7 +110,20 @@ export default function SystemsPage({ onNavigateSystems }: SystemsPageProps) {
   });
 
   if (selectedSystem) {
-    return <SystemDetail system={selectedSystem} onBack={() => setSelectedSystem(null)} />;
+    return (
+      <SystemDetail
+        system={selectedSystem}
+        onBack={() => setSelectedSystem(null)}
+        onReload={() => {
+          // 保存配置后从数据库刷新当前系统
+          getSystems({ pageNum: 1, pageSize: 100 }).then(p => {
+            const list = (p?.list ?? []) as unknown as SystemRecord[];
+            const found = list.find((s) => s.id === selectedSystem.id);
+            if (found) setSelectedSystem(found);
+          }).catch(()=>{});
+        }}
+      />
+    );
   }
 
   return (
@@ -268,7 +281,7 @@ export default function SystemsPage({ onNavigateSystems }: SystemsPageProps) {
   );
 }
 
-function SystemDetail({ system, onBack }: { system: SystemRecord; onBack: () => void }) {
+function SystemDetail({ system, onBack, onReload }: { system: SystemRecord; onBack: () => void; onReload?: () => void }) {
   const [tab, setTab] = useState<'overview' | 'config' | 'sync'>('overview');
   const stage = stageMap[system.stage] || stageMap.active;
   const sync = syncStatusMap[system.syncStatus] || syncStatusMap.idle;
@@ -388,18 +401,60 @@ function SystemDetail({ system, onBack }: { system: SystemRecord; onBack: () => 
         </div>
       )}
 
-      {tab === 'config' && <InitConfigTab system={system} />}
+      {tab === 'config' && <InitConfigTab system={system} onSaved={onReload} />}
       {tab === 'sync' && <SyncHistoryTab system={system} />}
     </div>
   );
 }
 
-function InitConfigTab({ system }: { system: SystemRecord }) {
+function InitConfigTab({ system, onSaved }: { system: SystemRecord; onSaved?: () => void }) {
   const [dbForm, setDbForm] = useState<any>(system.dbConfig || { engine: 'postgresql', host: '', port: 5432, database: '', username: '', password: '', ssl: true });
   const [storageForm, setStorageForm] = useState(system.storageConfig || { provider: 'aws-s3' as const, bucket: '', region: '', accessKey: '' });
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle');
   const [testMessage, setTestMessage] = useState('');
+  const [savingConfig, setSavingConfig] = useState(false);
   const hasConfig = system.dbConfig !== null;
+
+  const saveConfig = async () => {
+    // 必须先测试连接成功，才能保存
+    if (testStatus !== 'success') {
+      window.alert('请先点击 Test Connection 且连接成功后，再保存配置');
+      return;
+    }
+    setSavingConfig(true);
+    try {
+      const dbPayload: any = {
+        engine: dbForm.engine,
+        host: dbForm.host,
+        port: dbForm.port,
+        database: dbForm.database,
+        username: dbForm.username,
+        ssl: !!dbForm.ssl,
+      };
+      if (dbForm.password) dbPayload.password = dbForm.password;
+      const storagePayload: any = {
+        provider: storageForm.provider,
+        bucket: storageForm.bucket,
+        region: storageForm.region,
+        accessKey: storageForm.accessKey,
+      };
+      if (storageForm.endpoint) storagePayload.endpoint = storageForm.endpoint;
+
+      await updateSystem(system.id, {
+        id: system.id,
+        dbConfig: dbPayload,
+        storageConfig: storagePayload,
+        status: 'CONFIGURED',
+      });
+      window.alert('配置已保存');
+      // 提示刷新后生效
+      onSaved && onSaved();
+    } catch (e: any) {
+      window.alert('保存失败：' + (e?.message || '请稍后重试'));
+    } finally {
+      setSavingConfig(false);
+    }
+  };
 
   const handleTest = async () => {
     setTestStatus('testing');
@@ -568,7 +623,7 @@ function InitConfigTab({ system }: { system: SystemRecord }) {
             <Button variant="outline" onClick={handleTest} disabled={testStatus === 'testing'} icon={testStatus === 'testing' ? <RefreshCw size={14} className="animate-spin-slow" /> : undefined}>
               {testStatus === 'testing' ? 'Testing...' : 'Test Connection'}
             </Button>
-            <Button>Save Configuration</Button>
+            <Button onClick={saveConfig} disabled={savingConfig}>{savingConfig ? 'Saving...' : 'Save Configuration'}</Button>
           </div>
         </div>
       </Card>
