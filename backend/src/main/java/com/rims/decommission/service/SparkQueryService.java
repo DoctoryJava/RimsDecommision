@@ -49,35 +49,52 @@ public class SparkQueryService {
 
     /** 获取某系统的表结构（含每张表的字段），供 Query Config 选字段/关联字段。 */
     public List<Map<String, Object>> listSystemSchema(String systemId) {
-        List<RSchema> schemas = schemaMapper.selectList(
-                new LambdaQueryWrapper<RSchema>().eq(RSchema::getSystemId, systemId));
-        // 优先用已保存的表结构（含字段）
-        if (!schemas.isEmpty()) {
-            List<Map<String, Object>> result = new ArrayList<>();
-            for (RSchema s : schemas) {
-                Map<String, Object> m = new LinkedHashMap<>();
-                m.put("database", s.getName());
-                m.put("tables", s.getTables() != null ? s.getTables() : new ArrayList<>());
-                result.add(m);
-            }
-            return result;
-        }
-        // 回退：从 r_sync_table_stat 列出已同步的表（字段留空，提示需重新同步保存结构）
+        // 基础表一律以 r_sync_table_stat（真实同步的表）为准；字段结构从 r_schema 匹配补齐
         List<RSyncTableStat> stats = tableStatMapper.selectList(
                 new LambdaQueryWrapper<RSyncTableStat>().eq(RSyncTableStat::getSystemId, systemId));
+
+        // 读取该系统的 r_schema（database -> 表 -> columns），用于匹配字段
+        Map<String, Map<String, List<Map<String, Object>>>> schemaByDbTable = new HashMap<>();
+        List<RSchema> schemas = schemaMapper.selectList(
+                new LambdaQueryWrapper<RSchema>().eq(RSchema::getSystemId, systemId));
+        for (RSchema sc : schemas) {
+            String db = sc.getName();
+            if (sc.getTables() == null) continue;
+            for (Object o : sc.getTables()) {
+                if (!(o instanceof Map)) continue;
+                Map<?, ?> t = (Map<?, ?>) o;
+                String tbl = String.valueOf(t.get("name"));
+                List<Map<String, Object>> cols = new ArrayList<>();
+                Object colsObj = t.get("columns");
+                if (colsObj instanceof List) {
+                    for (Object c : (List<?>) colsObj) {
+                        if (c instanceof Map) {
+                            Map<?, ?> cm = (Map<?, ?>) c;
+                            Map<String, Object> col = new LinkedHashMap<>();
+                            col.put("name", String.valueOf(cm.get("name")));
+                            col.put("type", cm.get("type") != null ? String.valueOf(cm.get("type")) : null);
+                            cols.add(col);
+                        }
+                    }
+                }
+                schemaByDbTable.computeIfAbsent(db, k -> new HashMap<>()).put(tbl, cols);
+            }
+        }
+
         Map<String, Map<String, Object>> grouped = new LinkedHashMap<>();
         for (RSyncTableStat s : stats) {
             String db = s.getDatabaseName() == null || s.getDatabaseName().isBlank() ? "default" : s.getDatabaseName();
             if (s.getTableName() == null || s.getTableName().isBlank()) continue;
-            Map<String, Object> tableDef = new LinkedHashMap<>();
-            tableDef.put("name", s.getTableName());
-            tableDef.put("columns", new ArrayList<>());
             grouped.computeIfAbsent(db, k -> {
                 Map<String, Object> m = new LinkedHashMap<>();
                 m.put("database", db);
                 m.put("tables", new ArrayList<Object>());
                 return m;
             });
+            Map<String, Object> tableDef = new LinkedHashMap<>();
+            tableDef.put("name", s.getTableName());
+            List<Map<String, Object>> cols = schemaByDbTable.getOrDefault(db, Collections.emptyMap()).get(s.getTableName());
+            tableDef.put("columns", cols != null ? cols : new ArrayList<>());
             ((List<Object>) grouped.get(db).get("tables")).add(tableDef);
         }
         return new ArrayList<>(grouped.values());
