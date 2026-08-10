@@ -29,7 +29,7 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
 import type { SystemRecord, LifecycleStage, SyncStatus } from '@/types';
-import { getSystems, createSystem, testConnection, updateSystem } from '@/lib/api';
+import { getSystems, createSystem, testConnection, updateSystem, getSourceDatabases, createSourceDatabase, updateSourceDatabase } from '@/lib/api';
 
 const stageMap: Record<LifecycleStage, { color: 'success' | 'warning' | 'neutral' | 'error'; label: string }> = {
   active: { color: 'success', label: 'Active' },
@@ -446,6 +446,10 @@ function InitConfigTab({ system, onSaved }: { system: SystemRecord; onSaved?: ()
         storageConfig: storagePayload,
         status: 'CONFIGURED',
       });
+
+      // 同步写入 r_source_database，使 Data Sources 列表能回显该数据库连接
+      await syncToSourceDatabases(dbPayload);
+
       window.alert('配置已保存');
       // 提示刷新后生效
       onSaved && onSaved();
@@ -453,6 +457,38 @@ function InitConfigTab({ system, onSaved }: { system: SystemRecord; onSaved?: ()
       window.alert('保存失败：' + (e?.message || '请稍后重试'));
     } finally {
       setSavingConfig(false);
+    }
+  };
+
+  // 将 Init Config 里的数据库连接同步到 r_source_database，供 Data Sources 列表回显
+  const syncToSourceDatabases = async (dbPayload: any) => {
+    if (!system?.id || !dbPayload?.database) return;
+    const engineMap: Record<string, string> = {
+      postgresql: 'POSTGRESQL',
+      mysql: 'MYSQL',
+      sqlserver: 'SQLSERVER',
+      oracle: 'ORACLE',
+      mongodb: 'MONGODB',
+    };
+    const dbType = engineMap[String(dbPayload.engine).toLowerCase()] || String(dbPayload.engine).toUpperCase();
+    const payload: any = {
+      sourceSystemId: system.id,
+      dbType,
+      server: dbPayload.host || '',
+      port: dbPayload.port || 0,
+      databaseName: dbPayload.database,
+      username: dbPayload.username || '',
+      description: '',
+    };
+    if (dbPayload.password) payload.password = dbPayload.password;
+
+    // 查该系统已有的源数据库，按库名 upsert
+    const existing = await getSourceDatabases({ systemId: system.id }).catch(() => [] as any[]);
+    const match = (existing as any[])?.find((d) => d.databaseName === payload.databaseName && d.dbType === dbType);
+    if (match?.id) {
+      await updateSourceDatabase(match.id, payload);
+    } else {
+      await createSourceDatabase(payload);
     }
   };
 
