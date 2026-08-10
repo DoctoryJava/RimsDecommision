@@ -169,6 +169,7 @@ export interface FieldMapping {
 
 export interface QueryConfig {
   id: string;
+  systemId?: string;
   name: string;
   description: string;
   baseTable: string;

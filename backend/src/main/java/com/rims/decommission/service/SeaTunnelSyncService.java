@@ -1,9 +1,11 @@
 package com.rims.decommission.service;
 
 import com.rims.decommission.config.SeaTunnelProperties;
+import com.rims.decommission.entity.RSchema;
 import com.rims.decommission.entity.RSourceDatabase;
 import com.rims.decommission.entity.RSyncJob;
 import com.rims.decommission.entity.RSyncTableStat;
+import com.rims.decommission.mapper.RSchemaMapper;
 import com.rims.decommission.mapper.RSourceDatabaseMapper;
 import com.rims.decommission.mapper.RSyncJobMapper;
 import com.rims.decommission.mapper.RSyncTableStatMapper;
@@ -29,13 +31,16 @@ public class SeaTunnelSyncService {
     private final RSourceDatabaseMapper sourceDbMapper;
     private final RSyncJobMapper syncJobMapper;
     private final RSyncTableStatMapper tableStatMapper;
+    private final RSchemaMapper schemaMapper;
 
     public SeaTunnelSyncService(SeaTunnelProperties props, RSourceDatabaseMapper sourceDbMapper,
-                                RSyncJobMapper syncJobMapper, RSyncTableStatMapper tableStatMapper) {
+                                RSyncJobMapper syncJobMapper, RSyncTableStatMapper tableStatMapper,
+                                RSchemaMapper schemaMapper) {
         this.props = props;
         this.sourceDbMapper = sourceDbMapper;
         this.syncJobMapper = syncJobMapper;
         this.tableStatMapper = tableStatMapper;
+        this.schemaMapper = schemaMapper;
     }
 
     /** 触发同步（异步调用）。 */
@@ -94,7 +99,61 @@ public class SeaTunnelSyncService {
         }
         // 同步完成后，扫描落盘目录，统计每个表的大小与行数并入库
         collectTableStats(job, src, tables);
+        // 保存该源库各表的表结构（字段名+类型）到 r_schema，供 Query Config 选字段
+        saveTableSchema(job.getSystemId(), src, tables);
         return rows;
+    }
+
+    /** 读取源库每张表的列结构，写入 r_schema（按 systemId+databaseName 一条记录）。 */
+    private void saveTableSchema(String systemId, RSourceDatabase src, List<String> tables) {
+        String engine = src.getDbType() == null ? "mysql" : src.getDbType().toLowerCase();
+        int port = src.getPort() != null ? src.getPort() : defaultPort(engine);
+        List<Map<String, Object>> tableDefs = new ArrayList<>();
+        String url = jdbcUrl(engine, src.getServer(), port, src.getDatabaseName());
+        try (Connection c = DriverManager.getConnection(url, src.getUsername(), src.getPassword())) {
+            for (String t : tables) {
+                Map<String, Object> tableDef = new LinkedHashMap<>();
+                tableDef.put("name", t);
+                List<Map<String, Object>> cols = new ArrayList<>();
+                try (ResultSet rs = c.getMetaData().getColumns(src.getDatabaseName(), null, t, "%")) {
+                    while (rs.next()) {
+                        Map<String, Object> col = new LinkedHashMap<>();
+                        col.put("name", rs.getString("COLUMN_NAME"));
+                        col.put("type", rs.getString("TYPE_NAME"));
+                        cols.add(col);
+                    }
+                }
+                tableDef.put("columns", cols);
+                tableDefs.add(tableDef);
+            }
+        } catch (Exception e) {
+            // 无法读取列结构时，只记录表名，列留空
+            for (String t : tables) {
+                Map<String, Object> tableDef = new LinkedHashMap<>();
+                tableDef.put("name", t);
+                tableDef.put("columns", new ArrayList<>());
+                tableDefs.add(tableDef);
+            }
+        }
+        // upsert r_schema
+        String dbName = src.getDatabaseName() == null ? "default" : src.getDatabaseName();
+        RSchema schema = schemaMapper.selectOne(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RSchema>()
+                        .eq(RSchema::getSystemId, systemId)
+                        .eq(RSchema::getName, dbName));
+        if (schema == null) {
+            schema = new RSchema();
+            schema.setId("sc-" + System.currentTimeMillis());
+            schema.setSystemId(systemId);
+            schema.setName(dbName);
+            schema.setTables(tableDefs);
+            schema.setSyncedAt(LocalDateTime.now().toString());
+            schemaMapper.insert(schema);
+        } else {
+            schema.setTables(tableDefs);
+            schema.setSyncedAt(LocalDateTime.now().toString());
+            schemaMapper.updateById(schema);
+        }
     }
 
     /** 物理删除某源库在 warehouse 下的落盘目录（含 archive namespace），实现真正覆盖。 */

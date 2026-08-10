@@ -20,6 +20,7 @@ import java.util.Map;
 public class RQueryConfig {
     @TableId
     private String id;
+    private String systemId;
     private String name;
     private String description;
     private String baseTable;

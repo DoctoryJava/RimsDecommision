@@ -15,8 +15,6 @@ import DataSourcesPage from '@/pages/user/DataSourcesPage';
 import ArchivePage from '@/pages/admin/archive/ArchivePage';
 import RetentionPage from '@/pages/admin/archive/RetentionPage';
 import TagsPage from '@/pages/admin/archive/TagsPage';
-import { getQueryConfigs } from '@/lib/api';
-import type { QueryConfig } from '@/types';
 
 const pageTitles: Record<PageKey, string> = {
   dashboard: 'Dashboard',
@@ -67,11 +65,6 @@ function pageFromHash(): PageKey {
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(() => !!localStorage.getItem('rims_token'));
   const [page, setPage] = useState<PageKey>(pageFromHash);
-  const [queryConfigs, setQueryConfigs] = useState<QueryConfig[]>([]);
-
-  useEffect(() => {
-    getQueryConfigs().then(list => { if(list?.length) setQueryConfigs(list as unknown as QueryConfig[]); }).catch(()=>{});
-  }, []);
 
   // 若刷新后 token 仍在，保持登录态；也可在此预加载 user-info
   useEffect(() => {
@@ -113,7 +106,7 @@ export default function App() {
           {page === 'systems' && <SystemsPage onNavigateSystems={() => navigate('dashboard')} />}
           {page === 'data-sync' && <DataSyncPage />}
           {page === 'schemas' && <SchemasPage />}
-          {page === 'query-configs' && <QueryConfigsPage configs={queryConfigs} setConfigs={setQueryConfigs} />}
+          {page === 'query-configs' && <QueryConfigsPage />}
           {page === 'dynamic-query' && <DynamicQueryPage />}
           {page === 'data-sources' && <DataSourcesPage onNavigate={navigate} />}
           {page === 'archive' && <ArchivePage />}

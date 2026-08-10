@@ -182,6 +182,10 @@ export async function getAllSparkSyncedTables() {
   const res = await api.get<Result<any[]>>('/spark-query/all-synced-tables');
   return (res.data as Result<any[]>).data;
 }
+export async function getSystemSchema(systemId: string) {
+  const res = await api.get<Result<any[]>>('/spark-query/system-schema', { params: { systemId } });
+  return (res.data as Result<any[]>).data;
+}
 export async function sparkExecuteQuery(data: any) {
   const res = await api.post<Result<any>>('/spark-query/execute', data);
   return (res.data as Result<any>).data;
@@ -203,8 +207,8 @@ export async function getTableData(table: string, params: any = {}) {
 }
 
 // Query
-export async function getQueryConfigs() {
-  const res = await api.get<Result<any[]>>('/query-configs');
+export async function getQueryConfigs(systemId?: string) {
+  const res = await api.get<Result<any[]>>('/query-configs', { params: systemId ? { systemId } : {} });
   return (res.data as Result<any[]>).data;
 }
 export async function createQueryConfig(data: any) {

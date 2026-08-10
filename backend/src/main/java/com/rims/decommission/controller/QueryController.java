@@ -130,9 +130,14 @@ public class QueryController {
     }
 
     @GetMapping("/query-configs")
-    @Operation(summary = "查询配置列表")
-    public Result<List<Map<String,Object>>> listConfigs() {
-        return Result.success(configMapper.selectList(new LambdaQueryWrapper<RQueryConfig>().orderByAsc(RQueryConfig::getId))
+    @Operation(summary = "查询配置列表（可按系统筛选）")
+    public Result<List<Map<String,Object>>> listConfigs(@RequestParam(required=false) String systemId) {
+        LambdaQueryWrapper<RQueryConfig> w = new LambdaQueryWrapper<RQueryConfig>()
+                .orderByAsc(RQueryConfig::getId);
+        if (systemId != null && !systemId.isBlank()) {
+            w.eq(RQueryConfig::getSystemId, systemId);
+        }
+        return Result.success(configMapper.selectList(w)
                 .stream().map(this::toConfigMap).collect(Collectors.toList()));
     }
 
@@ -191,6 +196,7 @@ public class QueryController {
     private Map<String,Object> toConfigMap(RQueryConfig c) {
         Map<String,Object> m = new LinkedHashMap<>();
         m.put("id", c.getId());
+        m.put("systemId", c.getSystemId());
         m.put("name", c.getName());
         m.put("description", c.getDescription());
         m.put("baseTable", c.getBaseTable());
@@ -207,6 +213,7 @@ public class QueryController {
 
     private RQueryConfig fromMap(Map<String,Object> body) {
         RQueryConfig c = new RQueryConfig();
+        c.setSystemId(str(body.get("systemId")));
         c.setName(str(body.get("name")));
         c.setDescription(str(body.get("description")));
         c.setBaseTable(str(body.get("baseTable")));

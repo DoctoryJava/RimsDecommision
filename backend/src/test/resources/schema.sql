@@ -226,3 +226,6 @@ CREATE TABLE IF NOT EXISTS `r_sync_table_stat` (
     `row_count` BIGINT NOT NULL DEFAULT 0, `size_bytes` BIGINT NOT NULL DEFAULT 0,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
 CREATE INDEX IF NOT EXISTS idx_r_sync_table_stat_job ON `r_sync_table_stat`(`job_id`);
+
+-- Query Config 归属系统（V11）
+ALTER TABLE `r_query_config` ADD COLUMN `system_id` VARCHAR(64);

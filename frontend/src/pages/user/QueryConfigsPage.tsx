@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
-  Plus, Pencil, Trash2, Copy, Search, Eye, Code2, Database,
+  Plus, Pencil, Trash2, Copy, Search, Eye, Code2, Database, Server,
   Layers, ArrowRight, Save, X, ChevronDown, ChevronRight, Play,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
@@ -9,53 +9,76 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
 import type { QueryConfig, FieldMapping, JoinConfig } from '@/types';
-import { getTables, getAllSparkSyncedTables, executeQuery as apiExecuteQuery } from '@/lib/api';
+import { getSystems, getQueryConfigs, getSystemSchema, executeQuery as apiExecuteQuery } from '@/lib/api';
 
 interface QueryConfigsPageProps {
-  configs: QueryConfig[];
-  setConfigs: (configs: QueryConfig[]) => void;
+  // 页面自管理系统与配置
 }
 
 // TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
-export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPageProps) {
+export default function QueryConfigsPage(_props: QueryConfigsPageProps) {
   const [search, setSearch] = useState('');
+  const [systems, setSystems] = useState<any[]>([]);
+  const [systemId, setSystemId] = useState('');
+  const [configs, setLocalConfigs] = useState<QueryConfig[]>([]);
   const [editingConfig, setEditingConfig] = useState<QueryConfig | null>(null);
   const [showPreview, setShowPreview] = useState<QueryConfig | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [tablesData, setTablesData] = useState<any[]>([]);
-  const [syncedTables, setSyncedTables] = useState<any[]>([]);
+  const [systemSchema, setSystemSchema] = useState<any[]>([]);
 
-  // 物理表元数据来自后端 /tables（r_physical_table 表）；已同步的 Iceberg 表来自 /spark-query/all-synced-tables
+  // 加载系统列表
   useEffect(() => {
-    getTables().then((list: any) => { if (Array.isArray(list) && list.length) setTablesData(list as any[]); }).catch(()=>{});
-    getAllSparkSyncedTables().then((list: any) => { if (Array.isArray(list) && list.length) setSyncedTables(list as any[]); }).catch(()=>{});
-  }, []);
+    getSystems({ pageNum: 1, pageSize: 100 }).then((p: any) => {
+      const list = (p?.list ?? []) as any[];
+      setSystems(list);
+      if (list.length && !systemId) setSystemId(list[0].id);
+    }).catch(() => {});
+  }, [systemId]);
 
-  // 把已同步表拍平成 [{db, table, full: "db.table"}]
-  const syncedTableOptions = useMemo(() => {
-    const opts: { db: string; table: string; full: string }[] = [];
-    (syncedTables || []).forEach((s: any) => {
-      (s.tables || []).forEach((t: string) => opts.push({ db: s.database, table: t, full: `${s.database}.${t}` }));
+  // 按系统加载查询配置
+  const loadConfigs = (sid: string) => {
+    if (!sid) { setLocalConfigs([]); return; }
+    getQueryConfigs(sid).then((list: any) => { if (Array.isArray(list)) setLocalConfigs(list as QueryConfig[]); }).catch(()=>{});
+  };
+  useEffect(() => { loadConfigs(systemId); }, [systemId]);
+
+  // 按系统加载表结构（含每张表的字段）
+  useEffect(() => {
+    if (!systemId) { setSystemSchema([]); return; }
+    getSystemSchema(systemId).then((list: any) => { if (Array.isArray(list)) setSystemSchema(list as any[]); }).catch(()=>{});
+  }, [systemId]);
+
+  // 把该系统的表结构拍平成选项：full=db.table, columns=该表字段
+  const tableOptions = useMemo(() => {
+    const opts: { db: string; table: string; full: string; columns: any[] }[] = [];
+    (systemSchema || []).forEach((s: any) => {
+      (s.tables || []).forEach((t: any) => {
+        const tblName = typeof t === 'string' ? t : (t.name || '');
+        const cols = typeof t === 'string' ? [] : (t.columns || []);
+        if (tblName) opts.push({ db: s.database, table: tblName, full: `${s.database}.${tblName}`, columns: cols });
+      });
     });
     return opts;
-  }, [syncedTables]);
+  }, [systemSchema]);
+
   const filtered = configs.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.description.toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleSave = (config: QueryConfig) => {
+    const withSystem = { ...config, systemId: config.systemId || systemId };
     const exists = configs.find((c) => c.id === config.id);
     if (exists) {
-      setConfigs(configs.map((c) => (c.id === config.id ? config : c)));
+      setLocalConfigs(configs.map((c) => (c.id === config.id ? withSystem : c)));
     } else {
-      setConfigs([...configs, config]);
+      setLocalConfigs([...configs, withSystem]);
     }
     setEditingConfig(null);
   };
 
   const handleDelete = (id: string) => {
-    setConfigs(configs.filter((c) => c.id !== id));
+    setLocalConfigs(configs.filter((c) => c.id !== id));
   };
 
   const handleDuplicate = (config: QueryConfig) => {
@@ -67,7 +90,7 @@ export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPa
       createdAt: new Date().toISOString().split('T')[0],
       updatedAt: new Date().toISOString().split('T')[0],
     };
-    setConfigs([...configs, newConfig]);
+    setLocalConfigs([...configs, newConfig]);
   };
 
   const toggleRow = (id: string) => {
@@ -82,13 +105,14 @@ export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPa
       {/* API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData */}
       <PageHeader
         title="查询配置管理"
-        subtitle="配置动态查询的数据源、关联关系和字段映射 — 后台管理员功能"
+        subtitle="按系统配置动态查询的基础表、关联关系和字段映射"
         actions={
           <Button icon={<Plus size={16} />} onClick={() => setEditingConfig({
             id: `qc-${Date.now()}`,
+            systemId,
             name: '',
             description: '',
-            baseTable: 'orders',
+            baseTable: tableOptions[0]?.full || '',
             joins: [],
             fields: [],
             defaultSort: { field: '', direction: 'asc' },
@@ -97,9 +121,29 @@ export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPa
             createdBy: 'Sarah Chen',
             createdAt: new Date().toISOString().split('T')[0],
             updatedAt: new Date().toISOString().split('T')[0],
-          })}>新建查询配置</Button>
+          })} disabled={!systemId}>新建查询配置</Button>
         }
       />
+
+      {/* System selector */}
+      <Card className="p-4 mb-5">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2 text-sm text-neutral-600">
+            <Server size={16} className="text-neutral-400" />
+            <span className="font-medium">选择系统</span>
+          </div>
+          <select
+            value={systemId}
+            onChange={(e) => setSystemId(e.target.value)}
+            className="flex-1 min-w-[240px] px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 outline-none"
+          >
+            {systems.length === 0 && <option value="">暂无系统</option>}
+            {systems.map((s: any) => (
+              <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+            ))}
+          </select>
+        </div>
+      </Card>
 
       <div className="relative max-w-sm mb-5">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -205,8 +249,7 @@ export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPa
       {editingConfig && (
         <ConfigEditorModal
           config={editingConfig}
-          tables={tablesData}
-          syncedTables={syncedTableOptions}
+          tables={tableOptions}
           onSave={handleSave}
           onClose={() => setEditingConfig(null)}
         />
@@ -219,10 +262,9 @@ export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPa
   );
 }
 
-function ConfigEditorModal({ config, tables, syncedTables, onSave, onClose }: {
+function ConfigEditorModal({ config, tables, onSave, onClose }: {
   config: QueryConfig;
-  tables: any[];
-  syncedTables: { db: string; table: string; full: string }[];
+  tables: { db: string; table: string; full: string; columns: any[] }[];
   onSave: (c: QueryConfig) => void;
   onClose: () => void;
 }) {
@@ -268,8 +310,8 @@ function ConfigEditorModal({ config, tables, syncedTables, onSave, onClose }: {
   };
 
   const availableTables = tables;
-  const getColumns = (tableName: string) => {
-    const t = tables.find((x: any) => x.name === tableName);
+  const getColumns = (tableFull: string) => {
+    const t = tables.find((x: any) => x.full === tableFull || x.table === tableFull);
     return (t?.columns || []) as any[];
   };
 
@@ -346,14 +388,12 @@ function ConfigEditorModal({ config, tables, syncedTables, onSave, onClose }: {
                 className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all"
               >
                 <option value="">请选择表</option>
-                {syncedTables.length > 0 ? (
-                  syncedTables.map((t) => (
+                {availableTables.length > 0 ? (
+                  availableTables.map((t) => (
                     <option key={t.full} value={t.full}>{t.full}</option>
                   ))
                 ) : (
-                  availableTables.map((t) => (
-                    <option key={t.name} value={t.name}>{t.label} ({t.name})</option>
-                  ))
+                  <option value="" disabled>暂无已同步的表（请先同步）</option>
                 )}
               </select>
             </div>
@@ -414,7 +454,7 @@ function ConfigEditorModal({ config, tables, syncedTables, onSave, onClose }: {
                   onChange={(e) => updateJoin(join.id, { leftTable: e.target.value })}
                   className="px-2 py-1.5 text-sm rounded-md border border-neutral-200 bg-white outline-none"
                 >
-                  {availableTables.map((t) => <option key={t.name} value={t.name}>{t.name}</option>)}
+                  {availableTables.map((t) => <option key={t.full} value={t.full}>{t.full}</option>)}
                 </select>
                 <select
                   value={join.leftColumn}
@@ -439,7 +479,7 @@ function ConfigEditorModal({ config, tables, syncedTables, onSave, onClose }: {
                   onChange={(e) => updateJoin(join.id, { rightTable: e.target.value })}
                   className="px-2 py-1.5 text-sm rounded-md border border-neutral-200 bg-white outline-none"
                 >
-                  {availableTables.map((t) => <option key={t.name} value={t.name}>{t.name}</option>)}
+                  {availableTables.map((t) => <option key={t.full} value={t.full}>{t.full}</option>)}
                 </select>
                 <select
                   value={join.rightColumn}
@@ -477,7 +517,7 @@ function ConfigEditorModal({ config, tables, syncedTables, onSave, onClose }: {
                   onChange={(e) => updateField(field.id, { table: e.target.value, column: '' })}
                   className="col-span-2 px-2 py-1.5 text-xs rounded-md border border-neutral-200 bg-white outline-none"
                 >
-                  {availableTables.map((t) => <option key={t.name} value={t.name}>{t.name}</option>)}
+                  {availableTables.map((t) => <option key={t.full} value={t.full}>{t.full}</option>)}
                 </select>
                 <select
                   value={field.column}

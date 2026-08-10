@@ -2,7 +2,9 @@ package com.rims.decommission.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rims.decommission.config.SparkProperties;
+import com.rims.decommission.entity.RSchema;
 import com.rims.decommission.entity.RSyncTableStat;
+import com.rims.decommission.mapper.RSchemaMapper;
 import com.rims.decommission.mapper.RSyncTableStatMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.stereotype.Service;
@@ -23,11 +25,13 @@ public class SparkQueryService {
 
     private final SparkProperties props;
     private final RSyncTableStatMapper tableStatMapper;
+    private final RSchemaMapper schemaMapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public SparkQueryService(SparkProperties props, RSyncTableStatMapper tableStatMapper) {
+    public SparkQueryService(SparkProperties props, RSyncTableStatMapper tableStatMapper, RSchemaMapper schemaMapper) {
         this.props = props;
         this.tableStatMapper = tableStatMapper;
+        this.schemaMapper = schemaMapper;
     }
 
     /** 列出某系统已同步的表（库 -> 表列表，按 databaseName 分组）。 */
@@ -41,6 +45,20 @@ public class SparkQueryService {
     /** 列出所有已同步的表（不按系统过滤），供 Query Configs 选择基础表等使用。 */
     public List<Map<String, Object>> listAllSyncedTables() {
         return groupTables(tableStatMapper.selectList(null));
+    }
+
+    /** 获取某系统的表结构（含每张表的字段），供 Query Config 选字段/关联字段。 */
+    public List<Map<String, Object>> listSystemSchema(String systemId) {
+        List<RSchema> schemas = schemaMapper.selectList(
+                new LambdaQueryWrapper<RSchema>().eq(RSchema::getSystemId, systemId));
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (RSchema s : schemas) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("database", s.getName());
+            m.put("tables", s.getTables() != null ? s.getTables() : new ArrayList<>());
+            result.add(m);
+        }
+        return result;
     }
 
     private List<Map<String, Object>> groupTables(List<RSyncTableStat> stats) {

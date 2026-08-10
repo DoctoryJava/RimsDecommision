@@ -30,6 +30,12 @@ public class SparkQueryController {
         return Result.success(sparkQueryService.listAllSyncedTables());
     }
 
+    @GetMapping("/system-schema")
+    @Operation(summary = "某系统的表结构（含每张表的字段），供 Query Config 选字段")
+    public Result<List<Map<String,Object>>> systemSchema(@RequestParam String systemId) {
+        return Result.success(sparkQueryService.listSystemSchema(systemId));
+    }
+
     @PostMapping("/execute")
     @Operation(summary = "Spark 执行 SQL 查询已同步数据")
     public Result<Map<String,Object>> execute(@RequestBody Map<String,Object> body) {
