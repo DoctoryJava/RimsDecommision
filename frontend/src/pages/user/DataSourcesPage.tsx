@@ -77,11 +77,16 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
     getSourceDatabases({ systemId }).then(setDbs).catch(() => setDbs([]));
   }, [systemId]);
 
+  const [jobsError, setJobsError] = useState('');
   const loadJobs = useCallback(() => {
-    if (!systemId) { setJobs([]); return; }
+    if (!systemId) { setJobs([]); setJobsError(''); return; }
     getSyncJobs({ pageNum: 1, pageSize: 50, systemId }).then((p: any) => {
       setJobs((p?.list ?? []) as any[]);
-    }).catch(() => setJobs([]));
+      setJobsError('');
+    }).catch((e: any) => {
+      setJobs([]);
+      setJobsError(e?.message || '加载同步状态失败，请确认后端已启动');
+    });
   }, [systemId]);
 
   useEffect(() => { loadSystems(); }, [loadSystems]);
@@ -274,7 +279,9 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
             <Button size="sm" icon={<Play size={14} />} onClick={triggerSync} disabled={!systemId}>立即同步</Button>
           </div>
           {jobs.length === 0 ? (
-            <div className="p-8 text-center text-sm text-neutral-400">该系统暂无同步任务</div>
+            <div className="p-8 text-center text-sm text-neutral-400">
+              {jobsError ? jobsError : systemId ? '该系统暂无同步任务（点「立即同步」创建）' : '请先选择系统'}
+            </div>
           ) : (
             <div className="divide-y divide-neutral-100">
               {jobs.map((j) => (
