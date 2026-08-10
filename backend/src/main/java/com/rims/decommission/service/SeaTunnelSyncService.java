@@ -258,65 +258,50 @@ public class SeaTunnelSyncService {
         }
     }
 
-    /** 读取 Iceberg 表目录的行数：优先解析 metadata 里 manifest 的 record_count；否则按 parquet 文件数为 0。 */
+    /** 读取 Iceberg 表目录的行数：解析 metadata.json 里 snapshot 的 summary（total-records / added-records）。 */
     private long readIcebergRowCount(Path tableDir) {
         try {
-            // 优先 metadata 目录
             Path metaDir = tableDir.resolve("metadata");
-            if (Files.isDirectory(metaDir)) {
-                try (var stream = Files.list(metaDir)) {
-                    List<Path> metas = stream
-                            .filter(p -> p.getFileName().toString().matches("v\\d+\\.metadata\\.json"))
-                            .sorted(Comparator.reverseOrder())
-                            .collect(Collectors.toList());
-                    if (!metas.isEmpty()) {
-                        long rows = parseIcebergMetadata(metas.get(0));
-                        if (rows > 0) return rows;
-                    }
-                }
-                // 直接扫 metadata 下所有 manifest/avro 相关文件里的 record_count
-                try (var stream = Files.list(metaDir)) {
-                    for (Path p : (Iterable<Path>) stream.filter(Files::isRegularFile).collect(Collectors.toList())) {
-                        try {
-                            String s = Files.readString(p, StandardCharsets.UTF_8);
-                            var mm = java.util.regex.Pattern.compile("\"record_count\"\\s*:\\s*(\\d+)").matcher(s);
-                            long cnt = 0;
-                            while (mm.find()) cnt += Long.parseLong(mm.group(1));
-                            if (cnt > 0) return cnt;
-                        } catch (Exception ignored) {}
-                    }
+            if (!Files.isDirectory(metaDir)) return 0;
+            try (var stream = Files.list(metaDir)) {
+                List<Path> metas = stream
+                        .filter(p -> p.getFileName().toString().matches("v\\d+\\.metadata\\.json"))
+                        .sorted(Comparator.reverseOrder())
+                        .collect(Collectors.toList());
+                if (!metas.isEmpty()) {
+                    long rows = parseIcebergMetadata(metas.get(0));
+                    if (rows > 0) return rows;
                 }
             }
         } catch (Exception ignored) {}
         return 0;
     }
 
-    /** 解析 Iceberg metadata.json，汇总 manifest 的 record_count。 */
+    /** 解析 metadata.json：累加每个 snapshot summary 里的 total-records（无则 added-records）。 */
     private long parseIcebergMetadata(Path metaFile) {
         long rows = 0;
         try {
             String json = Files.readString(metaFile, StandardCharsets.UTF_8);
-            // 简化解析：找 "record_count": 数字 求和（Iceberg manifest-list/manifest 里体现）
-            var m = java.util.regex.Pattern.compile("\"record_count\"\\s*:\\s*(\\d+)").matcher(json);
-            while (m.find()) {
-                rows += Long.parseLong(m.group(1));
-            }
-            // 若没解析到（metadata.json 顶层不直接含 record_count），尝试从 manifest 文件累加
-            if (rows == 0) {
-                Path metaDir = metaFile.getParent();
-                if (metaDir != null) {
-                    try (var stream = Files.list(metaDir)) {
-                        for (Path p : (Iterable<Path>) stream.filter(f -> f.getFileName().toString().startsWith("snap-"))
-                                .collect(Collectors.toList())) {
-                            String s = Files.readString(p, StandardCharsets.UTF_8);
-                            var mm = java.util.regex.Pattern.compile("\"record_count\"\\s*:\\s*(\\d+)").matcher(s);
-                            while (mm.find()) rows += Long.parseLong(mm.group(1));
-                        }
-                    }
+            com.fasterxml.jackson.databind.JsonNode root =
+                    new com.fasterxml.jackson.databind.ObjectMapper().readTree(json);
+            com.fasterxml.jackson.databind.JsonNode snapshots = root.get("snapshots");
+            if (snapshots != null && snapshots.isArray()) {
+                for (com.fasterxml.jackson.databind.JsonNode snap : snapshots) {
+                    com.fasterxml.jackson.databind.JsonNode summary = snap.get("summary");
+                    if (summary == null || !summary.isObject()) continue;
+                    long total = nodeLong(summary, "total-records");
+                    long added = nodeLong(summary, "added-records");
+                    rows += (total > 0 ? total : added);
                 }
             }
         } catch (Exception ignored) {}
         return rows;
+    }
+
+    private long nodeLong(com.fasterxml.jackson.databind.JsonNode node, String field) {
+        com.fasterxml.jackson.databind.JsonNode v = node.get(field);
+        if (v == null || !v.isNumber()) return 0;
+        return v.asLong();
     }
 
     // ---------- helpers ----------
