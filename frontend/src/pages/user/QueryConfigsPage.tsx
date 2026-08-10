@@ -26,6 +26,7 @@ export default function QueryConfigsPage(_props: QueryConfigsPageProps) {
   const [systemId, setSystemId] = useState('');
   const [configs, setLocalConfigs] = useState<QueryConfig[]>([]);
   const [editingConfig, setEditingConfig] = useState<QueryConfig | null>(null);
+  const [isNewConfig, setIsNewConfig] = useState(false);
   const [showPreview, setShowPreview] = useState<QueryConfig | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [systemSchema, setSystemSchema] = useState<any[]>([]);
@@ -82,6 +83,7 @@ export default function QueryConfigsPage(_props: QueryConfigsPageProps) {
         setLocalConfigs([...(configs.filter((c) => c.id !== withSystem.id)), created]);
       }
       setEditingConfig(null);
+      setIsNewConfig(false);
     } catch (e: any) {
       window.alert('保存失败：' + (e?.message || '请稍后重试'));
     }
@@ -129,7 +131,9 @@ export default function QueryConfigsPage(_props: QueryConfigsPageProps) {
         title="查询配置管理"
         subtitle="按系统配置动态查询的基础表、关联关系和字段映射"
         actions={
-          <Button icon={<Plus size={16} />} onClick={() => setEditingConfig({
+          <Button icon={<Plus size={16} />} onClick={() => {
+            setIsNewConfig(true);
+            setEditingConfig({
             id: `qc-${Date.now()}`,
             systemId,
             name: '',
@@ -143,7 +147,8 @@ export default function QueryConfigsPage(_props: QueryConfigsPageProps) {
             createdBy: 'Sarah Chen',
             createdAt: new Date().toISOString().split('T')[0],
             updatedAt: new Date().toISOString().split('T')[0],
-          })} disabled={!systemId}>新建查询配置</Button>
+            });
+          }} disabled={!systemId}>新建查询配置</Button>
         }
       />
 
@@ -214,7 +219,7 @@ export default function QueryConfigsPage(_props: QueryConfigsPageProps) {
                       <span className="flex items-center gap-1"><Search size={13} /> {filterableCount} 可筛选</span>
                     </div>
                     <Button variant="ghost" size="sm" icon={<Eye size={14} />} onClick={(e) => { e.stopPropagation(); setShowPreview(config); }}>预览</Button>
-                    <Button variant="ghost" size="sm" icon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setEditingConfig(config); }}>编辑</Button>
+                    <Button variant="ghost" size="sm" icon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setIsNewConfig(false); setEditingConfig(config); }}>编辑</Button>
                     <Button variant="ghost" size="sm" icon={<Copy size={14} />} onClick={(e) => { e.stopPropagation(); handleDuplicate(config); }} />
                     <Button variant="ghost" size="sm" icon={<Trash2 size={14} />} onClick={(e) => { e.stopPropagation(); handleDelete(config.id); }} />
                   </div>
@@ -272,8 +277,9 @@ export default function QueryConfigsPage(_props: QueryConfigsPageProps) {
         <ConfigEditorModal
           config={editingConfig}
           tables={tableOptions}
+          isNew={isNewConfig}
           onSave={handleSave}
-          onClose={() => setEditingConfig(null)}
+          onClose={() => { setEditingConfig(null); setIsNewConfig(false); }}
         />
       )}
 
@@ -284,9 +290,10 @@ export default function QueryConfigsPage(_props: QueryConfigsPageProps) {
   );
 }
 
-function ConfigEditorModal({ config, tables, onSave, onClose }: {
+function ConfigEditorModal({ config, tables, isNew = false, onSave, onClose }: {
   config: QueryConfig;
   tables: { db: string; table: string; full: string; columns: any[] }[];
+  isNew?: boolean;
   onSave: (c: QueryConfig) => void;
   onClose: () => void;
 }) {
@@ -598,6 +605,7 @@ function ConfigEditorModal({ config, tables, onSave, onClose }: {
           baseTable={draft.baseTable}
           tables={tables}
           getColumns={getColumns}
+          isNew={isNew}
         />
       )}
     </Modal>
@@ -606,12 +614,13 @@ function ConfigEditorModal({ config, tables, onSave, onClose }: {
 
 // ── 下钻配置 tab：配置子表 / 关联字段 / 多级下钻，保存到 r_drill_config ──
 function DrillConfigTab({
-  queryConfigId, baseTable, tables, getColumns,
+  queryConfigId, baseTable, tables, getColumns, isNew = false,
 }: {
   queryConfigId: string;
   baseTable: string;
   tables: { db: string; table: string; full: string; columns: any[] }[];
   getColumns: (tableFull: string) => any[];
+  isNew?: boolean;
 }) {
   const [tree, setTree] = useState<DrillConfig[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -620,7 +629,7 @@ function DrillConfigTab({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  const isNewConfig = /^qc-/.test(queryConfigId || '');
+  const isNewConfig = isNew;
   const flatNodes = useMemo(() => {
     const out: DrillConfig[] = [];
     const walk = (nodes: DrillConfig[]) => nodes.forEach((n) => { out.push(n); if (n.children?.length) walk(n.children); });
