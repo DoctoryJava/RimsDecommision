@@ -8,6 +8,7 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import PageHeader from '@/components/ui/PageHeader';
 import { getSystems, getSparkSyncedTables, sparkExecuteQuery } from '@/lib/api';
+import DrillQueryPanel from '@/pages/user/DrillQueryPanel';
 
 interface SysOption { id: string; name: string; code: string }
 
@@ -30,6 +31,7 @@ export default function DynamicQueryPage() {
   const [loadingTables, setLoadingTables] = useState(false);
   const [expandedDb, setExpandedDb] = useState<string | null>(null);
   const [selectedDb, setSelectedDb] = useState('');
+  const [mode, setMode] = useState<'sql' | 'drill'>('sql');
 
   const loadSystems = useCallback(() => {
     getSystems({ pageNum: 1, pageSize: 100 }).then((p: any) => {
@@ -80,6 +82,20 @@ export default function DynamicQueryPage() {
         subtitle="基于 Spark 查询已同步的 Iceberg 数据 — 选择系统，查看已同步库表，编写 SQL 查询"
       />
 
+      {/* Mode toggle */}
+      <div className="flex items-center gap-2 mb-5">
+        <button onClick={() => setMode('sql')} className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${mode === 'sql' ? 'bg-primary-500 text-white' : 'bg-white text-neutral-600 border border-neutral-200'}`}>
+          SQL 查询
+        </button>
+        <button onClick={() => setMode('drill')} className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${mode === 'drill' ? 'bg-primary-500 text-white' : 'bg-white text-neutral-600 border border-neutral-200'}`}>
+          关联明细下钻
+        </button>
+      </div>
+
+      {mode === 'drill' && <DrillQueryPanel />}
+
+      {mode === 'sql' && (
+      <>
       {/* System selector */}
       <Card className="p-4 mb-5">
         <div className="flex flex-wrap items-center gap-4">
@@ -244,6 +260,8 @@ export default function DynamicQueryPage() {
           </Card>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }
