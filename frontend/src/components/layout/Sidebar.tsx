@@ -14,7 +14,6 @@ import {
   Search,
   Bell,
   HardDrive,
-  TableProperties,
   SlidersHorizontal,
   Search as SearchIcon,
   Archive,
@@ -31,7 +30,6 @@ export type PageKey =
   | 'schemas'
   | 'query-configs'
   | 'dynamic-query'
-  | 'db-inspector'
   | 'data-sources'
   | 'archive'
   | 'retention'
@@ -76,7 +74,6 @@ const navSections: NavSection[] = [
         items: [
           { key: 'dynamic-query', label: 'Dynamic Query', icon: SearchIcon },
           { key: 'query-configs', label: 'Query Configs', icon: SlidersHorizontal },
-          { key: 'db-inspector', label: 'Table Inspector', icon: TableProperties },
         ],
       },
     ],

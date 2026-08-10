@@ -11,7 +11,6 @@ import PermissionsPage from '@/pages/admin/access/PermissionsPage';
 import PagesPage from '@/pages/admin/access/PagesPage';
 import QueryConfigsPage from '@/pages/user/QueryConfigsPage';
 import DynamicQueryPage from '@/pages/user/DynamicQueryPage';
-import DbInspectorPage from '@/pages/user/DbInspectorPage';
 import DataSourcesPage from '@/pages/user/DataSourcesPage';
 import ArchivePage from '@/pages/admin/archive/ArchivePage';
 import RetentionPage from '@/pages/admin/archive/RetentionPage';
@@ -26,7 +25,6 @@ const pageTitles: Record<PageKey, string> = {
   schemas: 'Schema Browser',
   'query-configs': 'Query Configs',
   'dynamic-query': 'Dynamic Query',
-  'db-inspector': 'Table Inspector',
   'data-sources': 'Data Sources',
   archive: 'Archive Artifacts',
   retention: 'Retention & Compliance',
@@ -45,7 +43,6 @@ const routeByKey: Record<PageKey, string> = {
   schemas: '/schemas',
   'query-configs': '/query-configs',
   'dynamic-query': '/dynamic-query',
-  'db-inspector': '/db-inspector',
   'data-sources': '/data-sources',
   archive: '/archive',
   retention: '/retention',
@@ -118,7 +115,6 @@ export default function App() {
           {page === 'schemas' && <SchemasPage />}
           {page === 'query-configs' && <QueryConfigsPage configs={queryConfigs} setConfigs={setQueryConfigs} />}
           {page === 'dynamic-query' && <DynamicQueryPage />}
-          {page === 'db-inspector' && <DbInspectorPage />}
           {page === 'data-sources' && <DataSourcesPage onNavigate={navigate} />}
           {page === 'archive' && <ArchivePage />}
           {page === 'retention' && <RetentionPage />}
