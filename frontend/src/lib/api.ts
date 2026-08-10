@@ -227,6 +227,10 @@ export async function deleteSourceDatabase(id: string) {
   const res = await api.delete<Result<null>>(`/source-databases/${id}`);
   return res.data;
 }
+export async function testSourceDatabase(id: string) {
+  const res = await api.post<Result<{ connected: boolean; message: string }>>(`/source-databases/${id}/test-connection`);
+  return (res.data as Result<{ connected: boolean; message: string }>).data;
+}
 
 // ===== Unstructured sources & items =====
 export async function getUnstructuredSources(params: any = {}) {

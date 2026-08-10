@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.rims.decommission.common.Result;
 import com.rims.decommission.entity.RSourceDatabase;
 import com.rims.decommission.mapper.RSourceDatabaseMapper;
+import com.rims.decommission.service.DatabaseConnectionTester;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +18,11 @@ import java.util.stream.Collectors;
 public class SourceDatabaseController {
 
     private final RSourceDatabaseMapper mapper;
+    private final DatabaseConnectionTester tester;
 
-    public SourceDatabaseController(RSourceDatabaseMapper mapper) {
+    public SourceDatabaseController(RSourceDatabaseMapper mapper, DatabaseConnectionTester tester) {
         this.mapper = mapper;
+        this.tester = tester;
     }
 
     @GetMapping
@@ -71,6 +74,24 @@ public class SourceDatabaseController {
     public Result<Void> delete(@PathVariable String id) {
         mapper.deleteById(id);
         return Result.success(null);
+    }
+
+    /** 按已保存的源数据库记录测试连接（使用库内存储的连接信息与密码）。 */
+    @PostMapping("/{id}/test-connection")
+    @Operation(summary = "测试该源数据库连接", description = "按 r_source_database 中已保存的连接信息建立 JDBC 连接")
+    public Result<Map<String,Object>> testConnectionById(@PathVariable String id) {
+        RSourceDatabase e = mapper.selectById(id);
+        if (e == null) return Result.fail(404, "数据源不存在");
+        if (e.getServer() == null || e.getServer().isBlank()) return Result.fail(400, "该数据源未填写服务器地址");
+        if (e.getDatabaseName() == null || e.getDatabaseName().isBlank()) return Result.fail(400, "该数据源未填写数据库名");
+        String engine = e.getDbType() == null ? "mysql" : e.getDbType().toLowerCase();
+        int port = e.getPort() != null ? e.getPort() : 0;
+        try {
+            return Result.success(tester.test(engine, e.getServer(), port, e.getDatabaseName(),
+                    e.getUsername(), e.getPassword(), false));
+        } catch (Exception ex) {
+            return Result.fail(400, ex.getMessage() == null ? "连接失败" : ex.getMessage());
+        }
     }
 
     private Map<String,Object> toMap(RSourceDatabase e) {

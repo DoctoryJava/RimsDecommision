@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Database, Plus, Pencil, Trash2, RefreshCw, Search, Play, Server, History } from 'lucide-react';
+import { Database, Plus, Pencil, Trash2, RefreshCw, Search, Play, Server, History, PlugZap } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -11,6 +11,7 @@ import {
   createSourceDatabase,
   updateSourceDatabase,
   deleteSourceDatabase,
+  testSourceDatabase,
   getSyncJobs,
   createSyncJob,
 } from '@/lib/api';
@@ -37,6 +38,8 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<any>({ dbType: 'MYSQL' });
+  const [testingId, setTestingId] = useState<string | null>(null);
+  const [testResults, setTestResults] = useState<Record<string, { ok: boolean; message: string }>>({});
 
   const loadSystems = useCallback(() => {
     getSystems({ pageNum: 1, pageSize: 100 }).then((p: any) => {
@@ -98,6 +101,22 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
     if (!window.confirm('确认删除该数据源？')) return;
     await deleteSourceDatabase(id);
     loadDbs();
+  };
+
+  const testDb = async (id: string) => {
+    setTestingId(id);
+    try {
+      const res = await testSourceDatabase(id);
+      if (res?.connected) {
+        setTestResults((r) => ({ ...r, [id]: { ok: true, message: res.message || '连接成功' } }));
+      } else {
+        setTestResults((r) => ({ ...r, [id]: { ok: false, message: res?.message || '连接失败' } }));
+      }
+    } catch (e: any) {
+      setTestResults((r) => ({ ...r, [id]: { ok: false, message: e?.message || '连接失败' } }));
+    } finally {
+      setTestingId(null);
+    }
   };
 
   const triggerSync = async () => {
@@ -191,7 +210,20 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
                     <td className="px-5 py-3 text-sm text-neutral-500">{db.username || '—'}</td>
                     <td className="px-5 py-3 text-sm text-neutral-500">{db.description || '—'}</td>
                     <td className="px-5 py-3 text-right">
-                      <div className="inline-flex items-center gap-1">
+                      <div className="inline-flex items-center gap-2">
+                        {testResults[db.id] && (
+                          <span className={`text-xs font-medium ${testResults[db.id].ok ? 'text-success-600' : 'text-error-600'} max-w-[180px] truncate`}>
+                            {testResults[db.id].ok ? '✓ ' : '✕ '}{testResults[db.id].message}
+                          </span>
+                        )}
+                        <button
+                          onClick={() => testDb(db.id)}
+                          disabled={testingId === db.id}
+                          className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border border-neutral-200 text-neutral-600 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 transition-colors"
+                        >
+                          {testingId === db.id ? <RefreshCw size={12} className="animate-spin" /> : <PlugZap size={12} />}
+                          Test
+                        </button>
                         <button onClick={() => openEdit(db)} className="p-1.5 rounded text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100"><Pencil size={14} /></button>
                         <button onClick={() => del(db.id)} className="p-1.5 rounded text-neutral-400 hover:text-error-500 hover:bg-neutral-100"><Trash2 size={14} /></button>
                       </div>
