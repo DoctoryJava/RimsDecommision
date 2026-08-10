@@ -199,13 +199,15 @@ public class SeaTunnelSyncService {
         Path dbDir = Paths.get(props.getWarehouseDir(), db);
         for (String t : tables) {
             String tblName = safeName(t);
-            Path tableDir = dbDir.resolve(tblName);
+            // 兼容多种落盘层级：
+            //   {db}/{table}/{stamp}        (模拟模式)
+            //   {db}/archive/{table}        (真实 SeaTunnel, namespace=archive)
+            //   {db}/{table}                (直接)
+            Path tableDir = findTableDir(dbDir, tblName);
             long size = 0;
             long rows = 0;
-            if (Files.exists(tableDir)) {
-                try {
-                    size = dirSize(tableDir);
-                } catch (Exception ignored) {}
+            if (tableDir != null) {
+                try { size = dirSize(tableDir); } catch (Exception ignored) {}
                 rows = readIcebergRowCount(tableDir);
             }
             RSyncTableStat stat = new RSyncTableStat();
@@ -220,6 +222,32 @@ public class SeaTunnelSyncService {
         }
     }
 
+    /** 在 dbDir 下查找某表的实际目录，兼容 {table}、archive/{table}、{table}/{stamp}。 */
+    private Path findTableDir(Path dbDir, String tblName) {
+        if (dbDir == null) return null;
+        // 直接 {db}/{table}
+        Path direct = dbDir.resolve(tblName);
+        if (Files.isDirectory(direct)) return direct;
+        // namespace 层级 {db}/archive/{table}
+        Path ns = dbDir.resolve("archive").resolve(tblName);
+        if (Files.isDirectory(ns)) return ns;
+        // 模拟模式 {db}/{table}/{stamp}：取 table 下第一个子目录
+        if (Files.isDirectory(direct)) {
+            try (var stream = Files.list(direct)) {
+                var list = stream.filter(Files::isDirectory).findFirst();
+                if (list.isPresent()) return list.get();
+            } catch (Exception ignored) {}
+        }
+        // 其它 namespace 名
+        try (var stream = Files.list(dbDir)) {
+            for (Path sub : (Iterable<Path>) stream.filter(Files::isDirectory).collect(Collectors.toList())) {
+                Path cand = sub.resolve(tblName);
+                if (Files.isDirectory(cand)) return cand;
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
     /** 递归统计目录大小（字节）。 */
     private long dirSize(Path dir) throws IOException {
         if (!Files.exists(dir)) return 0;
@@ -230,27 +258,34 @@ public class SeaTunnelSyncService {
         }
     }
 
-    /** 读取 Iceberg 表目录的行数：优先解析 metadata 里 manifest 的 record_count；否则按表目录下 parquet 文件估算为 0。 */
+    /** 读取 Iceberg 表目录的行数：优先解析 metadata 里 manifest 的 record_count；否则按 parquet 文件数为 0。 */
     private long readIcebergRowCount(Path tableDir) {
         try {
-            // Iceberg metadata 目录
+            // 优先 metadata 目录
             Path metaDir = tableDir.resolve("metadata");
             if (Files.isDirectory(metaDir)) {
-                // 读取最新的 v{n}.metadata.json，累加 snapshots 引用的 manifest record_count
                 try (var stream = Files.list(metaDir)) {
                     List<Path> metas = stream
                             .filter(p -> p.getFileName().toString().matches("v\\d+\\.metadata\\.json"))
                             .sorted(Comparator.reverseOrder())
                             .collect(Collectors.toList());
                     if (!metas.isEmpty()) {
-                        return parseIcebergMetadata(metas.get(0));
+                        long rows = parseIcebergMetadata(metas.get(0));
+                        if (rows > 0) return rows;
                     }
                 }
-            }
-            // 模拟占位：解析 _SIMULATED_ICEBERG.json（无行数）
-            Path sim = tableDir.resolve("_SIMULATED_ICEBERG.json");
-            if (Files.exists(sim)) {
-                return 0;
+                // 直接扫 metadata 下所有 manifest/avro 相关文件里的 record_count
+                try (var stream = Files.list(metaDir)) {
+                    for (Path p : (Iterable<Path>) stream.filter(Files::isRegularFile).collect(Collectors.toList())) {
+                        try {
+                            String s = Files.readString(p, StandardCharsets.UTF_8);
+                            var mm = java.util.regex.Pattern.compile("\"record_count\"\\s*:\\s*(\\d+)").matcher(s);
+                            long cnt = 0;
+                            while (mm.find()) cnt += Long.parseLong(mm.group(1));
+                            if (cnt > 0) return cnt;
+                        } catch (Exception ignored) {}
+                    }
+                }
             }
         } catch (Exception ignored) {}
         return 0;
