@@ -189,11 +189,20 @@ public class SeaTunnelSyncService {
         List<String> tables = new ArrayList<>();
         String url = jdbcUrl(engine, host, port, db);
         String driver = jdbcDriver(engine);
+        // 只列目标数据库的表：把 db 作为 catalog 传入；第二个参数 schema 传 null，
+        // 再按 TABLE_CAT/TABLE_SCHEM 双重过滤，避免拿到别的库的表
         try (Connection c = DriverManager.getConnection(url, user, pwd);
-             ResultSet rs = c.getMetaData().getTables(null, null, "%", new String[]{"TABLE"})) {
+             ResultSet rs = c.getMetaData().getTables(db, null, "%", new String[]{"TABLE"})) {
             while (rs.next()) {
+                String cat = rs.getString("TABLE_CAT");
+                String schema = rs.getString("TABLE_SCHEM");
                 String t = rs.getString("TABLE_NAME");
-                if (t != null) tables.add(t);
+                if (t == null) continue;
+                String owner = cat != null ? cat : schema;
+                // 仅保留属于目标数据库的表
+                if (owner == null || owner.equals(db)) {
+                    tables.add(t);
+                }
             }
         } catch (Exception e) {
             // 无驱动或无权限时回退到默认表名列表
