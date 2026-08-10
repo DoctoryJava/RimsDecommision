@@ -65,8 +65,11 @@ const navSections: NavSection[] = [
         items: [{ key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }],
       },
       {
-        label: 'Data Sources',
-        items: [{ key: 'data-sources', label: 'Data Sources', icon: Database }],
+        label: 'Projects',
+        items: [
+          { key: 'systems', label: 'Decommissioned Systems', icon: Server, badge: '6' },
+          { key: 'data-sources', label: 'Data Sources', icon: Database },
+        ],
       },
       {
         label: 'Data',
@@ -94,7 +97,6 @@ const navSections: NavSection[] = [
       {
         label: 'Systems & Data',
         items: [
-          { key: 'systems', label: 'Decommissioned Systems', icon: Server, badge: '6' },
           { key: 'data-sync', label: 'Data Sync', icon: RefreshCw },
           { key: 'schemas', label: 'Schema Browser', icon: Database },
         ],

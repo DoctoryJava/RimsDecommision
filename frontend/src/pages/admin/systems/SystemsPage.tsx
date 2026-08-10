@@ -29,7 +29,7 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
 import type { SystemRecord, LifecycleStage, SyncStatus } from '@/types';
-import { getSystems } from '@/lib/api';
+import { getSystems, createSystem } from '@/lib/api';
 
 const stageMap: Record<LifecycleStage, { color: 'success' | 'warning' | 'neutral' | 'error'; label: string }> = {
   active: { color: 'success', label: 'Active' },
@@ -66,6 +66,42 @@ export default function SystemsPage({ onNavigateSystems }: SystemsPageProps) {
   }, []);
   const [search, setSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [form, setForm] = useState({ name: '', code: '', description: '', owner: '', department: '', stage: 'active' });
+  const [saving, setSaving] = useState(false);
+
+  const reload = () => {
+    getSystems({ pageNum: 1, pageSize: 100 }).then(p => {
+      if (p?.list) setSystemsData(p.list as unknown as SystemRecord[]);
+    }).catch(()=>{});
+  };
+
+  const openAddModal = () => {
+    setForm({ name: '', code: '', description: '', owner: '', department: '', stage: 'active' });
+    setShowAddModal(true);
+  };
+
+  const saveSystem = async () => {
+    if (!form.name.trim() || !form.code.trim()) { window.alert('请填写 System Name 和 System Code'); return; }
+    setSaving(true);
+    try {
+      await createSystem({
+        name: form.name.trim(),
+        code: form.code.trim().toUpperCase(),
+        description: form.description.trim(),
+        owner: form.owner.trim(),
+        department: form.department.trim(),
+        stage: form.stage,
+      });
+      setShowAddModal(false);
+      reload();
+    } catch (e: any) {
+      window.alert('保存失败：' + (e?.message || '请稍后重试'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const setField = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const filtered = systemsData.filter((s) => {
     if (filter !== 'all' && s.stage !== filter) return false;
@@ -83,7 +119,7 @@ export default function SystemsPage({ onNavigateSystems }: SystemsPageProps) {
         title="Systems"
         subtitle="Manage the lifecycle of all registered systems and their data retention"
         actions={
-          <Button icon={<Plus size={16} />} onClick={() => setShowAddModal(true)}>
+          <Button icon={<Plus size={16} />} onClick={openAddModal}>
             Register System
           </Button>
         }
@@ -192,7 +228,7 @@ export default function SystemsPage({ onNavigateSystems }: SystemsPageProps) {
         footer={
           <>
             <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
-            <Button onClick={() => setShowAddModal(false)}>Create System</Button>
+            <Button onClick={saveSystem} disabled={saving}>{saving ? 'Saving...' : 'Create System'}</Button>
           </>
         }
       >
@@ -200,25 +236,25 @@ export default function SystemsPage({ onNavigateSystems }: SystemsPageProps) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-1.5">System Name</label>
-              <input type="text" placeholder="e.g. Customer Order Platform" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all" />
+              <input type="text" placeholder="e.g. Customer Order Platform" value={form.name} onChange={(e) => setField('name', e.target.value)} className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all" />
             </div>
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-1.5">System Code</label>
-              <input type="text" placeholder="e.g. COP" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all" />
+              <input type="text" placeholder="e.g. COP" value={form.code} onChange={(e) => setField('code', e.target.value)} className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all" />
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">Description</label>
-            <textarea rows={2} placeholder="Brief description of the system's purpose..." className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all resize-none" />
+            <textarea rows={2} placeholder="Brief description of the system's purpose..." value={form.description} onChange={(e) => setField('description', e.target.value)} className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all resize-none" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-1.5">Owner</label>
-              <input type="text" placeholder="System owner name" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all" />
+              <input type="text" placeholder="System owner name" value={form.owner} onChange={(e) => setField('owner', e.target.value)} className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all" />
             </div>
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-1.5">Department</label>
-              <input type="text" placeholder="e.g. Commerce" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all" />
+              <input type="text" placeholder="e.g. Commerce" value={form.department} onChange={(e) => setField('department', e.target.value)} className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all" />
             </div>
           </div>
           <div className="p-3 rounded-lg bg-primary-50 border border-primary-100">
