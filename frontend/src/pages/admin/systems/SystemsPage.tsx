@@ -157,8 +157,8 @@ export default function SystemsPage({ onNavigateSystems }: SystemsPageProps) {
       {/* System cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filtered.map((system) => {
-          const stage = stageMap[system.stage];
-          const sync = syncStatusMap[system.syncStatus];
+          const stage = stageMap[system.stage] || stageMap.active;
+          const sync = syncStatusMap[system.syncStatus] || syncStatusMap.idle;
           return (
             <Card key={system.id} hover className="p-5 cursor-pointer animate-fade-in-up" >
               <div onClick={() => setSelectedSystem(system)}>
@@ -270,8 +270,8 @@ export default function SystemsPage({ onNavigateSystems }: SystemsPageProps) {
 
 function SystemDetail({ system, onBack }: { system: SystemRecord; onBack: () => void }) {
   const [tab, setTab] = useState<'overview' | 'config' | 'sync'>('overview');
-  const stage = stageMap[system.stage];
-  const sync = syncStatusMap[system.syncStatus];
+  const stage = stageMap[system.stage] || stageMap.active;
+  const sync = syncStatusMap[system.syncStatus] || syncStatusMap.idle;
 
   return (
     <div className="p-6">
@@ -578,7 +578,7 @@ function SyncHistoryTab({ system }: { system: SystemRecord }) {
           </thead>
           <tbody className="divide-y divide-neutral-100">
             {jobs.map((job) => {
-              const s = syncStatusMap[job.status as SyncStatus];
+              const s = syncStatusMap[job.status as SyncStatus] || syncStatusMap.idle;
               return (
                 <tr key={job.id} className="hover:bg-neutral-50/50 transition-colors">
                   <td className="px-5 py-3 text-sm font-mono text-neutral-600">{job.id}</td>
