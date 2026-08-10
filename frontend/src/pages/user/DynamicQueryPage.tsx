@@ -126,7 +126,7 @@ export default function DynamicQueryPage() {
             return (
               <DrillQueryPanel
                 systemId={systemId}
-                database={selectedDb || ''}
+                database={selectedDb || (cfg.baseTable?.split('.')[0] || 'mi')}
                 configId={cfg.id}
                 mainTable={cfg.baseTable}
                 mainFields={cfg.fields || []}

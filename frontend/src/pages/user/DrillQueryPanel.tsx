@@ -41,7 +41,10 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
   // 展开状态：主表行 order_id -> true；子级用 key
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  const mainTableName = mainTable.split('.').pop() || mainTable;
+  const mainTableParts = (mainTable || '').split('.');
+  const mainTableName = mainTableParts.pop() || mainTable;
+  // 库名兜底：优先外部传入，其次从 <库>.<表> 中解析，最后默认 mi
+  const db = database || (mainTableParts.length ? mainTableParts[0] : '') || 'mi';
 
   const loadMain = useCallback(() => {
     if (!mainTable) return;
@@ -49,7 +52,7 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
     const sel = mainFields.length
       ? mainFields.map((f: any) => `${f.alias || f.column}`).join(', ')
       : '*';
-    const sql = `SELECT ${sel} FROM ${database}.archive.${mainTableName} LIMIT 500`;
+    const sql = `SELECT ${sel} FROM ${db}.archive.${mainTableName} LIMIT 500`;
     sparkExecuteQuery({ systemId, database, sql, page: 1, pageSize: 500 })
       .then((res: any) => {
         setMainRows(res?.rows ?? []);
@@ -58,7 +61,7 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
       })
       .catch((e: any) => setError(e?.message || '查询失败'))
       .finally(() => setLoading(false));
-  }, [systemId, database, mainTable, mainTableName, mainFields]);
+  }, [systemId, database, mainTable, mainTableName, mainFields, db]);
 
   useEffect(() => { loadMain(); }, [loadMain]);
 
@@ -197,12 +200,14 @@ function ChildTable({
   const [error, setError] = useState('');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  const tableName = node.baseTable.split('.').pop() || node.baseTable;
+  const nodeParts = (node.baseTable || '').split('.');
+  const tableName = nodeParts.pop() || node.baseTable;
+  const db = database || (nodeParts.length ? nodeParts[0] : '') || 'mi';
 
   useEffect(() => {
     setLoading(true); setError('');
     const sel = node.fields?.length ? node.fields.map((f: any) => f.alias || f.column).join(', ') : '*';
-    const sql = `SELECT ${sel} FROM ${database}.archive.${tableName} WHERE ${node.childField} = '${parentVal}' LIMIT 200`;
+    const sql = `SELECT ${sel} FROM ${db}.archive.${tableName} WHERE ${node.childField} = '${parentVal}' LIMIT 200`;
     sparkExecuteQuery({ systemId, database, sql, page: 1, pageSize: 200 })
       .then((res: any) => {
         setRows(res?.rows ?? []);
