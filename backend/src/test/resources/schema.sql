@@ -166,12 +166,6 @@ CREATE TABLE IF NOT EXISTS `r_archive_batch` (
     `result` VARCHAR(32) NOT NULL DEFAULT 'RUNNING', `log_url` VARCHAR(512), `correlation_id` VARCHAR(64),
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
 
-CREATE TABLE IF NOT EXISTS `r_archive_file` (
-    `id` VARCHAR(64) PRIMARY KEY, `archive_batch_id` VARCHAR(64) NOT NULL, `schema_name` VARCHAR(128),
-    `table_name` VARCHAR(128) NOT NULL, `blob_url` VARCHAR(512) NOT NULL, `size_bytes` BIGINT NOT NULL DEFAULT 0,
-    `checksum` VARCHAR(128), `etag` VARCHAR(128), `created_on` DATETIME,
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
-
 CREATE TABLE IF NOT EXISTS `r_archive_set` (
     `id` VARCHAR(64) PRIMARY KEY, `archive_batch_id` VARCHAR(64) NOT NULL, `set_name` VARCHAR(128) NOT NULL,
     `blob_dir_url` VARCHAR(512), `items_count` INT NOT NULL DEFAULT 0, `bytes_total` BIGINT NOT NULL DEFAULT 0, `created_on` DATETIME,
@@ -224,6 +218,7 @@ CREATE TABLE IF NOT EXISTS `r_sync_table_stat` (
     `id` VARCHAR(64) PRIMARY KEY, `job_id` VARCHAR(64) NOT NULL, `system_id` VARCHAR(64),
     `database_name` VARCHAR(128), `table_name` VARCHAR(128) NOT NULL,
     `row_count` BIGINT NOT NULL DEFAULT 0, `size_bytes` BIGINT NOT NULL DEFAULT 0,
+    `schema_name` VARCHAR(128), `blob_url` VARCHAR(512), `checksum` VARCHAR(128), `etag` VARCHAR(128), `created_on` DATETIME,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
 CREATE INDEX IF NOT EXISTS idx_r_sync_table_stat_job ON `r_sync_table_stat`(`job_id`);
 

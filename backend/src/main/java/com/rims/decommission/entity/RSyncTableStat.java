@@ -21,6 +21,11 @@ public class RSyncTableStat {
     private String tableName;
     private Long rowCount;
     private Long sizeBytes;
+    private String schemaName;
+    private String blobUrl;
+    private String checksum;
+    private String etag;
+    private LocalDateTime createdOn;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
     @TableField(fill = FieldFill.INSERT_UPDATE)

@@ -4,13 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.rims.decommission.common.PageResult;
 import com.rims.decommission.common.Result;
 import com.rims.decommission.entity.RArchiveBatch;
-import com.rims.decommission.entity.RArchiveFile;
 import com.rims.decommission.entity.RArchiveSet;
 import com.rims.decommission.entity.RArchiveSetItem;
+import com.rims.decommission.entity.RSyncTableStat;
 import com.rims.decommission.mapper.RArchiveBatchMapper;
-import com.rims.decommission.mapper.RArchiveFileMapper;
 import com.rims.decommission.mapper.RArchiveSetItemMapper;
 import com.rims.decommission.mapper.RArchiveSetMapper;
+import com.rims.decommission.mapper.RSyncTableStatMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -24,14 +24,14 @@ import java.util.stream.Collectors;
 public class ArchiveController {
 
     private final RArchiveBatchMapper batchMapper;
-    private final RArchiveFileMapper fileMapper;
+    private final RSyncTableStatMapper tableStatMapper;
     private final RArchiveSetMapper setMapper;
     private final RArchiveSetItemMapper setItemMapper;
 
-    public ArchiveController(RArchiveBatchMapper batchMapper, RArchiveFileMapper fileMapper,
+    public ArchiveController(RArchiveBatchMapper batchMapper, RSyncTableStatMapper tableStatMapper,
                              RArchiveSetMapper setMapper, RArchiveSetItemMapper setItemMapper) {
         this.batchMapper = batchMapper;
-        this.fileMapper = fileMapper;
+        this.tableStatMapper = tableStatMapper;
         this.setMapper = setMapper;
         this.setItemMapper = setItemMapper;
     }
@@ -53,14 +53,14 @@ public class ArchiveController {
         return Result.success(PageResult.of(ip.getTotal(), list, pageNum, pageSize));
     }
 
-    // ---- Files ----
+    // ---- Files (r_sync_table_stat，合并自 r_archive_file) ----
     @GetMapping("/files")
-    @Operation(summary = "归档文件列表")
+    @Operation(summary = "归档文件列表（来自同步表统计 r_sync_table_stat）")
     public Result<List<Map<String,Object>>> files(@RequestParam(required=false) String batchId) {
-        LambdaQueryWrapper<RArchiveFile> w = new LambdaQueryWrapper<>();
-        if (StringUtils.hasText(batchId)) w.eq(RArchiveFile::getArchiveBatchId, batchId);
-        w.orderByAsc(RArchiveFile::getId);
-        return Result.success(fileMapper.selectList(w).stream().map(this::fileMap).collect(Collectors.toList()));
+        LambdaQueryWrapper<RSyncTableStat> w = new LambdaQueryWrapper<>();
+        if (StringUtils.hasText(batchId)) w.eq(RSyncTableStat::getJobId, batchId);
+        w.orderByAsc(RSyncTableStat::getTableName);
+        return Result.success(tableStatMapper.selectList(w).stream().map(this::fileMap).collect(Collectors.toList()));
     }
 
     // ---- Sets ----
@@ -95,10 +95,10 @@ public class ArchiveController {
         return m;
     }
 
-    private Map<String,Object> fileMap(RArchiveFile e) {
+    private Map<String,Object> fileMap(RSyncTableStat e) {
         Map<String,Object> m = new LinkedHashMap<>();
         m.put("id", e.getId());
-        m.put("archiveBatchId", e.getArchiveBatchId());
+        m.put("archiveBatchId", e.getJobId());
         m.put("schemaName", e.getSchemaName());
         m.put("tableName", e.getTableName());
         m.put("blobUrl", e.getBlobUrl());

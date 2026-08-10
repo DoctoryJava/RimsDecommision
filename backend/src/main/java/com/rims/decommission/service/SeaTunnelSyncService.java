@@ -403,6 +403,11 @@ public class SeaTunnelSyncService {
             stat.setSystemId(job.getSystemId());
             stat.setDatabaseName(src.getDatabaseName());
             stat.setTableName(t);
+            stat.setSchemaName(src.getDatabaseName());
+            stat.setBlobUrl(tableDir != null ? "file://" + tableDir : null);
+            stat.setChecksum("");
+            stat.setEtag("");
+            stat.setCreatedOn(LocalDateTime.now());
             stat.setRowCount(rows);
             stat.setSizeBytes(size);
             try { tableStatMapper.insert(stat); } catch (Exception ignored) {}

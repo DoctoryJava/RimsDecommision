@@ -33,11 +33,6 @@ INSERT INTO `r_archive_batch` (`id`,`archive_job_id`,`batch_year`,`started_at`,`
 ('ab-004','job-006',2026,'2026-02-13 23:59:00','2026-02-14 00:21:10',1200000,147000000,'SUCCESS','https://logs/run-006','corr-006');
 
 -- ========== 归档文件（ArchiveFile，结构化表产物）==========
-INSERT INTO `r_archive_file` (`id`,`archive_batch_id`,`schema_name`,`table_name`,`blob_url`,`size_bytes`,`checksum`,`etag`,`created_on`) VALUES
-('af-001','ab-001','orders','order_header','https://lake.blob.core.windows.net/cop/orders/order_header_2026.parquet',52428800,'sha256:aa11…','etag-aa11','2026-08-06 02:17:00'),
-('af-002','ab-001','orders','order_items','https://lake.blob.core.windows.net/cop/orders/order_items_2026.parquet',102600400,'sha256:bb22…','etag-bb22','2026-08-06 02:18:00'),
-('af-003','ab-004','push','device_registry','https://lake.blob.core.windows.net/mpg/push/device_registry_2026.parquet',147000000,'sha256:cc33…','etag-cc33','2026-02-14 00:20:00');
-
 -- ========== 归档集（ArchiveSet，非结构化产物）==========
 INSERT INTO `r_archive_set` (`id`,`archive_batch_id`,`set_name`,`blob_dir_url`,`items_count`,`bytes_total`,`created_on`) VALUES
 ('aset-001','ab-001','cop-invoices-2026-06','https://lake.blob.core.windows.net/cop/invoices/2026/06',12,2950000,'2026-08-06 02:19:00'),
