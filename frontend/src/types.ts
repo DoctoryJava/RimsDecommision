@@ -159,11 +159,9 @@ export interface FieldMapping {
   alias: string;
   table: string;
   column: string;
-  label: string;
   sortable: boolean;
   filterable: boolean;
   visible: boolean;
-  render?: 'text' | 'badge' | 'date' | 'tag' | 'link';
   options?: string[];
 }
 

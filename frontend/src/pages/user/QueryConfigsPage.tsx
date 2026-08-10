@@ -309,11 +309,9 @@ function ConfigEditorModal({ config, tables, isNew = false, onSave, onClose }: {
       alias: '',
       table: draft.baseTable,
       column: '',
-      label: '',
       sortable: false,
       filterable: false,
       visible: true,
-      render: 'text',
     };
     setDraft({ ...draft, fields: [...draft.fields, newField] });
   };
@@ -538,42 +536,25 @@ function ConfigEditorModal({ config, tables, isNew = false, onSave, onClose }: {
                   type="text"
                   value={field.alias}
                   onChange={(e) => updateField(field.id, { alias: e.target.value })}
-                  placeholder="别名"
+                  placeholder="别名（结果列名）"
                   className="col-span-2 px-2 py-1.5 text-xs rounded-md border border-neutral-200 bg-white outline-none font-mono"
                 />
                 <select
                   value={field.table}
                   onChange={(e) => updateField(field.id, { table: e.target.value, column: '' })}
-                  className="col-span-2 px-2 py-1.5 text-xs rounded-md border border-neutral-200 bg-white outline-none"
+                  className="col-span-3 px-2 py-1.5 text-xs rounded-md border border-neutral-200 bg-white outline-none"
                 >
                   {availableTables.map((t) => <option key={t.full} value={t.full}>{t.full}</option>)}
                 </select>
                 <select
                   value={field.column}
                   onChange={(e) => updateField(field.id, { column: e.target.value })}
-                  className="col-span-2 px-2 py-1.5 text-xs rounded-md border border-neutral-200 bg-white outline-none font-mono"
+                  className="col-span-3 px-2 py-1.5 text-xs rounded-md border border-neutral-200 bg-white outline-none font-mono"
                 >
                   <option value="">列</option>
                   {getColumns(field.table).map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
                 </select>
-                <input
-                  type="text"
-                  value={field.label}
-                  onChange={(e) => updateField(field.id, { label: e.target.value })}
-                  placeholder="显示名"
-                  className="col-span-2 px-2 py-1.5 text-xs rounded-md border border-neutral-200 bg-white outline-none"
-                />
-                <select
-                  value={field.render || 'text'}
-                  onChange={(e) => updateField(field.id, { render: e.target.value as FieldMapping['render'] })}
-                  className="col-span-1 px-1 py-1.5 text-xs rounded-md border border-neutral-200 bg-white outline-none"
-                >
-                  <option value="text">文本</option>
-                  <option value="badge">徽章</option>
-                  <option value="tag">标签</option>
-                  <option value="date">日期</option>
-                </select>
-                <div className="col-span-2 flex items-center gap-2">
+                <div className="col-span-3 flex items-center gap-2">
                   <label className="flex items-center gap-1 text-xs text-neutral-600 cursor-pointer">
                     <input type="checkbox" checked={field.visible} onChange={(e) => updateField(field.id, { visible: e.target.checked })} className="w-3.5 h-3.5 rounded text-primary-500" /> 显示
                   </label>
@@ -953,7 +934,7 @@ function PreviewModal({ config, onClose }: { config: QueryConfig; onClose: () =>
               <tr className="bg-neutral-50 border-b border-neutral-200">
                 {visibleFields.map((f) => (
                   <th key={f.id} className="text-left px-3 py-2 text-xs font-semibold text-neutral-600 whitespace-nowrap">
-                    {f.label}
+                    {f.alias}
                   </th>
                 ))}
               </tr>
