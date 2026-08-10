@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Search, ChevronLeft, ChevronRight, Server, Database, Table2,
-  Code2, Play, RefreshCw, X, ChevronDown,
+  Code2, Play, RefreshCw, X, ChevronDown, Layers, Check,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -34,6 +34,8 @@ export default function DynamicQueryPage() {
   const [mode, setMode] = useState<'sql' | 'drill'>('drill');
   const [queryConfigs, setQueryConfigs] = useState<any[]>([]);
   const [drillConfigId, setDrillConfigId] = useState('');
+  const [drillOpen, setDrillOpen] = useState(false);
+  const selectedCfg = queryConfigs.find((c: any) => c.id === drillConfigId);
 
   const loadSystems = useCallback(() => {
     getSystems({ pageNum: 1, pageSize: 100 }).then((p: any) => {
@@ -103,21 +105,78 @@ export default function DynamicQueryPage() {
       {mode === 'drill' && (
         <div className="space-y-4">
           <Card className="p-4">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-neutral-600">
-                <Database size={16} className="text-neutral-400" />
-                <span className="font-medium">选择查询配置</span>
-              </div>
-              <select
-                value={drillConfigId}
-                onChange={(e) => setDrillConfigId(e.target.value)}
-                className="flex-1 min-w-[240px] px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 outline-none"
+            <div className="flex items-center gap-3 text-sm text-neutral-600 mb-3">
+              <Database size={16} className="text-neutral-400" />
+              <span className="font-medium">选择查询配置</span>
+            </div>
+            <div className="relative">
+              <button
+                onClick={() => setDrillOpen(!drillOpen)}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-neutral-200 bg-white hover:border-primary-300 hover:bg-primary-50/30 focus:outline-none focus:ring-2 focus:ring-primary-100 transition-all text-left"
               >
-                <option value="">请选择配置</option>
-                {queryConfigs.map((c: any) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+                <div className="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+                  <Layers size={17} className="text-primary-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  {selectedCfg ? (
+                    <>
+                      <p className="text-sm font-medium text-neutral-800 truncate">{selectedCfg.name}</p>
+                      <p className="text-xs text-neutral-500 font-mono truncate">{selectedCfg.baseTable} · {selectedCfg.fields?.length || 0} 字段 · {selectedCfg.joins?.length || 0} 关联</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm font-medium text-neutral-400">请选择查询配置</p>
+                      <p className="text-xs text-neutral-400">选择一个配置查看关联明细下钻</p>
+                    </>
+                  )}
+                </div>
+                {selectedCfg && (
+                  <Badge color={selectedCfg.status === 'active' ? 'success' : 'neutral'} size="sm">
+                    {selectedCfg.status === 'active' ? '已发布' : '草稿'}
+                  </Badge>
+                )}
+                <ChevronDown size={16} className={`text-neutral-400 shrink-0 transition-transform ${drillOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {drillOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setDrillOpen(false)} />
+                  <div className="absolute z-40 mt-2 w-full rounded-xl border border-neutral-200 bg-white shadow-lg shadow-neutral-900/5 overflow-hidden">
+                    <div className="max-h-72 overflow-y-auto divide-y divide-neutral-100">
+                      {queryConfigs.length === 0 ? (
+                        <div className="p-6 text-center text-sm text-neutral-400">
+                          暂无查询配置，请先到「Query Configs」创建
+                        </div>
+                      ) : (
+                        queryConfigs.map((c: any) => {
+                          const active = c.id === drillConfigId;
+                          return (
+                            <button
+                              key={c.id}
+                              onClick={() => { setDrillConfigId(c.id); setDrillOpen(false); }}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${active ? 'bg-primary-50/70' : 'hover:bg-neutral-50'}`}
+                            >
+                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${active ? 'bg-primary-100 text-primary-600' : 'bg-neutral-100 text-neutral-400'}`}>
+                                <Layers size={14} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-medium text-neutral-800 truncate">{c.name}</p>
+                                  <Badge color={c.status === 'active' ? 'success' : 'neutral'} size="sm">
+                                    {c.status === 'active' ? '已发布' : '草稿'}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-neutral-500 font-mono truncate">{c.description || c.baseTable}</p>
+                              </div>
+                              {active && <Check size={16} className="text-primary-500 shrink-0" />}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </Card>
           {drillConfigId ? (() => {
