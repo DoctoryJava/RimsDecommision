@@ -88,11 +88,47 @@ public class SeaTunnelSyncService {
             // 未启用真实 SeaTunnel 时，模拟成功（每个表直接落一个占位 Iceberg 目录 + 元数据）
             rows = simulateSync(src, tables, logs);
         } else {
+            // 物理清理该库的 Iceberg 落盘目录，确保每次同步都是一份全新数据（不累积旧文件/版本）
+            cleanTableDirs(src, logs);
             rows = runSeatunnel(src, engine, port, tables, logs);
         }
         // 同步完成后，扫描落盘目录，统计每个表的大小与行数并入库
         collectTableStats(job, src, tables);
         return rows;
+    }
+
+    /** 物理删除某源库在 warehouse 下的落盘目录（含 archive namespace），实现真正覆盖。 */
+    private void cleanTableDirs(RSourceDatabase src, List<Map<String,Object>> logs) {
+        String db = safeName(src.getDatabaseName());
+        Path dbDir = Paths.get(props.getWarehouseDir(), db);
+        if (!Files.exists(dbDir)) return;
+        try {
+            // 清理 {db}/archive（namespace 目录，SeaTunnel Iceberg 实际写这里）
+            Path ns = dbDir.resolve("archive");
+            if (Files.exists(ns)) {
+                deleteRecursively(ns);
+                addLog(logs, "INFO", "已物理删除旧 Iceberg 目录: " + ns);
+            }
+            // 清理 {db}/{table}/{stamp} 这类直接目录下所有子目录
+            try (var stream = Files.list(dbDir)) {
+                for (Path sub : (Iterable<Path>) stream.filter(Files::isDirectory).collect(Collectors.toList())) {
+                    if (sub.getFileName().toString().equals("archive")) continue;
+                    deleteRecursively(sub);
+                    addLog(logs, "INFO", "已物理删除旧目录: " + sub);
+                }
+            }
+        } catch (Exception e) {
+            addLog(logs, "WARN", "清理旧目录失败(可忽略): " + safe(e.getMessage()));
+        }
+    }
+
+    private void deleteRecursively(Path dir) throws IOException {
+        if (!Files.exists(dir)) return;
+        try (var stream = Files.walk(dir)) {
+            stream.sorted(Comparator.reverseOrder()).forEach(p -> {
+                try { Files.deleteIfExists(p); } catch (Exception ignored) {}
+            });
+        }
     }
 
     /** 模拟同步：在磁盘 warehouse 下建目录并写元数据文件。 */
