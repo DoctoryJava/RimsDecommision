@@ -80,7 +80,7 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
   const [jobsError, setJobsError] = useState('');
   const loadJobs = useCallback(() => {
     if (!systemId) { setJobs([]); setJobsError(''); return; }
-    getSyncJobs({ pageNum: 1, pageSize: 50, systemId }).then((p: any) => {
+    getSyncJobs({ pageNum: 1, pageSize: 3, systemId }).then((p: any) => {
       setJobs((p?.list ?? []) as any[]);
       setJobsError('');
     }).catch((e: any) => {
