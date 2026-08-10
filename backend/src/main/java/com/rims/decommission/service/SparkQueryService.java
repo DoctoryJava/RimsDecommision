@@ -93,11 +93,15 @@ public class SparkQueryService {
         }
         // 用查询语句作为 Iceberg source 的 query（表名需为 namespace.table，如 archive.l_organization）
         String query = sql.replace("\"", "\\\"").replace("\n", " ");
+        // Java 17+ 强封装导致 Spark 反射 DirectByteBuffer 失败，需开放模块访问
+        String jvmOpts = "--add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-exports=java.base/sun.nio.ch=ALL-UNNAMED";
         String conf = "env {\n"
                 + "  parallelism = 1\n"
                 + "  job.mode = \"BATCH\"\n"
                 + "  spark.app.name = \"rims_query\"\n"
                 + "  spark.master = \"local[1]\"\n"
+                + "  spark.driver.extraJavaOptions = \"" + jvmOpts + "\"\n"
+                + "  spark.executor.extraJavaOptions = \"" + jvmOpts + "\"\n"
                 + "}\n"
                 + "source {\n"
                 + "  Iceberg {\n"
@@ -130,8 +134,9 @@ public class SparkQueryService {
                 "--master", "local[1]",
                 "--deploy-mode", "client",
                 "--config", confFile);
-        // 保证 SeaTunnel 能找到 SPARK_HOME
+        // 保证 SeaTunnel 能找到 SPARK_HOME，并开放 JDK 内部模块访问（Java 17+ 需要）
         pb.environment().put("SPARK_HOME", props.getHome());
+        pb.environment().put("JDK_JAVA_OPTIONS", "--add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-exports=java.base/sun.nio.ch=ALL-UNNAMED");
         pb.directory(java.nio.file.Paths.get(props.getSeatunnelHome()).toFile());
         pb.redirectErrorStream(true);
         Process p = pb.start();
