@@ -6,9 +6,9 @@ server:
 spring:
   datasource:
     # 生产/开发 MySQL 连接（AiCoder）。可通过 MYSQL_URL/MYSQL_USERNAME/MYSQL_PASSWORD 环境变量覆盖。
-    url: ${MYSQL_URL:jdbc:mysql://cq-cdb-9bf4xslt.sql.tencentcdb.com:63819/AiCoder?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}
-    username: ${MYSQL_USERNAME:AiCoder}
-    password: ${MYSQL_PASSWORD:AiCoder@2025}
+    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:root1234}
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
@@ -61,8 +61,14 @@ app:
     iceberg-package: ${SPARK_ICEBERG_PACKAGE:org.apache.iceberg:iceberg-spark-runtime-3.3_2.12:1.4.3}
     # 是否真正调用 Spark（false 时返回模拟数据，便于无环境调试）
     enabled: ${SPARK_QUERY_ENABLED:true}
-    # SeaTunnel 安装目录（查询用 start-seatunnel-spark-3-connector-v2.sh）
-    seatunnel-home: ${SEATUNNEL_HOME:/Users/chenyong/Desktop/BigData/apache-seatunnel-2.3.13}
+    # Iceberg spark runtime jar 本地路径（spark-submit --jars 注入）
+    iceberg-jar: ${SPARK_ICEBERG_JAR:/Users/chenyong/.ivy2/cache/org.apache.iceberg/iceberg-spark-runtime-3.3_2.12/jars/iceberg-spark-runtime-3.3_2.12-1.4.3.jar}
+    # 独立 Spark SQL 查询作业 jar（javac 编译的 scripts/spark/rims-spark-query.jar）
+    query-job-jar: ${SPARK_QUERY_JOB_JAR:/Users/chenyong/Desktop/LLM-AI/RimsDecommision/scripts/spark/rims-spark-query.jar}
+    # Iceberg catalog 名（设为 defaultCatalog，SQL 可省略 catalog 前缀）
+    catalog-name: ${SPARK_CATALOG_NAME:rims}
+    # Spark 子进程专用 JDK（Spark 3.3 仅支持 JDK ≤11；后端运行于 17+，故进程隔离）
+    java-home: ${SPARK_JAVA_HOME:/Library/Java/JavaVirtualMachines/jdk-11.jdk/Contents/Home}
 
 springdoc:
   api-docs:

@@ -68,8 +68,9 @@ export default function DynamicQueryPage() {
   const totalPages = Math.max(1, Math.ceil((result?.total ?? 0) / pageSize));
 
   const insertTableName = (tbl: string) => {
-    // 简化：SQL 里用 rims 目录访问，提示用户写完整表名
-    setSql((prev) => prev + (prev.trim() ? ' ' : '') + 'SELECT * FROM archive.' + tbl);
+    // Iceberg 标识：<db>.archive.<table>（archive 为同步时固定的 namespace，见 SeaTunnelSyncService）
+    const db = selectedDb || 'mi';
+    setSql((prev) => prev + (prev.trim() ? ' ' : '') + `SELECT * FROM ${db}.archive.${tbl}`);
   };
 
   return (
@@ -160,17 +161,17 @@ export default function DynamicQueryPage() {
             <div className="flex items-center gap-2 px-4 py-2.5 bg-neutral-900 text-neutral-300">
               <Code2 size={16} />
               <span className="text-xs font-medium">Spark SQL</span>
-              <span className="ml-auto text-[10px] text-neutral-500">表名格式 archive.&lt;table&gt;</span>
+              <span className="ml-auto text-[10px] text-neutral-500">表名格式 &lt;库&gt;.archive.&lt;表&gt;</span>
             </div>
             <textarea
               value={sql}
               onChange={(e) => setSql(e.target.value)}
               rows={5}
-              placeholder="SELECT * FROM archive.orders LIMIT 100"
+              placeholder="SELECT * FROM mi.archive.l_organization LIMIT 100"
               className="w-full p-4 text-sm font-mono text-neutral-100 bg-neutral-900 outline-none resize-y focus:bg-neutral-800"
             />
             <div className="flex items-center justify-between px-4 py-3 border-t border-neutral-100">
-              <p className="text-xs text-neutral-400">提示：点击左侧表名可插入表；表名格式 archive.&lt;表名&gt;</p>
+              <p className="text-xs text-neutral-400">提示：点击左侧表名可插入表；格式 &lt;库&gt;.archive.&lt;表名&gt;</p>
               <Button icon={<Play size={16} />} onClick={runQuery} disabled={running || !systemId}>
                 {running ? '查询中…' : '执行查询'}
               </Button>
