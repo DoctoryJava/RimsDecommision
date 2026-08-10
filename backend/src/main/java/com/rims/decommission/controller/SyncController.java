@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.rims.decommission.common.PageResult;
 import com.rims.decommission.common.Result;
 import com.rims.decommission.entity.RSyncJob;
+import com.rims.decommission.entity.RSyncTableStat;
 import com.rims.decommission.mapper.RSyncJobMapper;
+import com.rims.decommission.mapper.RSyncTableStatMapper;
 import com.rims.decommission.service.SeaTunnelSyncService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,10 +22,12 @@ import java.util.stream.Collectors;
 public class SyncController {
 
     private final RSyncJobMapper mapper;
+    private final RSyncTableStatMapper tableStatMapper;
     private final SeaTunnelSyncService seatunnel;
 
-    public SyncController(RSyncJobMapper mapper, SeaTunnelSyncService seatunnel) {
+    public SyncController(RSyncJobMapper mapper, RSyncTableStatMapper tableStatMapper, SeaTunnelSyncService seatunnel) {
         this.mapper = mapper;
+        this.tableStatMapper = tableStatMapper;
         this.seatunnel = seatunnel;
     }
 
@@ -88,6 +92,25 @@ public class SyncController {
             Map.<String,Object>of("time", job.getStartedAt() != null ? job.getStartedAt() : "", "level", "INFO", "message", "开始同步任务 " + job.getId()),
             Map.<String,Object>of("time", "", "level", "INFO", "message", "完成 " + job.getRecords() + " 行")
         ));
+    }
+
+    /** 某同步任务下各表的统计明细（表名/行数/大小）。 */
+    @GetMapping("/jobs/{id}/tables")
+    @Operation(summary = "同步任务的表级统计")
+    public Result<List<Map<String,Object>>> tableStats(@PathVariable String id) {
+        List<RSyncTableStat> stats = tableStatMapper.selectList(
+                new LambdaQueryWrapper<RSyncTableStat>().eq(RSyncTableStat::getJobId, id));
+        List<Map<String,Object>> list = stats.stream().map(s -> {
+            Map<String,Object> m = new LinkedHashMap<>();
+            m.put("id", s.getId());
+            m.put("jobId", s.getJobId());
+            m.put("databaseName", s.getDatabaseName());
+            m.put("tableName", s.getTableName());
+            m.put("rowCount", s.getRowCount() != null ? s.getRowCount() : 0);
+            m.put("sizeBytes", s.getSizeBytes() != null ? s.getSizeBytes() : 0);
+            return m;
+        }).collect(Collectors.toList());
+        return Result.success(list);
     }
 
     private Map<String,Object> toMap(RSyncJob job) {

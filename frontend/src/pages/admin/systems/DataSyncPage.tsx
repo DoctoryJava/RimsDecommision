@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import {
   RefreshCw,
   Play,
@@ -20,7 +20,7 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
 import type { SyncStatus, SyncJob, SchemaRecord, SystemRecord } from '@/types';
-import { getSystems, getSyncJobs, getSchemas } from '@/lib/api';
+import { getSystems, getSyncJobs, getSchemas, getSyncJobTableStats } from '@/lib/api';
 
 const syncStatusMap: Record<SyncStatus, { color: 'success' | 'warning' | 'error' | 'primary' | 'neutral'; label: string }> = {
   success: { color: 'success', label: 'Success' },
@@ -37,6 +37,28 @@ export default function DataSyncPage() {
   const [jobsData, setJobsData] = useState<SyncJob[]>([]);
   const [schemasData, setSchemasData] = useState<SchemaRecord[]>([]);
   const [systemsData, setSystemsData] = useState<SystemRecord[]>([]);
+  const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
+  const [jobTables, setJobTables] = useState<any[]>([]);
+  const [jobTablesLoading, setJobTablesLoading] = useState(false);
+
+  const toggleJobStats = async (jobId: string) => {
+    if (expandedJobId === jobId) { setExpandedJobId(null); setJobTables([]); return; }
+    setExpandedJobId(jobId);
+    setJobTablesLoading(true);
+    try {
+      const list = await getSyncJobTableStats(jobId);
+      setJobTables(list as any[]);
+    } catch (e) { setJobTables([]); }
+    finally { setJobTablesLoading(false); }
+  };
+
+  const fmtBytes = (b: number) => {
+    if (!b) return '—';
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let i = 0, n = b;
+    while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+    return `${n.toFixed(1)} ${units[i]}`;
+  };
 
   // 数据全部来自后端
   useEffect(() => {
@@ -107,11 +129,16 @@ export default function DataSyncPage() {
           </thead>
           <tbody className="divide-y divide-neutral-100">
             {jobsData.map((job) => {
-              const s = syncStatusMap[job.status];
+              const s = syncStatusMap[job.status] || syncStatusMap.idle;
               const Icon = job.status === 'success' ? CheckCircle2 : job.status === 'failed' ? AlertTriangle : job.status === 'syncing' ? RefreshCw : Clock;
+              const expanded = expandedJobId === job.id;
               return (
-                <tr key={job.id} className="hover:bg-neutral-50/50 transition-colors">
-                  <td className="px-5 py-3 text-sm font-mono text-neutral-600">{job.id}</td>
+                <Fragment key={job.id}>
+                <tr className="hover:bg-neutral-50/50 transition-colors cursor-pointer" onClick={() => toggleJobStats(job.id)}>
+                  <td className="px-5 py-3 text-sm font-mono text-neutral-600 flex items-center gap-1.5">
+                    <ChevronDown size={14} className={`text-neutral-400 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+                    {job.id}
+                  </td>
                   <td className="px-5 py-3 text-sm font-medium text-neutral-800">{job.systemName}</td>
                   <td className="px-5 py-3 text-sm text-neutral-600 capitalize">{job.type}</td>
                   <td className="px-5 py-3">
@@ -125,6 +152,37 @@ export default function DataSyncPage() {
                   <td className="px-5 py-3 text-sm text-neutral-700 text-right">{job.records > 0 ? job.records.toLocaleString() : '—'}</td>
                   <td className="px-5 py-3 text-sm text-neutral-500">{job.triggeredBy}</td>
                 </tr>
+                {expanded && (
+                  <tr className="bg-neutral-50/50">
+                    <td colSpan={8} className="px-5 py-3">
+                      {jobTablesLoading ? (
+                        <p className="text-xs text-neutral-400 py-1">加载表统计…</p>
+                      ) : jobTables.length === 0 ? (
+                        <p className="text-xs text-neutral-400 py-1">暂无表级统计</p>
+                      ) : (
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="text-neutral-500">
+                              <th className="text-left py-1 font-medium">表</th>
+                              <th className="text-right py-1 font-medium">行数</th>
+                              <th className="text-right py-1 font-medium">大小</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-neutral-100">
+                            {jobTables.map((t) => (
+                              <tr key={t.id} className="text-neutral-700">
+                                <td className="py-1 font-mono">{t.databaseName}.{t.tableName}</td>
+                                <td className="py-1 text-right">{Number(t.rowCount).toLocaleString()}</td>
+                                <td className="py-1 text-right">{fmtBytes(Number(t.sizeBytes))}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
               );
             })}
           </tbody>

@@ -218,3 +218,11 @@ CREATE TABLE IF NOT EXISTS `r_sync_activity` (
     `partial_count` INT NOT NULL DEFAULT 0, `running_count` INT NOT NULL DEFAULT 0,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
 CREATE UNIQUE INDEX IF NOT EXISTS uk_r_sync_activity_day ON `r_sync_activity`(`day_label`);
+
+-- ========== 同步任务-表级统计表（V10） ==========
+CREATE TABLE IF NOT EXISTS `r_sync_table_stat` (
+    `id` VARCHAR(64) PRIMARY KEY, `job_id` VARCHAR(64) NOT NULL, `system_id` VARCHAR(64),
+    `database_name` VARCHAR(128), `table_name` VARCHAR(128) NOT NULL,
+    `row_count` BIGINT NOT NULL DEFAULT 0, `size_bytes` BIGINT NOT NULL DEFAULT 0,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS idx_r_sync_table_stat_job ON `r_sync_table_stat`(`job_id`);

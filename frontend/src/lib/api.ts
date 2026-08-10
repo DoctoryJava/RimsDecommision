@@ -166,6 +166,10 @@ export async function createSyncJob(data: any) {
   const res = await api.post<Result<any>>('/sync/jobs', data);
   return (res.data as Result<any>).data;
 }
+export async function getSyncJobTableStats(jobId: string) {
+  const res = await api.get<Result<any[]>>(`/sync/jobs/${jobId}/tables`);
+  return (res.data as Result<any[]>).data;
+}
 
 // Schemas
 export async function getSchemas(params: any = {}) {

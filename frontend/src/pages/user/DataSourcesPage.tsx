@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Database, Plus, Pencil, Trash2, RefreshCw, Search, Play, Server, History, PlugZap } from 'lucide-react';
+import { Database, Plus, Pencil, Trash2, RefreshCw, Search, Play, Server, History, PlugZap, ChevronDown } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -14,6 +14,7 @@ import {
   testSourceDatabase,
   getSyncJobs,
   createSyncJob,
+  getSyncJobTableStats,
 } from '@/lib/api';
 import type { PageKey } from '@/components/layout/Sidebar';
 
@@ -40,6 +41,28 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
   const [form, setForm] = useState<any>({ dbType: 'MYSQL' });
   const [testingId, setTestingId] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<Record<string, { ok: boolean; message: string }>>({});
+  const [expandedJob, setExpandedJob] = useState<string | null>(null);
+  const [jobTables, setJobTables] = useState<any[]>([]);
+  const [jobTablesLoading, setJobTablesLoading] = useState(false);
+
+  const toggleJob = async (jobId: string) => {
+    if (expandedJob === jobId) { setExpandedJob(null); setJobTables([]); return; }
+    setExpandedJob(jobId);
+    setJobTablesLoading(true);
+    try {
+      const list = await getSyncJobTableStats(jobId);
+      setJobTables(list as any[]);
+    } catch (e) { setJobTables([]); }
+    finally { setJobTablesLoading(false); }
+  };
+
+  const fmtBytes = (b: number) => {
+    if (!b) return '—';
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let i = 0, n = b;
+    while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+    return `${n.toFixed(1)} ${units[i]}`;
+  };
 
   const loadSystems = useCallback(() => {
     getSystems({ pageNum: 1, pageSize: 100 }).then((p: any) => {
@@ -256,13 +279,46 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
             <div className="divide-y divide-neutral-100">
               {jobs.map((j) => (
                 <div key={j.id} className="px-5 py-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-mono text-neutral-700">{j.id}</span>
-                    <Badge color={statusColor[j.status] || 'neutral'} size="sm">{j.status}</Badge>
-                  </div>
-                  <div className="mt-1 text-xs text-neutral-500">
-                    类型 {j.type} · 开始 {j.startedAt} · 记录 {j.records?.toLocaleString?.() ?? j.records ?? 0}
-                  </div>
+                  <button onClick={() => toggleJob(j.id)} className="w-full text-left">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-mono text-neutral-700">{j.id}</span>
+                      <div className="flex items-center gap-2">
+                        <Badge color={statusColor[j.status] || 'neutral'} size="sm">{j.status}</Badge>
+                        <ChevronDown size={14} className={`text-neutral-400 transition-transform ${expandedJob === j.id ? 'rotate-180' : ''}`} />
+                      </div>
+                    </div>
+                    <div className="mt-1 text-xs text-neutral-500">
+                      类型 {j.type} · 开始 {j.startedAt} · 记录 {j.records?.toLocaleString?.() ?? j.records ?? 0}
+                    </div>
+                  </button>
+                  {expandedJob === j.id && (
+                    <div className="mt-2 pl-2 border-l-2 border-neutral-100">
+                      {jobTablesLoading ? (
+                        <p className="text-xs text-neutral-400 py-1">加载表统计…</p>
+                      ) : jobTables.length === 0 ? (
+                        <p className="text-xs text-neutral-400 py-1">暂无表级统计（可能任务未完成或未落盘）</p>
+                      ) : (
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="text-neutral-500">
+                              <th className="text-left py-1 font-medium">表</th>
+                              <th className="text-right py-1 font-medium">行数</th>
+                              <th className="text-right py-1 font-medium">大小</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-neutral-50">
+                            {jobTables.map((t) => (
+                              <tr key={t.id} className="text-neutral-700">
+                                <td className="py-1 font-mono">{t.databaseName}.{t.tableName}</td>
+                                <td className="py-1 text-right">{Number(t.rowCount).toLocaleString()}</td>
+                                <td className="py-1 text-right">{fmtBytes(Number(t.sizeBytes))}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

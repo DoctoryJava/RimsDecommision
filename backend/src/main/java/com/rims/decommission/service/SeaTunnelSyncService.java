@@ -3,19 +3,20 @@ package com.rims.decommission.service;
 import com.rims.decommission.config.SeaTunnelProperties;
 import com.rims.decommission.entity.RSourceDatabase;
 import com.rims.decommission.entity.RSyncJob;
+import com.rims.decommission.entity.RSyncTableStat;
 import com.rims.decommission.mapper.RSourceDatabaseMapper;
 import com.rims.decommission.mapper.RSyncJobMapper;
+import com.rims.decommission.mapper.RSyncTableStatMapper;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 基于 SeaTunnel 的数据同步服务。
@@ -27,12 +28,14 @@ public class SeaTunnelSyncService {
     private final SeaTunnelProperties props;
     private final RSourceDatabaseMapper sourceDbMapper;
     private final RSyncJobMapper syncJobMapper;
+    private final RSyncTableStatMapper tableStatMapper;
 
     public SeaTunnelSyncService(SeaTunnelProperties props, RSourceDatabaseMapper sourceDbMapper,
-                                RSyncJobMapper syncJobMapper) {
+                                RSyncJobMapper syncJobMapper, RSyncTableStatMapper tableStatMapper) {
         this.props = props;
         this.sourceDbMapper = sourceDbMapper;
         this.syncJobMapper = syncJobMapper;
+        this.tableStatMapper = tableStatMapper;
     }
 
     /** 触发同步（异步调用）。 */
@@ -57,7 +60,7 @@ public class SeaTunnelSyncService {
             long totalRecords = 0;
             for (RSourceDatabase src : sources) {
                 addLog(logs, "INFO", "同步源库 " + src.getDatabaseName() + "@" + src.getServer());
-                long rows = syncOneSource(src, logs);
+                long rows = syncOneSource(job, src, logs);
                 totalRecords += rows;
                 addLog(logs, "INFO", "源库 " + src.getDatabaseName() + " 完成，共 " + rows + " 行");
             }
@@ -69,7 +72,7 @@ public class SeaTunnelSyncService {
         }
     }
 
-    private long syncOneSource(RSourceDatabase src, List<Map<String, Object>> logs) throws Exception {
+    private long syncOneSource(RSyncJob job, RSourceDatabase src, List<Map<String, Object>> logs) throws Exception {
         String engine = src.getDbType() == null ? "mysql" : src.getDbType().toLowerCase();
         int port = src.getPort() != null ? src.getPort() : defaultPort(engine);
         List<String> tables = listTables(engine, src.getServer(), port, src.getDatabaseName(),
@@ -80,11 +83,16 @@ public class SeaTunnelSyncService {
         }
         addLog(logs, "INFO", "待同步表: " + String.join(", ", tables));
 
+        long rows;
         if (!props.isEnabled()) {
             // 未启用真实 SeaTunnel 时，模拟成功（每个表直接落一个占位 Iceberg 目录 + 元数据）
-            return simulateSync(src, tables, logs);
+            rows = simulateSync(src, tables, logs);
+        } else {
+            rows = runSeatunnel(src, engine, port, tables, logs);
         }
-        return runSeatunnel(src, engine, port, tables, logs);
+        // 同步完成后，扫描落盘目录，统计每个表的大小与行数并入库
+        collectTableStats(job, src, tables);
+        return rows;
     }
 
     /** 模拟同步：在磁盘 warehouse 下建目录并写元数据文件。 */
@@ -181,6 +189,99 @@ public class SeaTunnelSyncService {
         Path confPath = Paths.get(props.getConfDir(), "sync_" + System.currentTimeMillis() + ".conf");
         Files.writeString(confPath, conf, StandardCharsets.UTF_8);
         return confPath.toString();
+    }
+
+    // ---------- 表级统计 ----------
+
+    /** 扫描落盘目录，统计每个表的大小与行数，写入 r_sync_table_stat。 */
+    private void collectTableStats(RSyncJob job, RSourceDatabase src, List<String> tables) {
+        String db = safeName(src.getDatabaseName());
+        Path dbDir = Paths.get(props.getWarehouseDir(), db);
+        for (String t : tables) {
+            String tblName = safeName(t);
+            Path tableDir = dbDir.resolve(tblName);
+            long size = 0;
+            long rows = 0;
+            if (Files.exists(tableDir)) {
+                try {
+                    size = dirSize(tableDir);
+                } catch (Exception ignored) {}
+                rows = readIcebergRowCount(tableDir);
+            }
+            RSyncTableStat stat = new RSyncTableStat();
+            stat.setId("st-" + System.currentTimeMillis() + "-" + Math.abs(t.hashCode() % 100000));
+            stat.setJobId(job.getId());
+            stat.setSystemId(job.getSystemId());
+            stat.setDatabaseName(src.getDatabaseName());
+            stat.setTableName(t);
+            stat.setRowCount(rows);
+            stat.setSizeBytes(size);
+            try { tableStatMapper.insert(stat); } catch (Exception ignored) {}
+        }
+    }
+
+    /** 递归统计目录大小（字节）。 */
+    private long dirSize(Path dir) throws IOException {
+        if (!Files.exists(dir)) return 0;
+        try (var stream = Files.walk(dir)) {
+            return stream.filter(Files::isRegularFile)
+                    .mapToLong(p -> { try { return Files.size(p); } catch (Exception e) { return 0L; } })
+                    .sum();
+        }
+    }
+
+    /** 读取 Iceberg 表目录的行数：优先解析 metadata 里 manifest 的 record_count；否则按表目录下 parquet 文件估算为 0。 */
+    private long readIcebergRowCount(Path tableDir) {
+        try {
+            // Iceberg metadata 目录
+            Path metaDir = tableDir.resolve("metadata");
+            if (Files.isDirectory(metaDir)) {
+                // 读取最新的 v{n}.metadata.json，累加 snapshots 引用的 manifest record_count
+                try (var stream = Files.list(metaDir)) {
+                    List<Path> metas = stream
+                            .filter(p -> p.getFileName().toString().matches("v\\d+\\.metadata\\.json"))
+                            .sorted(Comparator.reverseOrder())
+                            .collect(Collectors.toList());
+                    if (!metas.isEmpty()) {
+                        return parseIcebergMetadata(metas.get(0));
+                    }
+                }
+            }
+            // 模拟占位：解析 _SIMULATED_ICEBERG.json（无行数）
+            Path sim = tableDir.resolve("_SIMULATED_ICEBERG.json");
+            if (Files.exists(sim)) {
+                return 0;
+            }
+        } catch (Exception ignored) {}
+        return 0;
+    }
+
+    /** 解析 Iceberg metadata.json，汇总 manifest 的 record_count。 */
+    private long parseIcebergMetadata(Path metaFile) {
+        long rows = 0;
+        try {
+            String json = Files.readString(metaFile, StandardCharsets.UTF_8);
+            // 简化解析：找 "record_count": 数字 求和（Iceberg manifest-list/manifest 里体现）
+            var m = java.util.regex.Pattern.compile("\"record_count\"\\s*:\\s*(\\d+)").matcher(json);
+            while (m.find()) {
+                rows += Long.parseLong(m.group(1));
+            }
+            // 若没解析到（metadata.json 顶层不直接含 record_count），尝试从 manifest 文件累加
+            if (rows == 0) {
+                Path metaDir = metaFile.getParent();
+                if (metaDir != null) {
+                    try (var stream = Files.list(metaDir)) {
+                        for (Path p : (Iterable<Path>) stream.filter(f -> f.getFileName().toString().startsWith("snap-"))
+                                .collect(Collectors.toList())) {
+                            String s = Files.readString(p, StandardCharsets.UTF_8);
+                            var mm = java.util.regex.Pattern.compile("\"record_count\"\\s*:\\s*(\\d+)").matcher(s);
+                            while (mm.find()) rows += Long.parseLong(mm.group(1));
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return rows;
     }
 
     // ---------- helpers ----------
