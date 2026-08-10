@@ -224,3 +224,11 @@ CREATE INDEX IF NOT EXISTS idx_r_sync_table_stat_job ON `r_sync_table_stat`(`job
 
 -- Query Config 归属系统（V11）
 ALTER TABLE `r_query_config` ADD COLUMN `system_id` VARCHAR(64);
+
+-- ========== 下钻配置表（V13） ==========
+CREATE TABLE IF NOT EXISTS `r_drill_config` (
+    `id` VARCHAR(64) PRIMARY KEY, `query_config_id` VARCHAR(64) NOT NULL, `parent_id` VARCHAR(64),
+    `name` VARCHAR(128) NOT NULL, `base_table` VARCHAR(255) NOT NULL,
+    `parent_field` VARCHAR(128) NOT NULL, `child_field` VARCHAR(128) NOT NULL,
+    `fields` VARCHAR(8000), `sort_order` INT NOT NULL DEFAULT 0,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, `deleted` TINYINT NOT NULL DEFAULT 0);

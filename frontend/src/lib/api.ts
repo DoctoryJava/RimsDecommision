@@ -223,6 +223,22 @@ export async function deleteQueryConfig(id: string) {
   const res = await api.delete<Result<null>>(`/query-configs/${id}`);
   return res.data;
 }
+export async function getDrillConfigs(queryConfigId: string) {
+  const res = await api.get<Result<any[]>>(`/query-configs/${queryConfigId}/drills`);
+  return (res.data as Result<any[]>).data;
+}
+export async function createDrillConfig(queryConfigId: string, data: any) {
+  const res = await api.post<Result<any>>(`/query-configs/${queryConfigId}/drills`, data);
+  return (res.data as Result<any>).data;
+}
+export async function updateDrillConfig(queryConfigId: string, id: string, data: any) {
+  const res = await api.put<Result<any>>(`/query-configs/${queryConfigId}/drills/${id}`, data);
+  return (res.data as Result<any>).data;
+}
+export async function deleteDrillConfig(queryConfigId: string, id: string) {
+  const res = await api.delete<Result<null>>(`/query-configs/${queryConfigId}/drills/${id}`);
+  return res.data;
+}
 export async function executeQuery(data: any) {
   const res = await api.post<Result<PageResult<any>>>('/query/execute', data);
   // backend returns Result<PageResult> with sql in message

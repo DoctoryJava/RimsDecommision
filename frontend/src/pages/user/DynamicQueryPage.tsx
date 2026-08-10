@@ -7,7 +7,7 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import PageHeader from '@/components/ui/PageHeader';
-import { getSystems, getSparkSyncedTables, sparkExecuteQuery } from '@/lib/api';
+import { getSystems, getSparkSyncedTables, getQueryConfigs, sparkExecuteQuery } from '@/lib/api';
 import DrillQueryPanel from '@/pages/user/DrillQueryPanel';
 
 interface SysOption { id: string; name: string; code: string }
@@ -32,6 +32,8 @@ export default function DynamicQueryPage() {
   const [expandedDb, setExpandedDb] = useState<string | null>(null);
   const [selectedDb, setSelectedDb] = useState('');
   const [mode, setMode] = useState<'sql' | 'drill'>('sql');
+  const [queryConfigs, setQueryConfigs] = useState<any[]>([]);
+  const [drillConfigId, setDrillConfigId] = useState('');
 
   const loadSystems = useCallback(() => {
     getSystems({ pageNum: 1, pageSize: 100 }).then((p: any) => {
@@ -51,6 +53,12 @@ export default function DynamicQueryPage() {
 
   useEffect(() => { loadSystems(); }, [loadSystems]);
   useEffect(() => { loadTables(); }, [loadTables]);
+
+  // 加载该系统下的查询配置（用于关联明细下钻）
+  useEffect(() => {
+    if (!systemId) { setQueryConfigs([]); return; }
+    getQueryConfigs(systemId).then((list: any) => { if (Array.isArray(list)) setQueryConfigs(list as any[]); }).catch(() => {});
+  }, [systemId]);
 
   const runQuery = async () => {
     if (!sql.trim()) { setError('请输入 SQL'); return; }
@@ -92,7 +100,45 @@ export default function DynamicQueryPage() {
         </button>
       </div>
 
-      {mode === 'drill' && <DrillQueryPanel />}
+      {mode === 'drill' && (
+        <div className="space-y-4">
+          <Card className="p-4">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-neutral-600">
+                <Database size={16} className="text-neutral-400" />
+                <span className="font-medium">选择查询配置</span>
+              </div>
+              <select
+                value={drillConfigId}
+                onChange={(e) => setDrillConfigId(e.target.value)}
+                className="flex-1 min-w-[240px] px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 outline-none"
+              >
+                <option value="">请选择配置</option>
+                {queryConfigs.map((c: any) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          </Card>
+          {drillConfigId ? (() => {
+            const cfg = queryConfigs.find((c: any) => c.id === drillConfigId);
+            if (!cfg) return null;
+            return (
+              <DrillQueryPanel
+                systemId={systemId}
+                database={selectedDb || ''}
+                configId={cfg.id}
+                mainTable={cfg.baseTable}
+                mainFields={cfg.fields || []}
+              />
+            );
+          })() : (
+            <Card className="p-10 text-center text-sm text-neutral-400">
+              请先在上方选择查询配置，查看其关联明细下钻
+            </Card>
+          )}
+        </div>
+      )}
 
       {mode === 'sql' && (
       <>
