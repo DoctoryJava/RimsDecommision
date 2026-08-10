@@ -46,12 +46,12 @@ app:
     catalog: lake
   # SeaTunnel 同步引擎配置（同步源库 -> 本地磁盘 Iceberg）
   seatunnel:
-    home: ${SEATUNNEL_HOME:/opt/seatunnel}
+    home: ${SEATUNNEL_HOME:/Users/chenyong/Desktop/BigData/apache-seatunnel-2.3.13}
     # 本地磁盘 Iceberg warehouse 根路径（模拟存储桶）
-    warehouse-dir: ${SEATUNNEL_WAREHOUSE_DIR:/data/archive}
-    conf-dir: ${SEATUNNEL_CONF_DIR:/data/archive/.conf}
-    # 是否真正调用 SeaTunnel（false 时模拟成功，便于无环境调试）
-    enabled: ${SEATUNNEL_ENABLED:false}
+    warehouse-dir: ${SEATUNNEL_WAREHOUSE_DIR:/Users/chenyong/Desktop/BigData/archive}
+    conf-dir: ${SEATUNNEL_CONF_DIR:/Users/chenyong/Desktop/BigData/archive/.conf}
+    # 是否真正调用 SeaTunnel（true 时调用 seatunnel.sh 执行真实同步）
+    enabled: ${SEATUNNEL_ENABLED:true}
 
 springdoc:
   api-docs:
