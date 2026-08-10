@@ -183,7 +183,7 @@ public class SeaTunnelSyncService {
                 + "    }\n"
                 + "    iceberg.table.schema-evolution-enabled = true\n"
                 + "    # 每次同步覆盖表数据，避免多次同步 append 累加\n"
-                + "    data_save_mode = \"OVERWRITE\"\n"
+                + "    data_save_mode = \"DROP_DATA\"\n"
                 + "    case_sensitive = false\n"
                 + "  }\n"
                 + "}\n";
