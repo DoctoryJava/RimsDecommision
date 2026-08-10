@@ -182,6 +182,8 @@ public class SeaTunnelSyncService {
                 + "      write.format.default = \"parquet\"\n"
                 + "    }\n"
                 + "    iceberg.table.schema-evolution-enabled = true\n"
+                + "    # 每次同步覆盖表数据，避免多次同步 append 累加\n"
+                + "    data_save_mode = \"OVERWRITE\"\n"
                 + "    case_sensitive = false\n"
                 + "  }\n"
                 + "}\n";
@@ -277,25 +279,27 @@ public class SeaTunnelSyncService {
         return 0;
     }
 
-    /** 解析 metadata.json：累加每个 snapshot summary 里的 total-records（无则 added-records）。 */
+    /** 解析 metadata.json：取 current-snapshot-id 指向的 snapshot 的 total-records（当前表实际行数）。 */
     private long parseIcebergMetadata(Path metaFile) {
-        long rows = 0;
         try {
             String json = Files.readString(metaFile, StandardCharsets.UTF_8);
             com.fasterxml.jackson.databind.JsonNode root =
                     new com.fasterxml.jackson.databind.ObjectMapper().readTree(json);
+            com.fasterxml.jackson.databind.JsonNode currentId = root.get("current-snapshot-id");
             com.fasterxml.jackson.databind.JsonNode snapshots = root.get("snapshots");
-            if (snapshots != null && snapshots.isArray()) {
-                for (com.fasterxml.jackson.databind.JsonNode snap : snapshots) {
-                    com.fasterxml.jackson.databind.JsonNode summary = snap.get("summary");
-                    if (summary == null || !summary.isObject()) continue;
-                    long total = nodeLong(summary, "total-records");
-                    long added = nodeLong(summary, "added-records");
-                    rows += (total > 0 ? total : added);
+            if (snapshots == null || !snapshots.isArray()) return 0;
+            for (com.fasterxml.jackson.databind.JsonNode snap : snapshots) {
+                if (currentId != null && currentId.isNumber()) {
+                    com.fasterxml.jackson.databind.JsonNode sid = snap.get("snapshot-id");
+                    if (sid == null || !sid.isNumber() || sid.asLong() != currentId.asLong()) continue;
                 }
+                com.fasterxml.jackson.databind.JsonNode summary = snap.get("summary");
+                if (summary == null || !summary.isObject()) continue;
+                long total = nodeLong(summary, "total-records");
+                return total > 0 ? total : nodeLong(summary, "added-records");
             }
         } catch (Exception ignored) {}
-        return rows;
+        return 0;
     }
 
     private long nodeLong(com.fasterxml.jackson.databind.JsonNode node, String field) {
