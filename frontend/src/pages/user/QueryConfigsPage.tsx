@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Plus, Pencil, Trash2, Copy, Search, Eye, Code2, Database,
   Layers, ArrowRight, Save, X, ChevronDown, ChevronRight, Play,
@@ -9,7 +9,7 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
 import type { QueryConfig, FieldMapping, JoinConfig } from '@/types';
-import { getTables, executeQuery as apiExecuteQuery } from '@/lib/api';
+import { getTables, getAllSparkSyncedTables, executeQuery as apiExecuteQuery } from '@/lib/api';
 
 interface QueryConfigsPageProps {
   configs: QueryConfig[];
@@ -23,11 +23,22 @@ export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPa
   const [showPreview, setShowPreview] = useState<QueryConfig | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [tablesData, setTablesData] = useState<any[]>([]);
+  const [syncedTables, setSyncedTables] = useState<any[]>([]);
 
-  // 物理表元数据来自后端 /tables（r_physical_table 表）
+  // 物理表元数据来自后端 /tables（r_physical_table 表）；已同步的 Iceberg 表来自 /spark-query/all-synced-tables
   useEffect(() => {
     getTables().then((list: any) => { if (Array.isArray(list) && list.length) setTablesData(list as any[]); }).catch(()=>{});
+    getAllSparkSyncedTables().then((list: any) => { if (Array.isArray(list) && list.length) setSyncedTables(list as any[]); }).catch(()=>{});
   }, []);
+
+  // 把已同步表拍平成 [{db, table, full: "db.table"}]
+  const syncedTableOptions = useMemo(() => {
+    const opts: { db: string; table: string; full: string }[] = [];
+    (syncedTables || []).forEach((s: any) => {
+      (s.tables || []).forEach((t: string) => opts.push({ db: s.database, table: t, full: `${s.database}.${t}` }));
+    });
+    return opts;
+  }, [syncedTables]);
   const filtered = configs.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.description.toLowerCase().includes(search.toLowerCase()),
@@ -195,6 +206,7 @@ export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPa
         <ConfigEditorModal
           config={editingConfig}
           tables={tablesData}
+          syncedTables={syncedTableOptions}
           onSave={handleSave}
           onClose={() => setEditingConfig(null)}
         />
@@ -207,9 +219,10 @@ export default function QueryConfigsPage({ configs, setConfigs }: QueryConfigsPa
   );
 }
 
-function ConfigEditorModal({ config, tables, onSave, onClose }: {
+function ConfigEditorModal({ config, tables, syncedTables, onSave, onClose }: {
   config: QueryConfig;
   tables: any[];
+  syncedTables: { db: string; table: string; full: string }[];
   onSave: (c: QueryConfig) => void;
   onClose: () => void;
 }) {
@@ -332,9 +345,16 @@ function ConfigEditorModal({ config, tables, onSave, onClose }: {
                 onChange={(e) => setDraft({ ...draft, baseTable: e.target.value })}
                 className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all"
               >
-                {availableTables.map((t) => (
-                  <option key={t.name} value={t.name}>{t.label} ({t.name})</option>
-                ))}
+                <option value="">请选择表</option>
+                {syncedTables.length > 0 ? (
+                  syncedTables.map((t) => (
+                    <option key={t.full} value={t.full}>{t.full}</option>
+                  ))
+                ) : (
+                  availableTables.map((t) => (
+                    <option key={t.name} value={t.name}>{t.label} ({t.name})</option>
+                  ))
+                )}
               </select>
             </div>
             <div>

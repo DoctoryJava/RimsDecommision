@@ -24,6 +24,12 @@ public class SparkQueryController {
         return Result.success(sparkQueryService.listSyncedTables(systemId));
     }
 
+    @GetMapping("/all-synced-tables")
+    @Operation(summary = "列出所有已同步的库表（不按系统过滤）")
+    public Result<List<Map<String,Object>>> allSyncedTables() {
+        return Result.success(sparkQueryService.listAllSyncedTables());
+    }
+
     @PostMapping("/execute")
     @Operation(summary = "Spark 执行 SQL 查询已同步数据")
     public Result<Map<String,Object>> execute(@RequestBody Map<String,Object> body) {

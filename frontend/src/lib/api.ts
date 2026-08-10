@@ -178,6 +178,10 @@ export async function getSparkSyncedTables(systemId: string) {
   const res = await api.get<Result<any[]>>('/spark-query/synced-tables', { params: { systemId } });
   return (res.data as Result<any[]>).data;
 }
+export async function getAllSparkSyncedTables() {
+  const res = await api.get<Result<any[]>>('/spark-query/all-synced-tables');
+  return (res.data as Result<any[]>).data;
+}
 export async function sparkExecuteQuery(data: any) {
   const res = await api.post<Result<any>>('/spark-query/execute', data);
   return (res.data as Result<any>).data;

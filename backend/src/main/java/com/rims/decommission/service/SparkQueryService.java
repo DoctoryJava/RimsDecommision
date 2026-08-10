@@ -35,6 +35,15 @@ public class SparkQueryService {
         List<RSyncTableStat> stats = tableStatMapper.selectList(
                 new LambdaQueryWrapper<RSyncTableStat>()
                         .eq(RSyncTableStat::getSystemId, systemId));
+        return groupTables(stats);
+    }
+
+    /** 列出所有已同步的表（不按系统过滤），供 Query Configs 选择基础表等使用。 */
+    public List<Map<String, Object>> listAllSyncedTables() {
+        return groupTables(tableStatMapper.selectList(null));
+    }
+
+    private List<Map<String, Object>> groupTables(List<RSyncTableStat> stats) {
         Map<String, Set<String>> grouped = new LinkedHashMap<>();
         for (RSyncTableStat s : stats) {
             String db = s.getDatabaseName() == null || s.getDatabaseName().isBlank() ? "default" : s.getDatabaseName();
