@@ -90,6 +90,10 @@ export async function deleteSystem(id: string) {
   const res = await api.delete<Result<null>>(`/systems/${id}`);
   return res.data;
 }
+export async function testConnection(data: any) {
+  const res = await api.post<Result<{ connected: boolean; message: string }>>('/systems/test-connection', data);
+  return (res.data as Result<{ connected: boolean; message: string }>).data;
+}
 
 // Users
 export async function getUsers(params: any = {}) {

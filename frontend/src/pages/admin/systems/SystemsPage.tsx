@@ -29,7 +29,7 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
 import type { SystemRecord, LifecycleStage, SyncStatus } from '@/types';
-import { getSystems, createSystem } from '@/lib/api';
+import { getSystems, createSystem, testConnection } from '@/lib/api';
 
 const stageMap: Record<LifecycleStage, { color: 'success' | 'warning' | 'neutral' | 'error'; label: string }> = {
   active: { color: 'success', label: 'Active' },
@@ -395,14 +395,37 @@ function SystemDetail({ system, onBack }: { system: SystemRecord; onBack: () => 
 }
 
 function InitConfigTab({ system }: { system: SystemRecord }) {
-  const [dbForm, setDbForm] = useState(system.dbConfig || { engine: 'postgresql' as const, host: '', port: 5432, database: '', username: '', ssl: true });
+  const [dbForm, setDbForm] = useState<any>(system.dbConfig || { engine: 'postgresql', host: '', port: 5432, database: '', username: '', password: '', ssl: true });
   const [storageForm, setStorageForm] = useState(system.storageConfig || { provider: 'aws-s3' as const, bucket: '', region: '', accessKey: '' });
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle');
+  const [testMessage, setTestMessage] = useState('');
   const hasConfig = system.dbConfig !== null;
 
-  const handleTest = () => {
+  const handleTest = async () => {
     setTestStatus('testing');
-    setTimeout(() => setTestStatus('success'), 1200);
+    setTestMessage('');
+    try {
+      const res = await testConnection({
+        engine: dbForm.engine,
+        host: dbForm.host,
+        port: dbForm.port,
+        database: dbForm.database,
+        username: dbForm.username,
+        password: dbForm.password,
+        ssl: !!dbForm.ssl,
+      });
+      // 后端返回 Result: {connected, message}
+      if (res?.connected) {
+        setTestStatus('success');
+        setTestMessage(res.message || '连接成功');
+      } else {
+        setTestStatus('failed');
+        setTestMessage(res?.message || '连接失败');
+      }
+    } catch (e: any) {
+      setTestStatus('failed');
+      setTestMessage(e?.message || '连接失败');
+    }
   };
 
   return (
@@ -462,7 +485,7 @@ function InitConfigTab({ system }: { system: SystemRecord }) {
           </div>
           <div>
             <label className="block text-xs font-medium text-neutral-600 mb-1.5">Password</label>
-            <input type="password" placeholder="••••••••" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all" />
+            <input type="password" value={dbForm.password || ''} onChange={(e) => setDbForm({ ...dbForm, password: e.target.value })} placeholder="••••••••" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all" />
           </div>
         </div>
         <div className="mt-4 flex items-center gap-2">
@@ -534,12 +557,12 @@ function InitConfigTab({ system }: { system: SystemRecord }) {
           <div className="flex items-center gap-3">
             {testStatus === 'success' && (
               <span className="flex items-center gap-1.5 text-sm text-success-600 font-medium">
-                <CheckCircle2 size={16} /> All connections verified
+                <CheckCircle2 size={16} /> {testMessage || '连接成功'}
               </span>
             )}
             {testStatus === 'failed' && (
-              <span className="flex items-center gap-1.5 text-sm text-error-600 font-medium">
-                <AlertTriangle size={16} /> Connection failed
+              <span className="flex items-center gap-1.5 text-sm text-error-600 font-medium max-w-[360px] truncate">
+                <AlertTriangle size={16} /> {testMessage || '连接失败'}
               </span>
             )}
             <Button variant="outline" onClick={handleTest} disabled={testStatus === 'testing'} icon={testStatus === 'testing' ? <RefreshCw size={14} className="animate-spin-slow" /> : undefined}>
