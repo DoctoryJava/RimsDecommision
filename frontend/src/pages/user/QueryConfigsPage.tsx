@@ -8,8 +8,12 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
-import type { QueryConfig, FieldMapping, JoinConfig } from '@/types';
-import { getSystems, getQueryConfigs, getSystemSchema, createQueryConfig, updateQueryConfig, deleteQueryConfig, executeQuery as apiExecuteQuery } from '@/lib/api';
+import type { QueryConfig, FieldMapping, JoinConfig, DrillConfig, DrillField } from '@/types';
+import {
+  getSystems, getQueryConfigs, getSystemSchema, createQueryConfig, updateQueryConfig, deleteQueryConfig,
+  executeQuery as apiExecuteQuery,
+  getDrillConfigs, createDrillConfig, updateDrillConfig, deleteDrillConfig,
+} from '@/lib/api';
 
 interface QueryConfigsPageProps {
   // 页面自管理系统与配置
@@ -287,7 +291,7 @@ function ConfigEditorModal({ config, tables, onSave, onClose }: {
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState<QueryConfig>({ ...config });
-  const [tab, setTab] = useState<'basic' | 'joins' | 'fields'>('basic');
+  const [tab, setTab] = useState<'basic' | 'joins' | 'fields' | 'drill'>('basic');
 
   const updateField = (id: string, patch: Partial<FieldMapping>) => {
     setDraft({ ...draft, fields: draft.fields.map((f) => (f.id === id ? { ...f, ...patch } : f)) });
@@ -348,7 +352,7 @@ function ConfigEditorModal({ config, tables, onSave, onClose }: {
       }
     >
       <div className="flex items-center gap-1 mb-4 border-b border-neutral-200">
-        {(['basic', 'joins', 'fields'] as const).map((t) => (
+        {(['basic', 'joins', 'fields', 'drill'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -356,7 +360,7 @@ function ConfigEditorModal({ config, tables, onSave, onClose }: {
               tab === t ? 'text-primary-600' : 'text-neutral-500 hover:text-neutral-700'
             }`}
           >
-            {t === 'basic' ? '基本信息' : t === 'joins' ? '表关联' : '字段映射'}
+            {t === 'basic' ? '基本信息' : t === 'joins' ? '表关联' : t === 'fields' ? '字段映射' : '下钻配置'}
             {tab === t && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500 rounded-full" />}
           </button>
         ))}
@@ -587,7 +591,317 @@ function ConfigEditorModal({ config, tables, onSave, onClose }: {
           </div>
         </div>
       )}
+
+      {tab === 'drill' && (
+        <DrillConfigTab
+          queryConfigId={config.id}
+          baseTable={draft.baseTable}
+          tables={tables}
+          getColumns={getColumns}
+        />
+      )}
     </Modal>
+  );
+}
+
+// ── 下钻配置 tab：配置子表 / 关联字段 / 多级下钻，保存到 r_drill_config ──
+function DrillConfigTab({
+  queryConfigId, baseTable, tables, getColumns,
+}: {
+  queryConfigId: string;
+  baseTable: string;
+  tables: { db: string; table: string; full: string; columns: any[] }[];
+  getColumns: (tableFull: string) => any[];
+}) {
+  const [tree, setTree] = useState<DrillConfig[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null); // null=关闭表单, 'new'=新增
+  const [form, setForm] = useState<DrillConfig | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const isNewConfig = /^qc-/.test(queryConfigId || '');
+  const flatNodes = useMemo(() => {
+    const out: DrillConfig[] = [];
+    const walk = (nodes: DrillConfig[]) => nodes.forEach((n) => { out.push(n); if (n.children?.length) walk(n.children); });
+    walk(tree);
+    return out;
+  }, [tree]);
+
+  const load = () => {
+    setLoaded(false);
+    getDrillConfigs(queryConfigId).then((list) => setTree((list ?? []) as DrillConfig[])).catch(() => setTree([])).finally(() => setLoaded(true));
+  };
+  useEffect(() => { if (!isNewConfig) load(); }, [queryConfigId]);
+
+  const emptyForm = (): DrillConfig => ({
+    id: '',
+    queryConfigId,
+    parentId: '',
+    name: '',
+    baseTable: '',
+    parentField: '',
+    childField: '',
+    fields: [],
+    sortOrder: flatNodes.length,
+  });
+
+  const startCreate = () => { setEditingId('new'); setForm(emptyForm()); };
+  const startEdit = (node: DrillConfig) => {
+    setEditingId(node.id);
+    setForm({ ...node, fields: node.fields ? [...node.fields] : [], children: undefined });
+  };
+  const cancelForm = () => { setEditingId(null); setForm(null); };
+
+  // 父级下拉选项：禁止选择自身及其后代，避免循环
+  const parentOptions = useMemo(() => {
+    if (!form || editingId === 'new') return flatNodes;
+    const exclude = new Set<string>();
+    const collect = (nodes: DrillConfig[]) => nodes.forEach((n) => {
+      exclude.add(n.id);
+      if (n.children?.length) collect(n.children);
+    });
+    const findNode = (nodes: DrillConfig[]): DrillConfig | undefined => {
+      for (const n of nodes) {
+        if (n.id === editingId) return n;
+        if (n.children?.length) { const r = findNode(n.children); if (r) return r; }
+      }
+      return undefined;
+    };
+    const self = findNode(tree);
+    if (self) collect([self]);
+    return flatNodes.filter((n) => !exclude.has(n.id));
+  }, [flatNodes, form, editingId, tree]);
+
+  // 父表：选了父级则用父级的 baseTable，否则用查询基础表 baseTable
+  const parentTable = useMemo(() => {
+    if (form?.parentId) {
+      const p = flatNodes.find((n) => n.id === form.parentId);
+      if (p?.baseTable) return p.baseTable;
+    }
+    return baseTable;
+  }, [form?.parentId, flatNodes, baseTable]);
+
+  const childCols = getColumns(form?.baseTable || '');
+  const parentCols = getColumns(parentTable);
+
+  const toggleField = (col: string) => {
+    if (!form) return;
+    const cur = (form.fields || []).filter((f: any) => f.column && f.column !== col);
+    const checked = (form.fields || []).some((f: any) => f.column === col);
+    const fields = checked ? cur : [...cur, { column: col, alias: col }];
+    setForm({ ...form, fields });
+  };
+
+  const validate = () => {
+    if (!form) return '请先填写表单';
+    if (!form.name) return '请填写下钻名称';
+    if (!form.baseTable) return '请选择子表';
+    if (!form.parentField) return `请选择父表(${parentTable})关联字段`;
+    if (!form.childField) return '请选择子表关联字段';
+    return null;
+  };
+
+  const handleSaveDrill = async () => {
+    const err = validate();
+    if (err) { window.alert(err); return; }
+    if (!form) return;
+    setSaving(true);
+    try {
+      const payload = {
+        parentId: form.parentId || null,
+        name: form.name,
+        baseTable: form.baseTable,
+        parentField: form.parentField,
+        childField: form.childField,
+        fields: form.fields || [],
+        sortOrder: form.sortOrder ?? 0,
+      };
+      if (editingId === 'new') {
+        await createDrillConfig(queryConfigId, payload);
+      } else {
+        await updateDrillConfig(queryConfigId, editingId!, payload);
+      }
+      cancelForm();
+      load();
+    } catch (e: any) {
+      window.alert('保存下钻配置失败：' + (e?.message || '请稍后重试'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteDrill = async (id: string) => {
+    if (!window.confirm('确认删除该下钻配置？（其子级将一并删除）')) return;
+    setDeleting(id);
+    try {
+      await deleteDrillConfig(queryConfigId, id);
+      if (editingId === id) cancelForm();
+      load();
+    } catch (e: any) {
+      window.alert('删除失败：' + (e?.message || '请稍后重试'));
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const renderNode = (node: DrillConfig, depth: number) => (
+    <div key={node.id} className={depth > 0 ? 'ml-5 border-l-2 border-primary-100 pl-3 mt-2' : ''}>
+      <div className="flex items-center justify-between gap-2 p-3 rounded-lg border border-neutral-200 bg-neutral-50">
+        <div className="flex items-center gap-2 min-w-0">
+          <Layers size={15} className="text-primary-500 shrink-0" />
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-neutral-800">{node.name}</span>
+              <Badge color="primary" size="sm">{node.baseTable}</Badge>
+            </div>
+            <p className="text-xs text-neutral-500 mt-0.5 font-mono truncate">
+              {node.parentField} =&gt; {node.childField}
+              {node.fields?.length ? ` · ${node.fields.length} 字段` : ''}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <Button variant="ghost" size="sm" icon={<Pencil size={13} />} onClick={() => startEdit(node)}>编辑</Button>
+          <Button variant="ghost" size="sm" icon={<Trash2 size={13} />} disabled={deleting === node.id} onClick={() => handleDeleteDrill(node.id)} />
+        </div>
+      </div>
+      {node.children?.length ? node.children.map((c) => renderNode(c, depth + 1)) : null}
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-neutral-600">
+          配置「关联明细下钻」：定义从主表（或上级子表）展开到子表的层级关系
+        </p>
+        <Button size="sm" variant="outline" icon={<Plus size={14} />} onClick={startCreate} disabled={isNewConfig}>
+          添加下钻
+        </Button>
+      </div>
+
+      {isNewConfig ? (
+        <div className="text-center py-10 border-2 border-dashed border-neutral-200 rounded-lg">
+          <Layers size={32} className="mx-auto text-neutral-300 mb-2" />
+          <p className="text-sm text-neutral-500">
+            这是尚未保存的新查询配置。请先点击底部「保存配置」创建查询后，再回来配置下钻。
+          </p>
+        </div>
+      ) : !loaded ? (
+        <div className="text-center py-10 text-sm text-neutral-400">加载下钻配置…</div>
+      ) : tree.length === 0 && !form ? (
+        <div className="text-center py-12 border-2 border-dashed border-neutral-200 rounded-lg">
+          <Layers size={32} className="mx-auto text-neutral-300 mb-2" />
+          <p className="text-sm text-neutral-400">暂无下钻配置，点击"添加下钻"开始配置</p>
+        </div>
+      ) : (
+        <>
+          {tree.length > 0 && <div className="space-y-2">{tree.map((n) => renderNode(n, 0))}</div>}
+
+          {(editingId || form) && (
+            <div className="border rounded-lg border-primary-200 bg-primary-50/40 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-neutral-800">
+                  {editingId === 'new' ? '新增下钻节点' : '编辑下钻节点'}
+                </p>
+                <button onClick={cancelForm} className="text-neutral-400 hover:text-neutral-600"><X size={16} /></button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-neutral-600 mb-1">下钻名称 *</label>
+                  <input
+                    type="text"
+                    value={form?.name || ''}
+                    onChange={(e) => form && setForm({ ...form, name: e.target.value })}
+                    placeholder="例如：订单行明细"
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-neutral-600 mb-1">上级（父级）节点</label>
+                  <select
+                    value={form?.parentId || ''}
+                    onChange={(e) => form && setForm({ ...form, parentId: e.target.value || '' })}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white outline-none"
+                  >
+                    <option value="">主表（{baseTable || '基础表'}）</option>
+                    {parentOptions.map((n) => <option key={n.id} value={n.id}>{n.name}（{n.baseTable}）</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-neutral-600 mb-1">子表（下钻目标表）*</label>
+                  <select
+                    value={form?.baseTable || ''}
+                    onChange={(e) => {
+                      if (!form) return;
+                      const next = { ...form, baseTable: e.target.value, childField: '' };
+                      setForm(next);
+                    }}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white outline-none"
+                  >
+                    <option value="">请选择表</option>
+                    {tables.length ? tables.map((t) => <option key={t.full} value={t.full}>{t.full}</option>) : <option value="" disabled>暂无已同步的表</option>}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-neutral-600 mb-1">父表关联字段 *（{parentTable}）</label>
+                  <select
+                    value={form?.parentField || ''}
+                    onChange={(e) => form && setForm({ ...form, parentField: e.target.value })}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white outline-none font-mono"
+                  >
+                    <option value="">选择列</option>
+                    {parentCols.map((c: any) => <option key={c.name} value={c.name}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-neutral-600 mb-1">子表关联字段 *（{form?.baseTable || ''}）</label>
+                  <select
+                    value={form?.childField || ''}
+                    onChange={(e) => form && setForm({ ...form, childField: e.target.value })}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white outline-none font-mono"
+                  >
+                    <option value="">选择列</option>
+                    {childCols.map((c: any) => <option key={c.name} value={c.name}>{c.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-neutral-600 mb-1">显示字段（不选则显示全部列）</label>
+                {childCols.length === 0 ? (
+                  <p className="text-xs text-neutral-400">请先选择子表</p>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                    {childCols.map((c: any) => {
+                      const checked = (form?.fields || []).some((f: any) => f.column === c.name);
+                      return (
+                        <label key={c.name} className="flex items-center gap-1.5 px-2 py-1 text-xs rounded-md border cursor-pointer transition-colors bg-white border-neutral-200 hover:border-primary-300">
+                          <input type="checkbox" checked={checked} onChange={() => toggleField(c.name)} className="w-3 h-3 rounded text-primary-500" />
+                          <span className="font-mono text-neutral-700">{c.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <Button variant="outline" size="sm" onClick={cancelForm}>取消</Button>
+                <Button size="sm" icon={<Save size={14} />} disabled={saving} onClick={handleSaveDrill}>
+                  {editingId === 'new' ? '保存下钻配置' : '保存修改'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
   );
 }
 

@@ -198,3 +198,22 @@ export interface FilterCondition {
   value2?: string;
 }
 
+// 关联明细下钻配置（r_drill_config），后端按 parentId 组装为树
+export interface DrillField {
+  column: string;
+  alias?: string;
+}
+
+export interface DrillConfig {
+  id: string;
+  queryConfigId: string;
+  parentId?: string | null;
+  name: string;
+  baseTable: string;   // db.table（子表）
+  parentField: string; // 父表（或主表）关联字段
+  childField: string;  // 子表关联字段
+  fields?: DrillField[];
+  sortOrder?: number;
+  children?: DrillConfig[];
+}
+
