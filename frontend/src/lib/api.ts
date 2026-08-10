@@ -170,6 +170,10 @@ export async function getSyncJobTableStats(jobId: string) {
   const res = await api.get<Result<any[]>>(`/sync/jobs/${jobId}/tables`);
   return (res.data as Result<any[]>).data;
 }
+export async function checkAlreadySynced(systemId: string) {
+  const res = await api.get<Result<any>>('/sync/check-already-synced', { params: { systemId } });
+  return (res.data as Result<any>).data;
+}
 
 // Schemas
 export async function getSchemas(params: any = {}) {

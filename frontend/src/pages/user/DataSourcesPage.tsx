@@ -15,6 +15,7 @@ import {
   getSyncJobs,
   createSyncJob,
   getSyncJobTableStats,
+  checkAlreadySynced,
 } from '@/lib/api';
 import type { PageKey } from '@/components/layout/Sidebar';
 
@@ -151,6 +152,21 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
   const triggerSync = async () => {
     const sys = systems.find((s) => s.id === systemId);
     if (!sys || syncing) return;
+    // 先判断是否已同步过（源库数据未变）
+    try {
+      const check = await checkAlreadySynced(systemId);
+      if (check?.alreadySynced) {
+        window.alert('该系统的数据已经是最新的，无需重复同步。');
+        return;
+      }
+      if (check?.hasAnySync && !check?.alreadySynced) {
+        const changedTables = (check.sources || []).flatMap((s: any) => s.changedTableNames || []);
+        const hint = changedTables.length
+          ? `检测到 ${changedTables.length} 张表数据有变化（${changedTables.slice(0,5).join(', ')}${changedTables.length>5?' 等':''}），将重新同步。`
+          : '检测到部分数据有变化，将重新同步。';
+        if (!window.confirm(hint + ' 确认继续？')) return;
+      }
+    } catch (e) { /* 后端检查失败则直接同步 */ }
     setSyncing(true);
     try {
       await createSyncJob({ systemId, systemName: sys.name, type: 'incremental', status: 'syncing', triggeredBy: 'Manual' });

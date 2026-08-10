@@ -193,6 +193,96 @@ public class SeaTunnelSyncService {
         return confPath.toString();
     }
 
+    // ---------- 已同步判断 ----------
+
+    /** 判断系统是否已同步过：对比源库每表当前行数与上次成功同步的记录行数，全部一致则认为无需重复同步。 */
+    public Map<String, Object> checkAlreadySynced(String systemId) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        List<Map<String, Object>> sources = new ArrayList<>();
+        boolean allSynced = true;
+        boolean hasAnySync = false;
+        try {
+            var srcs = sourceDbMapper.selectList(
+                    new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RSourceDatabase>()
+                            .eq(RSourceDatabase::getSourceSystemId, systemId));
+            for (RSourceDatabase src : srcs) {
+                String engine = src.getDbType() == null ? "mysql" : src.getDbType().toLowerCase();
+                int port = src.getPort() != null ? src.getPort() : defaultPort(engine);
+                Map<String, Object> sm = new LinkedHashMap<>();
+                sm.put("databaseName", src.getDatabaseName());
+                sm.put("server", src.getServer());
+                try {
+                    // 源库当前行数
+                    Map<String, Long> current = countSourceRows(engine, src.getServer(), port,
+                            src.getDatabaseName(), src.getUsername(), src.getPassword());
+                    // 上次成功同步的行数（按 database_name+table_name 取该表最近一条）
+                    long unchanged = 0, changed = 0;
+                    List<String> changedTables = new ArrayList<>();
+                    for (var e : current.entrySet()) {
+                        Long prev = lastSyncedRows(systemId, src.getDatabaseName(), e.getKey());
+                        if (prev != null) { hasAnySync = true; }
+                        if (prev != null && prev.equals(e.getValue())) {
+                            unchanged++;
+                        } else {
+                            changed++;
+                            changedTables.add(e.getKey());
+                        }
+                    }
+                    sm.put("totalTables", current.size());
+                    sm.put("unchangedTables", unchanged);
+                    sm.put("changedTables", changed);
+                    sm.put("changedTableNames", changedTables);
+                    sm.put("alreadySynced", changed == 0 && current.size() > 0);
+                    if (changed > 0) allSynced = false;
+                } catch (Exception ex) {
+                    sm.put("error", safe(ex.getMessage()));
+                    allSynced = false;
+                }
+                sources.add(sm);
+            }
+        } catch (Exception e) {
+            allSynced = false;
+        }
+        result.put("alreadySynced", allSynced && !sources.isEmpty() && hasAnySync);
+        result.put("hasAnySync", hasAnySync);
+        result.put("sources", sources);
+        return result;
+    }
+
+    /** 统计源库每个表的当前行数。 */
+    private Map<String, Long> countSourceRows(String engine, String host, int port, String db,
+                                              String user, String pwd) {
+        Map<String, Long> counts = new LinkedHashMap<>();
+        String url = jdbcUrl(engine, host, port, db);
+        try (Connection c = DriverManager.getConnection(url, user, pwd)) {
+            try (ResultSet rs = c.getMetaData().getTables(db, null, "%", new String[]{"TABLE"})) {
+                while (rs.next()) {
+                    String t = rs.getString("TABLE_NAME");
+                    if (t == null) continue;
+                    String q = "SELECT COUNT(*) FROM `" + t.replace("`", "``") + "`";
+                    try (Statement st = c.createStatement(); ResultSet cr = st.executeQuery(q)) {
+                        if (cr.next()) counts.put(t, cr.getLong(1));
+                    } catch (Exception ignored) {}
+                }
+            }
+        } catch (Exception ignored) {}
+        return counts;
+    }
+
+    /** 取某表最近一次成功同步的行数。 */
+    private Long lastSyncedRows(String systemId, String databaseName, String tableName) {
+        try {
+            var stat = tableStatMapper.selectOne(
+                    new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RSyncTableStat>()
+                            .eq(RSyncTableStat::getSystemId, systemId)
+                            .eq(RSyncTableStat::getDatabaseName, databaseName)
+                            .eq(RSyncTableStat::getTableName, tableName)
+                            .orderByDesc(RSyncTableStat::getCreatedAt)
+                            .last("LIMIT 1"));
+            return stat != null ? stat.getRowCount() : null;
+        } catch (Exception e) { return null; }
+    }
+
     // ---------- 表级统计 ----------
 
     /** 扫描落盘目录，统计每个表的大小与行数，写入 r_sync_table_stat。 */

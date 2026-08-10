@@ -94,6 +94,13 @@ public class SyncController {
         ));
     }
 
+    /** 判断系统是否已同步过（源库数据未变）。 */
+    @GetMapping("/check-already-synced")
+    @Operation(summary = "检查系统是否已同步（源库数据未变）")
+    public Result<Map<String,Object>> checkAlreadySynced(@RequestParam String systemId) {
+        return Result.success(seatunnel.checkAlreadySynced(systemId));
+    }
+
     /** 某同步任务下各表的统计明细（表名/行数/大小）。 */
     @GetMapping("/jobs/{id}/tables")
     @Operation(summary = "同步任务的表级统计")
