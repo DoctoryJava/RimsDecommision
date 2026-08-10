@@ -17,6 +17,8 @@ public class SparkProperties {
     private String icebergPackage = "org.apache.iceberg:iceberg-spark-runtime-3.3_2.12:1.4.3";
     /** 是否真正调用 Spark（false 时返回模拟数据） */
     private boolean enabled = true;
+    /** SeaTunnel 安装目录（用于 start-seatunnel-spark-3-connector-v2.sh 查询） */
+    private String seatunnelHome = "/Users/chenyong/Desktop/BigData/apache-seatunnel-2.3.13";
 
     public String getHome() { return home; }
     public void setHome(String home) { this.home = home; }
@@ -26,4 +28,6 @@ public class SparkProperties {
     public void setIcebergPackage(String icebergPackage) { this.icebergPackage = icebergPackage; }
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    public String getSeatunnelHome() { return seatunnelHome; }
+    public void setSeatunnelHome(String seatunnelHome) { this.seatunnelHome = seatunnelHome; }
 }

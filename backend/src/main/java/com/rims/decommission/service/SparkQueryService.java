@@ -64,11 +64,11 @@ public class SparkQueryService {
             if (!props.isEnabled()) {
                 return simulate(sql, page, pageSize);
             }
-            // 生成并执行 PySpark 脚本（warehouse 指向 该库的目录 {warehouse}/{db}，
-            // 使 rims.archive.<table> 解析到 {warehouse}/{db}/archive/<table>）
-            String script = writeScript(database, sql);
-            String outFile = runSpark(script);
-            List<Map<String, Object>> all = readResult(outFile);
+            // 用 SeaTunnel Spark 引擎查询（Iceberg source -> Console sink），
+            // warehouse 指向该库目录 {warehouse}/{db}，避开 PySpark 的 Python 兼容问题。
+            String confFile = writeConf(database, sql);
+            String log = runSeaTunnelSpark(confFile);
+            List<Map<String, Object>> all = parseConsoleResult(log);
             int total = all.size();
             int from = Math.min((page - 1) * pageSize, total);
             int to = Math.min(from + pageSize, total);
@@ -84,48 +84,55 @@ public class SparkQueryService {
         return result;
     }
 
-    /** 生成 PySpark 脚本：配置 Iceberg Hadoop catalog，执行 SQL，结果写 JSON。 */
-    private String writeScript(String database, String sql) throws IOException {
-        // warehouse 指向该库的落盘目录 {warehouse}/{db}（若无库则用 warehouse 根）
+    /** 生成 SeaTunnel conf：Iceberg source（读已同步表）+ Console sink。 */
+    private String writeConf(String database, String sql) throws IOException {
         String dbName = database == null || database.isBlank() ? "" : database;
         String warehouse = props.getWarehouseDir();
         if (!dbName.isEmpty()) {
             warehouse = warehouse + "/" + dbName;
         }
-        String script = ""
-                + "from pyspark.sql import SparkSession\n"
-                + "import json\n"
-                + "spark = SparkSession.builder.appName('rims_query').master('local[1]').config('spark.sql.catalog.rims', 'org.apache.iceberg.spark.SparkCatalog').config('spark.sql.catalog.rims.type', 'hadoop').config('spark.sql.catalog.rims.warehouse', '" + warehouse + "').getOrCreate()\n"
-                + "try:\n"
-                + "    df = spark.sql('''" + sql.replace("'", "\\'") + "''')\n"
-                + "    rows = df.toJSON().collect()\n"
-                + "    print('__RIMS_RESULT__')\n"
-                + "    for r in rows:\n"
-                + "        print(r)\n"
-                + "except Exception as e:\n"
-                + "    print('__RIMS_ERROR__' + str(e))\n"
-                + "    import sys\n"
-                + "    sys.exit(1)\n"
-                + "spark.stop()\n";
+        // 用查询语句作为 Iceberg source 的 query（表名需为 namespace.table，如 archive.l_organization）
+        String query = sql.replace("\"", "\\\"").replace("\n", " ");
+        String conf = "env {\n"
+                + "  parallelism = 1\n"
+                + "  job.mode = \"BATCH\"\n"
+                + "  spark.app.name = \"rims_query\"\n"
+                + "  spark.master = \"local[1]\"\n"
+                + "}\n"
+                + "source {\n"
+                + "  Iceberg {\n"
+                + "    catalog_name = \"seatunnel\"\n"
+                + "    iceberg.catalog.config = {\n"
+                + "      type = \"hadoop\"\n"
+                + "      warehouse = \"file://" + warehouse + "\"\n"
+                + "    }\n"
+                + "    query = \"" + query + "\"\n"
+                + "    plugin_output = \"iceberg\"\n"
+                + "  }\n"
+                + "}\n"
+                + "transform {\n}\n"
+                + "sink {\n"
+                + "  Console {\n"
+                + "    plugin_input = \"iceberg\"\n"
+                + "  }\n"
+                + "}\n";
         Files.createDirectories(Paths.get(System.getProperty("java.io.tmpdir"), "rims_spark"));
-        Path p = Paths.get(System.getProperty("java.io.tmpdir"), "rims_spark", "query_" + System.currentTimeMillis() + ".py");
-        Files.writeString(p, script, StandardCharsets.UTF_8);
+        Path p = Paths.get(System.getProperty("java.io.tmpdir"), "rims_spark", "query_" + System.currentTimeMillis() + ".conf");
+        Files.writeString(p, conf, StandardCharsets.UTF_8);
         return p.toString();
     }
 
-    private String runSpark(String script) throws Exception {
-        String sparkSubmit = props.getHome() + "/bin/spark-submit";
-        String outFile = System.getProperty("java.io.tmpdir") + "/rims_spark/out_" + System.currentTimeMillis() + ".json";
+    /** 用 SeaTunnel Spark 引擎执行查询 conf，返回 Console 输出日志。 */
+    private String runSeaTunnelSpark(String confFile) throws Exception {
+        String script = props.getSeatunnelHome() + "/bin/start-seatunnel-spark-3-connector-v2.sh";
         ProcessBuilder pb = new ProcessBuilder(
-                sparkSubmit,
+                script,
                 "--master", "local[1]",
-                "--packages", props.getIcebergPackage(),
-                script);
-        // 设置工作目录为 spark home（避免当前目录里的 typing.py 等遮蔽内置模块），
-        // 并确保用系统 python3（PySpark 3.3 需 Python 3.8+）
-        pb.directory(java.nio.file.Paths.get(props.getHome()).toFile());
-        pb.environment().put("PYSPARK_PYTHON", "python3");
-        pb.environment().put("PYSPARK_DRIVER_PYTHON", "python3");
+                "--deploy-mode", "client",
+                "--config", confFile);
+        // 保证 SeaTunnel 能找到 SPARK_HOME
+        pb.environment().put("SPARK_HOME", props.getHome());
+        pb.directory(java.nio.file.Paths.get(props.getSeatunnelHome()).toFile());
         pb.redirectErrorStream(true);
         Process p = pb.start();
         StringBuilder out = new StringBuilder();
@@ -137,38 +144,36 @@ public class SparkQueryService {
         }
         int exit = p.waitFor();
         String log = out.toString();
-        if (exit != 0 || log.contains("__RIMS_ERROR__")) {
-            String err = log.contains("__RIMS_ERROR__")
-                    ? log.substring(log.indexOf("__RIMS_ERROR__") + "__RIMS_ERROR__".length()).split("\n")[0].trim()
-                    : "spark-submit 退出码 " + exit;
-            throw new IllegalStateException(err);
+        if (exit != 0) {
+            throw new IllegalStateException("SeaTunnel Spark 查询退出码 " + exit + ":\n" + tail(log, 40));
         }
-        // 解析 __RIMS_RESULT__ 之后的每行 JSON
-        StringBuilder rowsBuf = new StringBuilder();
-        int idx = log.indexOf("__RIMS_RESULT__");
-        if (idx >= 0) {
-            String after = log.substring(idx + "__RIMS_RESULT__".length());
-            String[] lines = after.split("\n");
-            rowsBuf.append("[");
-            boolean first = true;
-            for (String ln : lines) {
-                ln = ln.trim();
-                if (ln.isEmpty() || ln.startsWith("22/") || ln.startsWith("24/")) continue;
-                if (!first) rowsBuf.append(",");
-                rowsBuf.append(ln);
-                first = false;
-            }
-            rowsBuf.append("]");
-        }
-        Files.writeString(Paths.get(outFile), rowsBuf.toString(), StandardCharsets.UTF_8);
-        return outFile;
+        return log;
     }
 
+    /** 解析 Console sink 输出（row=N : {json} 行）为 List<Map>。 */
     @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> readResult(String outFile) throws IOException {
-        String json = Files.readString(Paths.get(outFile), StandardCharsets.UTF_8);
-        if (json == null || json.isBlank() || "[]".equals(json.trim())) return new ArrayList<>();
-        return objectMapper.readValue(json, List.class);
+    private List<Map<String, Object>> parseConsoleResult(String log) {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (String line : log.split("\n")) {
+            String t = line.trim();
+            int colon = t.indexOf(" : ");
+            if (colon < 0) continue;
+            String json = t.substring(colon + 3).trim();
+            if (json.startsWith("{") && json.endsWith("}")) {
+                try {
+                    rows.add(objectMapper.readValue(json, Map.class));
+                } catch (Exception ignored) {}
+            }
+        }
+        return rows;
+    }
+
+    private String tail(String s, int n) {
+        String[] lines = s.split("\n");
+        StringBuilder sb = new StringBuilder();
+        int start = Math.max(0, lines.length - n);
+        for (int i = start; i < lines.length; i++) sb.append(lines[i]).append('\n');
+        return sb.toString();
     }
 
     /** 模拟返回（SPARK_QUERY_ENABLED=false 调试用）。 */

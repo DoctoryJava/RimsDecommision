@@ -61,6 +61,8 @@ app:
     iceberg-package: ${SPARK_ICEBERG_PACKAGE:org.apache.iceberg:iceberg-spark-runtime-3.3_2.12:1.4.3}
     # 是否真正调用 Spark（false 时返回模拟数据，便于无环境调试）
     enabled: ${SPARK_QUERY_ENABLED:true}
+    # SeaTunnel 安装目录（查询用 start-seatunnel-spark-3-connector-v2.sh）
+    seatunnel-home: ${SEATUNNEL_HOME:/Users/chenyong/Desktop/BigData/apache-seatunnel-2.3.13}
 
 springdoc:
   api-docs:
