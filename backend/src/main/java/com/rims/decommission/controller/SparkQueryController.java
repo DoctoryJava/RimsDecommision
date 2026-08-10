@@ -28,11 +28,12 @@ public class SparkQueryController {
     @Operation(summary = "Spark 执行 SQL 查询已同步数据")
     public Result<Map<String,Object>> execute(@RequestBody Map<String,Object> body) {
         String systemId = (String) body.getOrDefault("systemId", "");
+        String database = (String) body.getOrDefault("database", "");
         String sql = (String) body.getOrDefault("sql", "");
         int page = body.get("page") instanceof Number n ? n.intValue() : 1;
         int pageSize = body.get("pageSize") instanceof Number n ? n.intValue() : 10;
         try {
-            return Result.success(sparkQueryService.executeQuery(systemId, sql, page, pageSize));
+            return Result.success(sparkQueryService.executeQuery(systemId, database, sql, page, pageSize));
         } catch (Exception e) {
             return Result.fail(500, e.getMessage() == null ? "查询失败" : e.getMessage());
         }

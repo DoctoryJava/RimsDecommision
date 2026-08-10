@@ -29,6 +29,7 @@ export default function DynamicQueryPage() {
   const [error, setError] = useState('');
   const [loadingTables, setLoadingTables] = useState(false);
   const [expandedDb, setExpandedDb] = useState<string | null>(null);
+  const [selectedDb, setSelectedDb] = useState('');
 
   const loadSystems = useCallback(() => {
     getSystems({ pageNum: 1, pageSize: 100 }).then((p: any) => {
@@ -54,7 +55,7 @@ export default function DynamicQueryPage() {
     setRunning(true);
     setError('');
     try {
-      const res = await sparkExecuteQuery({ systemId, sql, page, pageSize });
+      const res = await sparkExecuteQuery({ systemId, database: selectedDb, sql, page, pageSize });
       setResult({ columns: res?.columns ?? [], rows: res?.rows ?? [], total: res?.total ?? 0 });
     } catch (e: any) {
       setError(e?.message || '查询失败');
@@ -120,7 +121,7 @@ export default function DynamicQueryPage() {
                 return (
                   <div key={db.database}>
                     <button
-                      onClick={() => setExpandedDb(isExpanded ? null : db.database)}
+                      onClick={() => { setExpandedDb(isExpanded ? null : db.database); if (!isExpanded) setSelectedDb(db.database); }}
                       className="w-full flex items-center justify-between px-5 py-3 hover:bg-neutral-50 transition-colors"
                     >
                       <div className="flex items-center gap-2">

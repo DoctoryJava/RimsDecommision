@@ -51,7 +51,7 @@ public class SparkQueryService {
     }
 
     /** 通过 Spark 执行 SQL 查询已同步的 Iceberg 数据。 */
-    public Map<String, Object> executeQuery(String systemId, String sql, int page, int pageSize) {
+    public Map<String, Object> executeQuery(String systemId, String database, String sql, int page, int pageSize) {
         Map<String, Object> result = new LinkedHashMap<>();
         try {
             // SQL 空则返回空
@@ -64,9 +64,10 @@ public class SparkQueryService {
             if (!props.isEnabled()) {
                 return simulate(sql, page, pageSize);
             }
-            // 生成并执行 PySpark 脚本
-            String script = writeScript(sql);
-            String outFile = runSpark(script, sql);
+            // 生成并执行 PySpark 脚本（warehouse 指向 该库的目录 {warehouse}/{db}，
+            // 使 rims.archive.<table> 解析到 {warehouse}/{db}/archive/<table>）
+            String script = writeScript(database, sql);
+            String outFile = runSpark(script);
             List<Map<String, Object>> all = readResult(outFile);
             int total = all.size();
             int from = Math.min((page - 1) * pageSize, total);
@@ -84,11 +85,17 @@ public class SparkQueryService {
     }
 
     /** 生成 PySpark 脚本：配置 Iceberg Hadoop catalog，执行 SQL，结果写 JSON。 */
-    private String writeScript(String sql) throws IOException {
+    private String writeScript(String database, String sql) throws IOException {
+        // warehouse 指向该库的落盘目录 {warehouse}/{db}（若无库则用 warehouse 根）
+        String dbName = database == null || database.isBlank() ? "" : database;
+        String warehouse = props.getWarehouseDir();
+        if (!dbName.isEmpty()) {
+            warehouse = warehouse + "/" + dbName;
+        }
         String script = ""
                 + "from pyspark.sql import SparkSession\n"
                 + "import json\n"
-                + "spark = SparkSession.builder.appName('rims_query').master('local[1]').config('spark.sql.catalog.rims', 'org.apache.iceberg.spark.SparkCatalog').config('spark.sql.catalog.rims.type', 'hadoop').config('spark.sql.catalog.rims.warehouse', '" + props.getWarehouseDir() + "').getOrCreate()\n"
+                + "spark = SparkSession.builder.appName('rims_query').master('local[1]').config('spark.sql.catalog.rims', 'org.apache.iceberg.spark.SparkCatalog').config('spark.sql.catalog.rims.type', 'hadoop').config('spark.sql.catalog.rims.warehouse', '" + warehouse + "').getOrCreate()\n"
                 + "try:\n"
                 + "    df = spark.sql('''" + sql.replace("'", "\\'") + "''')\n"
                 + "    rows = df.toJSON().collect()\n"
@@ -106,7 +113,7 @@ public class SparkQueryService {
         return p.toString();
     }
 
-    private String runSpark(String script, String sql) throws Exception {
+    private String runSpark(String script) throws Exception {
         String sparkSubmit = props.getHome() + "/bin/spark-submit";
         String outFile = System.getProperty("java.io.tmpdir") + "/rims_spark/out_" + System.currentTimeMillis() + ".json";
         ProcessBuilder pb = new ProcessBuilder(
