@@ -121,6 +121,11 @@ public class SparkQueryService {
                 "--master", "local[1]",
                 "--packages", props.getIcebergPackage(),
                 script);
+        // 设置工作目录为 spark home（避免当前目录里的 typing.py 等遮蔽内置模块），
+        // 并确保用系统 python3（PySpark 3.3 需 Python 3.8+）
+        pb.directory(java.nio.file.Paths.get(props.getHome()).toFile());
+        pb.environment().put("PYSPARK_PYTHON", "python3");
+        pb.environment().put("PYSPARK_DRIVER_PYTHON", "python3");
         pb.redirectErrorStream(true);
         Process p = pb.start();
         StringBuilder out = new StringBuilder();
