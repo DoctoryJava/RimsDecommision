@@ -136,14 +136,16 @@ public class SeaTunnelSyncService {
     /** 生成 SeaTunnel .conf（Jdbc source -> Iceberg sink，Hadoop catalog 本地 warehouse）。 */
     private String writeConf(RSourceDatabase src, String engine, int port, List<String> tables) throws IOException {
         String driver = jdbcDriver(engine);
-        String url = jdbcUrl(engine, src.getServer(), port, src.getDatabaseName());
+        String db = src.getDatabaseName() == null ? "" : src.getDatabaseName();
+        String url = jdbcUrl(engine, src.getServer(), port, db);
+        // table_list 的 table_path 必须是 "库名.表名"
         StringBuilder tableList = new StringBuilder("table_list = [\n");
         for (String t : tables) {
-            tableList.append("    { table_path = \"").append(t).append("\" },\n");
+            tableList.append("    { table_path = \"").append(esc(db)).append(".").append(esc(t)).append("\" },\n");
         }
         tableList.append("  ]");
 
-        String warehouse = props.getWarehouseDir() + "/" + safeName(src.getDatabaseName());
+        String warehouse = props.getWarehouseDir() + "/" + safeName(db);
         String conf = "env {\n"
                 + "  parallelism = 1\n"
                 + "  job.mode = \"BATCH\"\n"
@@ -154,6 +156,7 @@ public class SeaTunnelSyncService {
                 + "    url = \"" + url + "\"\n"
                 + "    user = \"" + esc(src.getUsername()) + "\"\n"
                 + "    password = \"" + esc(src.getPassword()) + "\"\n"
+                + "    database = \"" + esc(db) + "\"\n"
                 + "    " + tableList + "\n"
                 + "  }\n"
                 + "}\n"
