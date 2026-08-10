@@ -650,8 +650,8 @@ function PreviewModal({ config, onClose }: { config: QueryConfig; onClose: () =>
         </div>
         <div>
           <p className="text-xs font-semibold text-neutral-600 mb-2 flex items-center gap-1.5"><Code2 size={14} /> 生成的 SQL</p>
-          <pre className="text-xs font-mono text-neutral-700 bg-neutral-900 text-neutral-100 rounded-lg p-4 overflow-x-auto whitespace-pre-wrap">
-            {sql}
+          <pre className="text-xs font-mono text-neutral-100 bg-neutral-900 rounded-lg p-4 overflow-x-auto whitespace-pre-wrap min-h-[48px]">
+            {sql ? sql : <span className="text-neutral-500">（暂无 SQL，预览基于同步表数据自动生成）</span>}
           </pre>
         </div>
       </div>
