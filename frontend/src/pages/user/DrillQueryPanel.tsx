@@ -25,6 +25,7 @@ interface Props {
   configId: string;
   mainTable: string;   // db.table
   mainFields: any[];   // 主表要显示的字段
+  mainJoins?: any[];   // 表关联（查询配置里的 joins）
 }
 
 // 读取某表的字段列表（从已同步表结构生成列名，这里用查询结果第一行推断）
@@ -32,7 +33,7 @@ function keysOf(row: Record<string, any> | undefined): string[] {
   return row ? Object.keys(row) : [];
 }
 
-export default function DrillQueryPanel({ systemId, database, configId, mainTable, mainFields }: Props) {
+export default function DrillQueryPanel({ systemId, database, configId, mainTable, mainFields, mainJoins = [] }: Props) {
   const [mainRows, setMainRows] = useState<Record<string, any>[]>([]);
   const [mainCols, setMainCols] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -46,13 +47,48 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
   // 库名兜底：优先外部传入，其次从 <库>.<表> 中解析，最后默认 mi
   const db = database || (mainTableParts.length ? mainTableParts[0] : '') || 'mi';
 
+  // 把 <库>.<表> 转成 Iceberg 物理表名 <库>.archive.<表>
+  const phys = (ref: string) => {
+    const p = (ref || '').split('.');
+    const t = p.pop() || ref;
+    const d = p.length ? p[0] : db;
+    return `${d}.archive.${t}`;
+  };
+
   const loadMain = useCallback(() => {
     if (!mainTable) return;
     setLoading(true); setError('');
-    const sel = mainFields.length
-      ? mainFields.map((f: any) => `${f.alias || f.column}`).join(', ')
-      : '*';
-    const sql = `SELECT ${sel} FROM ${db}.archive.${mainTableName} LIMIT 500`;
+
+    // 表别名：主表 t0，关联表 t1、t2…
+    const aliasMap = new Map<string, string>();
+    aliasMap.set(mainTable, 't0');
+    let aliasIdx = 1;
+    const joinClauses = (mainJoins || []).map((j: any) => {
+      const rightRef = j.rightTable;
+      if (!rightRef) return null;
+      const leftRef = j.leftTable || mainTable;
+      if (!aliasMap.has(rightRef)) aliasMap.set(rightRef, 't' + aliasIdx++);
+      const la = aliasMap.get(leftRef) || 't0';
+      const ra = aliasMap.get(rightRef) as string;
+      const jt = (j.joinType || 'left').toUpperCase();
+      return `${jt} JOIN ${phys(rightRef)} ${ra} ON ${la}.${j.leftColumn} = ${ra}.${j.rightColumn}`;
+    }).filter(Boolean) as string[];
+
+    let select = '*';
+    if (mainFields.length) {
+      const parts = mainFields.map((f: any) => {
+        const col = f.column || f.alias || '';
+        if (!col) return '';
+        const tblRef = f.table || mainTable;
+        const a = aliasMap.get(tblRef) || 't0';
+        const out = f.alias || col;
+        return `${a}.${col} AS ${out}`;
+      }).filter(Boolean);
+      select = parts.length ? parts.join(', ') : '*';
+    }
+
+    const from = `FROM ${phys(mainTable)} t0${joinClauses.length ? ' ' + joinClauses.join(' ') : ''}`;
+    const sql = `SELECT ${select} ${from} LIMIT 500`;
     sparkExecuteQuery({ systemId, database, sql, page: 1, pageSize: 500 })
       .then((res: any) => {
         setMainRows(res?.rows ?? []);
@@ -61,7 +97,7 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
       })
       .catch((e: any) => setError(e?.message || '查询失败'))
       .finally(() => setLoading(false));
-  }, [systemId, database, mainTable, mainTableName, mainFields, db]);
+  }, [systemId, database, mainTable, mainTableName, mainFields, db, mainJoins]);
 
   useEffect(() => { loadMain(); }, [loadMain]);
 

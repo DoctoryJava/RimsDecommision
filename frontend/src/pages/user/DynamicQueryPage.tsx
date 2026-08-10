@@ -130,6 +130,7 @@ export default function DynamicQueryPage() {
                 configId={cfg.id}
                 mainTable={cfg.baseTable}
                 mainFields={cfg.fields || []}
+                mainJoins={cfg.joins || []}
               />
             );
           })() : (
