@@ -117,7 +117,7 @@ export default function App() {
           {page === 'data-sync' && <DataSyncPage />}
           {page === 'schemas' && <SchemasPage />}
           {page === 'query-configs' && <QueryConfigsPage configs={queryConfigs} setConfigs={setQueryConfigs} />}
-          {page === 'dynamic-query' && <DynamicQueryPage configs={queryConfigs} />}
+          {page === 'dynamic-query' && <DynamicQueryPage />}
           {page === 'db-inspector' && <DbInspectorPage />}
           {page === 'data-sources' && <DataSourcesPage onNavigate={navigate} />}
           {page === 'archive' && <ArchivePage />}

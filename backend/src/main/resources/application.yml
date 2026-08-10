@@ -52,6 +52,15 @@ app:
     conf-dir: ${SEATUNNEL_CONF_DIR:/Users/chenyong/Desktop/BigData/archive/.conf}
     # 是否真正调用 SeaTunnel（true 时调用 seatunnel.sh 执行真实同步）
     enabled: ${SEATUNNEL_ENABLED:true}
+  # Spark 查询引擎（读已同步的 Iceberg 落盘数据）
+  spark:
+    home: ${SPARK_HOME:/Users/chenyong/Desktop/BigData/spark-3.3.4-bin-hadoop3}
+    # Iceberg 落盘 warehouse 根路径（与 seatunnel.warehouse-dir 一致）
+    warehouse-dir: ${SPARK_WAREHOUSE_DIR:/Users/chenyong/Desktop/BigData/archive}
+    # Iceberg spark runtime 依赖（匹配 spark 3.3 / scala 2.12）
+    iceberg-package: ${SPARK_ICEBERG_PACKAGE:org.apache.iceberg:iceberg-spark-runtime-3.3_2.12:1.4.3}
+    # 是否真正调用 Spark（false 时返回模拟数据，便于无环境调试）
+    enabled: ${SPARK_QUERY_ENABLED:true}
 
 springdoc:
   api-docs:
