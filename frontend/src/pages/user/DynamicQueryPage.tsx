@@ -31,7 +31,7 @@ export default function DynamicQueryPage() {
   const [loadingTables, setLoadingTables] = useState(false);
   const [expandedDb, setExpandedDb] = useState<string | null>(null);
   const [selectedDb, setSelectedDb] = useState('');
-  const [mode, setMode] = useState<'sql' | 'drill'>('sql');
+  const [mode, setMode] = useState<'sql' | 'drill'>('drill');
   const [queryConfigs, setQueryConfigs] = useState<any[]>([]);
   const [drillConfigId, setDrillConfigId] = useState('');
 
@@ -92,11 +92,11 @@ export default function DynamicQueryPage() {
 
       {/* Mode toggle */}
       <div className="flex items-center gap-2 mb-5">
-        <button onClick={() => setMode('sql')} className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${mode === 'sql' ? 'bg-primary-500 text-white' : 'bg-white text-neutral-600 border border-neutral-200'}`}>
-          SQL 查询
-        </button>
         <button onClick={() => setMode('drill')} className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${mode === 'drill' ? 'bg-primary-500 text-white' : 'bg-white text-neutral-600 border border-neutral-200'}`}>
           关联明细下钻
+        </button>
+        <button onClick={() => setMode('sql')} className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${mode === 'sql' ? 'bg-primary-500 text-white' : 'bg-white text-neutral-600 border border-neutral-200'}`}>
+          SQL 查询
         </button>
       </div>
 
