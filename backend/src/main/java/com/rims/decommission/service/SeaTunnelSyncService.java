@@ -105,12 +105,13 @@ public class SeaTunnelSyncService {
         return rows;
     }
 
-    /** 真实调用 SeaTunnel 命令行。 */
+    /** 真实调用 SeaTunnel 命令行（默认 local 模式，进程内起临时引擎，跑完即退）。 */
     private long runSeatunnel(RSourceDatabase src, String engine, int port, List<String> tables,
                               List<Map<String,Object>> logs) throws Exception {
         String confFile = writeConf(src, engine, port, tables);
         String seatunnelSh = props.getHome() + "/bin/seatunnel.sh";
-        ProcessBuilder pb = new ProcessBuilder(seatunnelSh, "--config", confFile);
+        // -m local: 本地单机模式（不连 Hazelcast server 集群），适合测试/无集群环境
+        ProcessBuilder pb = new ProcessBuilder(seatunnelSh, "--config", confFile, "-m", "local");
         pb.redirectErrorStream(true);
         Process p = pb.start();
         StringBuilder out = new StringBuilder();
