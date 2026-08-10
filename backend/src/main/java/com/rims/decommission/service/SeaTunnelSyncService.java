@@ -63,6 +63,7 @@ public class SeaTunnelSyncService {
             }
             updateJob(job, "success", totalRecords, logs, null);
         } catch (Exception e) {
+            e.printStackTrace();
             addLog(logs, "ERROR", "同步失败：" + safe(e.getMessage()));
             updateJob(job, "failed", job.getRecords(), logs, safe(e.getMessage()));
         }
