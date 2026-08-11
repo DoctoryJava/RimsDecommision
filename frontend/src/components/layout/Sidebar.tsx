@@ -83,6 +83,14 @@ const navSections: NavSection[] = [
     icon: Wrench,
     groups: [
       {
+        label: 'Systems & Data',
+        items: [
+          { key: 'data-sync', label: 'Data Sync', icon: RefreshCw },
+          { key: 'schemas', label: 'Schema Browser', icon: Database },
+          { key: 'audit-log', label: 'Audit Log', icon: ScrollText },
+        ],
+      },
+      {
         label: 'Access Control',
         items: [
           { key: 'users', label: 'Users', icon: Users },
@@ -92,23 +100,10 @@ const navSections: NavSection[] = [
         ],
       },
       {
-        label: 'Systems & Data',
-        items: [
-          { key: 'data-sync', label: 'Data Sync', icon: RefreshCw },
-          { key: 'schemas', label: 'Schema Browser', icon: Database },
-        ],
-      },
-      {
         label: 'Archive & Compliance',
         items: [
           { key: 'archive', label: 'Archive Artifacts', icon: Archive },
           { key: 'retention', label: 'Retention & Compliance', icon: ShieldCheck },
-        ],
-      },
-      {
-        label: 'Audit',
-        items: [
-          { key: 'audit-log', label: 'Audit Log', icon: ScrollText },
         ],
       },
     ],
