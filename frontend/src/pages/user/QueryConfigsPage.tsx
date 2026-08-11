@@ -14,13 +14,16 @@ import {
   executeQuery as apiExecuteQuery,
   getDrillConfigs, createDrillConfig, updateDrillConfig, deleteDrillConfig,
 } from '@/lib/api';
+import { buildMainQuerySql } from '@/lib/sqlBuilder';
+import { setDrillTarget } from '@/lib/queryNav';
+import type { PageKey } from '@/components/layout/Sidebar';
 
 interface QueryConfigsPageProps {
-  // 页面自管理系统与配置
+  onNavigate?: (page: PageKey) => void;
 }
 
 // TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
-export default function QueryConfigsPage(_props: QueryConfigsPageProps) {
+export default function QueryConfigsPage({ onNavigate }: QueryConfigsPageProps) {
   const [search, setSearch] = useState('');
   const [systems, setSystems] = useState<any[]>([]);
   const [systemId, setSystemId] = useState('');
@@ -219,6 +222,11 @@ export default function QueryConfigsPage(_props: QueryConfigsPageProps) {
                       <span className="flex items-center gap-1"><Search size={13} /> {filterableCount} 可筛选</span>
                     </div>
                     <Button variant="ghost" size="sm" icon={<Eye size={14} />} onClick={(e) => { e.stopPropagation(); setShowPreview(config); }}>预览</Button>
+                    <Button variant="ghost" size="sm" icon={<Play size={14} />} onClick={(e) => {
+                      e.stopPropagation();
+                      setDrillTarget(config.id, config.systemId || systemId);
+                      onNavigate?.('dynamic-query');
+                    }}>查询</Button>
                     <Button variant="ghost" size="sm" icon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setIsNewConfig(false); setEditingConfig(config); }}>编辑</Button>
                     <Button variant="ghost" size="sm" icon={<Copy size={14} />} onClick={(e) => { e.stopPropagation(); handleDuplicate(config); }} />
                     <Button variant="ghost" size="sm" icon={<Trash2 size={14} />} onClick={(e) => { e.stopPropagation(); handleDelete(config.id); }} />
@@ -901,17 +909,21 @@ function PreviewModal({ config, onClose }: { config: QueryConfig; onClose: () =>
   const [total, setTotal] = useState(0);
   const visibleFields = config.fields.filter((f) => f.visible);
 
+  // SQL 由前端根据配置直接生成，始终可显示（不依赖后端 mock）
+  const previewSql = buildMainQuerySql(config);
+
   // 预览数据来自后端 /query/execute（数据库表）
   useEffect(() => {
     let cancelled = false;
+    setSql(previewSql);
     apiExecuteQuery({ configId: config.id, page: 1, pageSize: 5 }).then((res) => {
       if (cancelled) return;
       setRows((res?.page?.list ?? []) as any[]);
       setTotal(res?.page?.total ?? 0);
-      setSql(res?.sql ?? '');
-    }).catch(() => { if (!cancelled) { setRows([]); setTotal(0); setSql(''); } });
+    }).catch(() => { if (!cancelled) { setRows([]); setTotal(0); } });
     return () => { cancelled = true; };
-  }, [config.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.id, config.baseTable, config.joins, config.fields]);
 
   return (
     <Modal

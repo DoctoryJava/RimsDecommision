@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import PageHeader from '@/components/ui/PageHeader';
 import { getSystems, getSparkSyncedTables, getQueryConfigs, sparkExecuteQuery } from '@/lib/api';
 import DrillQueryPanel from '@/pages/user/DrillQueryPanel';
+import { consumeDrillTarget } from '@/lib/queryNav';
 
 interface SysOption { id: string; name: string; code: string }
 
@@ -55,6 +56,16 @@ export default function DynamicQueryPage() {
 
   useEffect(() => { loadSystems(); }, [loadSystems]);
   useEffect(() => { loadTables(); }, [loadTables]);
+
+  // 从 Query Configs「查询」跳转过来时，自动切到下钻模式并选中该配置
+  useEffect(() => {
+    const target = consumeDrillTarget();
+    if (target?.configId) {
+      setMode('drill');
+      if (target.systemId) setSystemId(target.systemId);
+      setDrillConfigId(target.configId);
+    }
+  }, []);
 
   // 加载该系统下的查询配置（用于关联明细下钻）
   useEffect(() => {

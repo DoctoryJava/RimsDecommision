@@ -106,7 +106,7 @@ export default function App() {
           {page === 'systems' && <SystemsPage onNavigateSystems={() => navigate('dashboard')} />}
           {page === 'data-sync' && <DataSyncPage />}
           {page === 'schemas' && <SchemasPage />}
-          {page === 'query-configs' && <QueryConfigsPage />}
+          {page === 'query-configs' && <QueryConfigsPage onNavigate={navigate} />}
           {page === 'dynamic-query' && <DynamicQueryPage />}
           {page === 'data-sources' && <DataSourcesPage onNavigate={navigate} />}
           {page === 'archive' && <ArchivePage />}
