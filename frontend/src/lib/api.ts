@@ -371,3 +371,17 @@ export async function deleteObjectTag(id: string) {
   const res = await api.delete<Result<null>>(`/tags/objects/${id}`);
   return res.data;
 }
+
+// ===== Audit Logs =====
+export async function getAuditLogs(params: any = {}) {
+  const res = await api.get<Result<PageResult<any>>>('/audit-logs', { params });
+  return (res.data as Result<PageResult<any>>).data;
+}
+export async function getAuditLog(id: string) {
+  const res = await api.get<Result<any>>(`/audit-logs/${id}`);
+  return (res.data as Result<any>).data;
+}
+export async function deleteAuditLog(id: string) {
+  const res = await api.delete<Result<null>>(`/audit-logs/${id}`);
+  return res.data;
+}

@@ -196,6 +196,21 @@ export interface FilterCondition {
   value2?: string;
 }
 
+// 审计日志（r_audit_log）
+export type AuditActionType = 'query' | 'etl';
+export type AuditStatus = 'started' | 'success' | 'failed';
+
+export interface AuditLog {
+  id: string;
+  operator: string;
+  actionType: AuditActionType;
+  sqlText: string;
+  status: AuditStatus;
+  systemId?: string | null;
+  detail?: Record<string, any>;
+  executedAt: string;
+}
+
 // 关联明细下钻配置（r_drill_config），后端按 parentId 组装为树
 export interface DrillField {
   column: string;

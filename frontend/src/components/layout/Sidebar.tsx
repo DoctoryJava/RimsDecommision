@@ -20,6 +20,7 @@ import {
   Tag as TagIcon,
   Monitor,
   Wrench,
+  ScrollText,
 } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
 
@@ -37,7 +38,8 @@ export type PageKey =
   | 'users'
   | 'roles'
   | 'permissions'
-  | 'pages';
+  | 'pages'
+  | 'audit-log';
 
 interface SidebarProps {
   current: PageKey;
@@ -104,6 +106,12 @@ const navSections: NavSection[] = [
           { key: 'archive', label: 'Archive Artifacts', icon: Archive },
           { key: 'retention', label: 'Retention & Compliance', icon: ShieldCheck },
           { key: 'tags', label: 'Tags', icon: TagIcon },
+        ],
+      },
+      {
+        label: 'Audit',
+        items: [
+          { key: 'audit-log', label: 'Audit Log', icon: ScrollText },
         ],
       },
     ],

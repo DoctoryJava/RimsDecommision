@@ -32,15 +32,17 @@ public class SeaTunnelSyncService {
     private final RSyncJobMapper syncJobMapper;
     private final RSyncTableStatMapper tableStatMapper;
     private final RSchemaMapper schemaMapper;
+    private final AuditLogService auditLogService;
 
     public SeaTunnelSyncService(SeaTunnelProperties props, RSourceDatabaseMapper sourceDbMapper,
                                 RSyncJobMapper syncJobMapper, RSyncTableStatMapper tableStatMapper,
-                                RSchemaMapper schemaMapper) {
+                                RSchemaMapper schemaMapper, AuditLogService auditLogService) {
         this.props = props;
         this.sourceDbMapper = sourceDbMapper;
         this.syncJobMapper = syncJobMapper;
         this.tableStatMapper = tableStatMapper;
         this.schemaMapper = schemaMapper;
+        this.auditLogService = auditLogService;
     }
 
     /** 触发同步（异步调用）。 */
@@ -583,6 +585,17 @@ public class SeaTunnelSyncService {
         job.setLogs(logs);
         job.setDuration(duration(job.getStartedAt()));
         syncJobMapper.updateById(job);
+        // 记录 ETL 审计日志（最终执行结果）
+        String operator = job.getTriggeredBy() != null ? job.getTriggeredBy() : "Manual";
+        Map<String,Object> detail = new LinkedHashMap<>();
+        detail.put("systemName", job.getSystemName() != null ? job.getSystemName() : "");
+        detail.put("jobId", job.getId());
+        detail.put("records", job.getRecords() != null ? job.getRecords() : 0);
+        detail.put("duration", job.getDuration());
+        if (error != null) detail.put("error", error);
+        auditLogService.record("etl", operator,
+                "SeaTunnel 同步: " + job.getSystemName() + " (" + job.getSystemId() + ")",
+                status, job.getSystemId(), detail);
     }
 
     private String duration(String startedAt) {

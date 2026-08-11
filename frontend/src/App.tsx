@@ -15,6 +15,7 @@ import DataSourcesPage from '@/pages/user/DataSourcesPage';
 import ArchivePage from '@/pages/admin/archive/ArchivePage';
 import RetentionPage from '@/pages/admin/archive/RetentionPage';
 import TagsPage from '@/pages/admin/archive/TagsPage';
+import AuditLogPage from '@/pages/admin/audit/AuditLogPage';
 
 const pageTitles: Record<PageKey, string> = {
   dashboard: 'Dashboard',
@@ -31,6 +32,7 @@ const pageTitles: Record<PageKey, string> = {
   roles: 'Roles',
   permissions: 'Permissions',
   pages: 'Page Management',
+  'audit-log': 'Audit Log',
 };
 
 /** PageKey -> URL hash route (e.g. "systems" -> "#/systems"). */
@@ -49,6 +51,7 @@ const routeByKey: Record<PageKey, string> = {
   roles: '/roles',
   permissions: '/permissions',
   pages: '/pages',
+  'audit-log': '/audit-log',
 };
 
 /** URL hash route -> PageKey. */
@@ -116,6 +119,7 @@ export default function App() {
           {page === 'roles' && <RolesPage />}
           {page === 'permissions' && <PermissionsPage />}
           {page === 'pages' && <PagesPage />}
+          {page === 'audit-log' && <AuditLogPage />}
         </main>
       </div>
     </div>
