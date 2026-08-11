@@ -24,7 +24,7 @@ export default function SchemasPage() {
   });
 
   const totalTables = filteredSchemas.reduce((sum, s) => sum + s.tables.length, 0);
-  const totalSize = filteredSchemas.reduce((sum, s) => sum + s.tables.reduce((ts, t) => ts + t.sizeMB, 0), 0);
+  const totalSize = filteredSchemas.reduce((sum, s) => sum + s.tables.reduce((ts, t) => ts + (t.sizeMB ?? 0), 0), 0);
 
   return (
     <div className="p-6">
@@ -134,7 +134,13 @@ export default function SchemasPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-neutral-50">
-                      {schema.tables.map((table) => (
+                      {schema.tables.map((table) => {
+                        // 兼容不同同步来源的表结构：columns 可能是数组或数字，rows/sizeMB/archived 可能缺失
+                        const columns = Array.isArray(table.columns) ? table.columns.length : (table.columns ?? 0);
+                        const rows = Number(table.rows ?? 0);
+                        const sizeMB = table.sizeMB ?? 0;
+                        const archived = table.archived ?? false;
+                        return (
                         <tr key={table.id} className="hover:bg-neutral-50/50 transition-colors">
                           <td className="px-5 py-3">
                             <div className="flex items-center gap-2 pl-7">
@@ -142,11 +148,11 @@ export default function SchemasPage() {
                               <span className="text-sm font-mono text-neutral-700">{table.name}</span>
                             </div>
                           </td>
-                          <td className="px-5 py-3 text-sm text-neutral-500 text-right">{table.columns}</td>
-                          <td className="px-5 py-3 text-sm text-neutral-500 text-right">{table.rows.toLocaleString()}</td>
-                          <td className="px-5 py-3 text-sm text-neutral-500 text-right">{table.sizeMB} MB</td>
+                          <td className="px-5 py-3 text-sm text-neutral-500 text-right">{columns}</td>
+                          <td className="px-5 py-3 text-sm text-neutral-500 text-right">{rows.toLocaleString()}</td>
+                          <td className="px-5 py-3 text-sm text-neutral-500 text-right">{sizeMB} MB</td>
                           <td className="px-5 py-3 text-center">
-                            {table.archived ? <Badge color="success" size="sm" dot>Archived</Badge> : <Badge color="warning" size="sm">Pending</Badge>}
+                            {archived ? <Badge color="success" size="sm" dot>Archived</Badge> : <Badge color="warning" size="sm">Pending</Badge>}
                           </td>
                           <td className="px-5 py-3 text-right">
                             <button className="p-1.5 rounded text-neutral-400 hover:text-primary-600 hover:bg-primary-50 transition-colors">
@@ -154,7 +160,8 @@ export default function SchemasPage() {
                             </button>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
