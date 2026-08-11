@@ -16,7 +16,7 @@ export interface PageResult<T> {
 
 const api = axios.create({
   baseURL: '/api',
-  timeout: 15000,
+  timeout: 120000,
   headers: { 'Content-Type': 'application/json' },
 });
 
