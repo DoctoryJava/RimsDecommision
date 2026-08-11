@@ -18,7 +18,7 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
 import type { RoleKey, RoleCategory, UserRecord, SystemRecord, RoleRecord } from '@/types';
-import { getSystems, getUsers, getRoles } from '@/lib/api';
+import { getSystems, getUsers, getRoles, createUser, updateUser, deleteUser } from '@/lib/api';
 
 const roleColorMap: Record<RoleKey, 'primary' | 'secondary' | 'accent' | 'warning' | 'error' | 'neutral'> = {
   super_admin: 'primary',
@@ -44,12 +44,18 @@ const roleLabelMap: Record<RoleKey, string> = {
 export default function UsersPage() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<RoleCategory | 'all'>('all');
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [viewUser, setViewUser] = useState<UserRecord | null>(null);
+  const [editUser, setEditUser] = useState<UserRecord | null>(null);
   const [usersData, setUsersData] = useState<UserRecord[]>([]);
   const [systemsData, setSystemsData] = useState<SystemRecord[]>([]);
   const [rolesData, setRolesData] = useState<RoleRecord[]>([]);
-  useEffect(() => {
+
+  const loadUsers = () => {
     getUsers({ pageNum: 1, pageSize: 100 }).then(p => { if(p?.list?.length) setUsersData(p.list as UserRecord[]); }).catch(()=>{});
+  };
+  useEffect(() => {
+    loadUsers();
     getSystems({ pageNum: 1, pageSize: 100 }).then(p => { if(p?.list) setSystemsData(p.list as SystemRecord[]); }).catch(()=>{});
     getRoles().then((list: any) => { if(list?.length) setRolesData(list as RoleRecord[]); }).catch(()=>{});
   }, []);
@@ -71,7 +77,7 @@ export default function UsersPage() {
         title="Users"
         subtitle="Manage user accounts. Admin users have global access; tenant users are scoped to assigned systems."
         actions={
-          <Button icon={<Plus size={16} />} onClick={() => setShowAddModal(true)}>Invite User</Button>
+          <Button icon={<Plus size={16} />} onClick={() => setShowCreate(true)}>Invite User</Button>
         }
       />
 
@@ -199,9 +205,27 @@ export default function UsersPage() {
                       </button>
                       {openMenu === user.id && (
                         <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-lg border border-neutral-200 py-1 z-10 animate-scale-in">
-                          <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"><Eye size={14} /> View</button>
-                          <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"><Pencil size={14} /> Edit</button>
-                          <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-error-600 hover:bg-error-50 transition-colors"><Trash2 size={14} /> Delete</button>
+                          <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+                            onClick={() => { setViewUser(user); setOpenMenu(null); }}>
+                            <Eye size={14} /> View
+                          </button>
+                          <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+                            onClick={() => { setEditUser(user); setOpenMenu(null); }}>
+                            <Pencil size={14} /> Edit
+                          </button>
+                          <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-error-600 hover:bg-error-50 transition-colors"
+                            onClick={async () => {
+                              setOpenMenu(null);
+                              if (!window.confirm(`确认删除用户 ${user.name}？`)) return;
+                              try {
+                                await deleteUser(user.id);
+                                loadUsers();
+                              } catch (e: any) {
+                                window.alert('删除失败：' + (e?.message || '请稍后重试'));
+                              }
+                            }}>
+                            <Trash2 size={14} /> Delete
+                          </button>
                         </div>
                       )}
                     </div>
@@ -213,77 +237,195 @@ export default function UsersPage() {
         </table>
       </Card>
 
-      <Modal
-        open={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        title="Invite New User"
-        subtitle="Send an invitation to join the platform"
-        size="lg"
-        footer={
-          <>
-            <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
-            <Button icon={<UserPlus size={16} />}>Send Invitation</Button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Full Name</label>
-              <input type="text" placeholder="e.g. John Smith" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Email Address</label>
-              <input type="email" placeholder="john@company.com" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all" />
-            </div>
-          </div>
+      {/* Create user */}
+      {showCreate && (
+        <UserFormModal
+          user={{
+            id: '', name: '', email: '', avatar: '', role: 'system_viewer', category: 'tenant',
+            systemIds: [], status: 'active', lastLogin: null, createdAt: '',
+          }}
+          rolesData={rolesData}
+          systemsData={systemsData}
+          isCreate
+          onClose={() => setShowCreate(false)}
+          onSaved={async (data) => {
+            try {
+              await createUser(data);
+              setShowCreate(false);
+              loadUsers();
+            } catch (e: any) {
+              window.alert('创建失败：' + (e?.message || '请稍后重试'));
+            }
+          }}
+        />
+      )}
 
+      {/* View user */}
+      {viewUser && (
+        <Modal
+          open
+          onClose={() => setViewUser(null)}
+          title="User Details"
+          subtitle="查看用户详细信息"
+          size="md"
+          footer={<Button variant="outline" onClick={() => setViewUser(null)}>Close</Button>}
+        >
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 pb-3 border-b border-neutral-100">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-semibold shrink-0 ${viewUser.category === 'admin' ? 'bg-gradient-to-br from-primary-400 to-primary-600' : 'bg-gradient-to-br from-secondary-400 to-secondary-600'}`}>
+                {viewUser.avatar}
+              </div>
+              <div>
+                <p className="text-base font-semibold text-neutral-900">{viewUser.name}</p>
+                <p className="text-sm text-neutral-500 flex items-center gap-1"><Mail size={13} /> {viewUser.email}</p>
+              </div>
+            </div>
+            <InfoRow label="Tier" value={viewUser.category === 'admin' ? 'Platform Admin' : 'System Tenant'} />
+            <InfoRow label="Role" value={roleLabelMap[viewUser.role]} />
+            <InfoRow label="Status" value={viewUser.status === 'active' ? 'Active' : 'Disabled'} />
+            <InfoRow label="Last Login" value={viewUser.lastLogin || 'Never'} />
+            <InfoRow label="Assigned Systems" value={
+              viewUser.category === 'admin'
+                ? 'All systems (global)'
+                : (viewUser.systemIds.length ? viewUser.systemIds.map(id => systemsData.find(s => s.id === id)?.code || id).join(', ') : 'No systems assigned')
+            } />
+          </div>
+        </Modal>
+      )}
+
+      {/* Edit user */}
+      {editUser && (
+        <UserFormModal
+          user={editUser}
+          rolesData={rolesData}
+          systemsData={systemsData}
+          onClose={() => setEditUser(null)}
+          onSaved={async (data) => {
+            try {
+              await updateUser(editUser.id, data);
+              setEditUser(null);
+              loadUsers();
+            } catch (e: any) {
+              window.alert('保存失败：' + (e?.message || '请稍后重试'));
+            }
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-neutral-500">{label}</span>
+      <span className="text-sm font-medium text-neutral-800">{value}</span>
+    </div>
+  );
+}
+
+function UserFormModal({ user, rolesData, systemsData, onClose, onSaved, isCreate = false }: {
+  user: UserRecord;
+  rolesData: RoleRecord[];
+  systemsData: SystemRecord[];
+  onClose: () => void;
+  onSaved: (data: any) => Promise<void>;
+  isCreate?: boolean;
+}) {
+  const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
+  const [password, setPassword] = useState('');
+  const [category, setCategory] = useState<RoleCategory>(user.category);
+  const [role, setRole] = useState<string>(user.role);
+  const [systemIds, setSystemIds] = useState<string[]>(user.systemIds || []);
+  const [saving, setSaving] = useState(false);
+
+  const toggleSystem = (id: string) => {
+    setSystemIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const handleSave = async () => {
+    if (!name.trim() || !email.trim()) { window.alert('请填写姓名和邮箱'); return; }
+    if (isCreate && !password.trim()) { window.alert('请填写初始密码'); return; }
+    const data: any = { name, email, category, role, systemIds, status: user.status };
+    if (isCreate) data.password = password;
+    setSaving(true);
+    try {
+      await onSaved(data);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={isCreate ? 'Invite New User' : `Edit User: ${user.name}`}
+      subtitle={isCreate ? 'Send an invitation to join the platform' : '修改用户信息与权限'}
+      size="lg"
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button icon={isCreate ? <UserPlus size={16} /> : <Pencil size={16} />} disabled={saving} onClick={handleSave}>
+            {isCreate ? 'Send Invitation' : 'Save Changes'}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Full Name</label>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white focus:border-primary-400 outline-none" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white focus:border-primary-400 outline-none" />
+          </div>
+        </div>
+
+        {isCreate && (
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Initial Password</label>
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="设置初始密码" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white focus:border-primary-400 outline-none" />
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">Access Tier</label>
-            <div className="grid grid-cols-2 gap-2">
-              <label className="flex items-center gap-2.5 p-3 rounded-lg border border-neutral-200 hover:border-primary-300 hover:bg-primary-50/30 cursor-pointer transition-all has-[:checked]:border-primary-400 has-[:checked]:bg-primary-50">
-                <input type="radio" name="userCategory" value="admin" className="w-4 h-4 text-primary-500" />
-                <div>
-                  <p className="text-sm font-medium text-neutral-800 flex items-center gap-1.5"><Crown size={14} /> Platform Admin</p>
-                  <p className="text-xs text-neutral-500">Global access to all systems</p>
-                </div>
-              </label>
-              <label className="flex items-center gap-2.5 p-3 rounded-lg border border-neutral-200 hover:border-secondary-300 hover:bg-secondary-50/30 cursor-pointer transition-all has-[:checked]:border-secondary-400 has-[:checked]:bg-secondary-50">
-                <input type="radio" name="userCategory" value="tenant" defaultChecked className="w-4 h-4 text-secondary-500" />
-                <div>
-                  <p className="text-sm font-medium text-neutral-800 flex items-center gap-1.5"><Building2 size={14} /> System Tenant</p>
-                  <p className="text-xs text-neutral-500">Scoped to assigned systems</p>
-                </div>
-              </label>
-            </div>
+            <select value={category} onChange={(e) => setCategory(e.target.value as RoleCategory)} className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white focus:border-primary-400 outline-none">
+              <option value="admin">Platform Admin</option>
+              <option value="tenant">System Tenant</option>
+            </select>
           </div>
-
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">Role</label>
-            <select className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all">
+            <select value={role} onChange={(e) => setRole(e.target.value)} className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white focus:border-primary-400 outline-none">
               {rolesData.filter((r) => r.key !== 'super_admin').map((r) => (
                 <option key={r.key} value={r.key}>{r.name}</option>
               ))}
             </select>
           </div>
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">Assign Systems <span className="text-xs text-neutral-400 font-normal">(tenant users only)</span></label>
-            <div className="space-y-2 max-h-48 overflow-y-auto border border-neutral-200 rounded-lg p-3">
-              {systemsData.map((s) => (
-                <label key={s.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-50 cursor-pointer transition-colors">
-                  <input type="checkbox" className="w-4 h-4 rounded border-neutral-300 text-primary-500 focus:ring-primary-200" />
-                  <div className="flex items-center gap-2">
-                    <Server size={16} className="text-neutral-400" />
-                    <span className="text-sm text-neutral-700">{s.name}</span>
-                    <span className="text-xs text-neutral-400 font-mono">{s.code}</span>
-                  </div>
-                </label>
-              ))}
-            </div>
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 mb-2">Assign Systems <span className="text-xs text-neutral-400 font-normal">(tenant users only)</span></label>
+          <div className="space-y-2 max-h-48 overflow-y-auto border border-neutral-200 rounded-lg p-3">
+            {systemsData.map((s) => (
+              <label key={s.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-50 cursor-pointer transition-colors">
+                <input type="checkbox" checked={systemIds.includes(s.id)} onChange={() => toggleSystem(s.id)} className="w-4 h-4 rounded border-neutral-300 text-primary-500 focus:ring-primary-200" />
+                <div className="flex items-center gap-2">
+                  <Server size={16} className="text-neutral-400" />
+                  <span className="text-sm text-neutral-700">{s.name}</span>
+                  <span className="text-xs text-neutral-400 font-mono">{s.code}</span>
+                </div>
+              </label>
+            ))}
           </div>
         </div>
-      </Modal>
-    </div>
+      </div>
+    </Modal>
   );
 }
