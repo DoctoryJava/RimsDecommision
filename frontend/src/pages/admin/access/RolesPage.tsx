@@ -39,11 +39,12 @@ export default function RolesPage() {
   }, []);
 
   const filteredRoles = rolesData.filter((r) => r.category === activeTab);
-  const selectedRole = rolesData.find((r) => r.id === selectedRoleId) || filteredRoles[0] || rolesData[0];
+  const selectedRole = rolesData.find((r) => r.id === selectedRoleId) || filteredRoles[0] || rolesData[0]
+    || { id: '', name: '—', description: '请选择角色', category: activeTab, permissions: [], userCount: 0, color: 'neutral', isBuiltin: false };
 
-  const rolePerms = selectedRole.permissions.includes('*')
+  const rolePerms = (selectedRole.permissions || []).includes('*')
     ? permsData.filter((p) => p.category === selectedRole.category)
-    : permsData.filter((p) => selectedRole.permissions.includes(p.code));
+    : permsData.filter((p) => (selectedRole.permissions || []).includes(p.code));
 
   const handleTabChange = (tab: RoleCategory) => {
     setActiveTab(tab);
