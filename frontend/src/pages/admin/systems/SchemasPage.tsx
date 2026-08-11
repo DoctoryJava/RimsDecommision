@@ -1,10 +1,33 @@
 import { useState, useEffect } from 'react';
-import { Database, Table2, Download, Search, ChevronRight, ChevronDown, HardDrive, Server } from 'lucide-react';
+import { Database, Table2, Download, Loader2, Search, ChevronRight, ChevronDown, HardDrive, Server } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import PageHeader from '@/components/ui/PageHeader';
-import { getSchemas, getSystems } from '@/lib/api';
+import { getSchemas, getSystems, sparkExecuteQuery } from '@/lib/api';
 import type { SchemaRecord, SystemRecord } from '@/types';
+
+// 将值转成 CSV 单元格（含逗号/引号/换行时加引号并转义）
+function csvCell(v: unknown): string {
+  if (v === null || v === undefined) return '';
+  const s = String(v);
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+// 触发浏览器下载
+function downloadCsv(filename: string, columns: string[], rows: Record<string, any>[]) {
+  const header = columns.map(csvCell).join(',');
+  const lines = rows.map((r) => columns.map((c) => csvCell(r[c])).join(','));
+  const content = '\uFEFF' + [header, ...lines].join('\r\n'); // \uFEFF 避免 Excel 中文乱码
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 export default function SchemasPage() {
   const [search, setSearch] = useState('');
@@ -12,6 +35,31 @@ export default function SchemasPage() {
   const [expandedSchema, setExpandedSchema] = useState<string | null>(null);
   const [schemasData, setSchemasData] = useState<SchemaRecord[]>([]);
   const [systemsData, setSystemsData] = useState<SystemRecord[]>([]);
+  const [exporting, setExporting] = useState<string | null>(null); // 正在导出的表（table.id）
+
+  // 用 Spark 查询某表数据并下载为 CSV
+  const exportTableCsv = async (schema: any, table: any) => {
+    if (exporting) return;
+    const tableName = table.name;
+    const db = schema.name || '';
+    const sql = `SELECT * FROM ${db}.archive.${tableName}`;
+    setExporting(table.id);
+    try {
+      const res = await sparkExecuteQuery({ systemId: schema.systemId, database: db, sql, page: 1, pageSize: 5000 });
+      const columns: string[] = res?.columns ?? [];
+      const rows: Record<string, any>[] = res?.rows ?? [];
+      if (!columns.length && rows.length) {
+        // 若无 columns，用第一行键作为表头
+        columns.push(...Object.keys(rows[0] || {}));
+      }
+      downloadCsv(`${schema.name}.${tableName}.csv`, columns, rows);
+    } catch (e: any) {
+      window.alert('导出失败：' + (e?.message || '请稍后重试'));
+    } finally {
+      setExporting(null);
+    }
+  };
+
   useEffect(() => {
     getSchemas().then((list: any) => { if(list?.length) setSchemasData(list as unknown as SchemaRecord[]); }).catch(()=>{});
     getSystems({ pageNum: 1, pageSize: 100 }).then((p: any) => { if(p?.list) setSystemsData(p.list as SystemRecord[]); }).catch(()=>{});
@@ -171,8 +219,12 @@ export default function SchemasPage() {
                             {archived ? <Badge color="success" size="sm" dot>Archived</Badge> : <Badge color="warning" size="sm">Pending</Badge>}
                           </td>
                           <td className="px-5 py-3 text-right">
-                            <button className="p-1.5 rounded text-neutral-400 hover:text-primary-600 hover:bg-primary-50 transition-colors">
-                              <Download size={14} />
+                            <button
+                              onClick={() => exportTableCsv(schema, table)}
+                              title={`导出 ${table.name} 为 CSV`}
+                              className="p-1.5 rounded text-neutral-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                            >
+                              {exporting === table.id ? <Loader2 size={14} className="animate-spin text-primary-500" /> : <Download size={14} />}
                             </button>
                           </td>
                         </tr>
