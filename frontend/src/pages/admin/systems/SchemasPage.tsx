@@ -24,15 +24,22 @@ export default function SchemasPage() {
   });
 
   const totalTables = filteredSchemas.reduce((sum, s) => sum + s.tables.length, 0);
-  const totalSize = filteredSchemas.reduce((sum, s) => sum + s.tables.reduce((ts, t) => ts + (t.sizeMB ?? 0), 0), 0);
 
-  // 按数量级动态显示大小（MB 为输入单位）：<1MB->KB, 1~1024MB->MB, ...->GB/TB
-  const formatSizeMB = (mb: number): string => {
-    if (!mb || mb < 0) return '0 B';
-    if (mb < 1) return `${(mb * 1024).toFixed(1)} KB`;
-    if (mb < 1024) return `${mb.toFixed(1)} MB`;
-    if (mb < 1024 * 1024) return `${(mb / 1024).toFixed(1)} GB`;
-    return `${(mb / (1024 * 1024)).toFixed(1)} TB`;
+  // 每张表的大小（字节）：优先真实 sizeBytes，兜底旧的 sizeMB*1024*1024
+  const tableBytes = (t: any): number => {
+    if (t.sizeBytes !== undefined && t.sizeBytes !== null) return Number(t.sizeBytes);
+    return Number(t.sizeMB ?? 0) * 1024 * 1024;
+  };
+  const totalSize = filteredSchemas.reduce((sum, s) => sum + s.tables.reduce((ts, t) => ts + tableBytes(t), 0), 0);
+
+  // 按数量级动态显示字节大小：<1KB->B, <1MB->KB, <1GB->MB, <1TB->GB, else TB
+  const formatBytes = (bytes: number): string => {
+    if (!bytes || bytes < 0) return '0 B';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    if (bytes < 1024 * 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+    return `${(bytes / (1024 * 1024 * 1024 * 1024)).toFixed(1)} TB`;
   };
 
   return (
@@ -70,7 +77,7 @@ export default function SchemasPage() {
               <HardDrive size={20} className="text-accent-600" />
             </div>
             <div>
-              <p className="text-2xl font-semibold text-neutral-900">{formatSizeMB(totalSize)}</p>
+              <p className="text-2xl font-semibold text-neutral-900">{formatBytes(totalSize)}</p>
               <p className="text-xs text-neutral-500">Total Size</p>
             </div>
           </div>
@@ -147,7 +154,7 @@ export default function SchemasPage() {
                         // 兼容不同同步来源的表结构：columns 可能是数组或数字，rows/sizeMB/archived 可能缺失
                         const columns = Array.isArray(table.columns) ? table.columns.length : (table.columns ?? 0);
                         const rows = Number(table.rows ?? 0);
-                        const sizeMB = table.sizeMB ?? 0;
+                        const size = tableBytes(table);
                         const archived = table.archived ?? false;
                         return (
                         <tr key={table.id} className="hover:bg-neutral-50/50 transition-colors">
@@ -159,7 +166,7 @@ export default function SchemasPage() {
                           </td>
                           <td className="px-5 py-3 text-sm text-neutral-500 text-right">{columns}</td>
                           <td className="px-5 py-3 text-sm text-neutral-500 text-right">{rows.toLocaleString()}</td>
-                          <td className="px-5 py-3 text-sm text-neutral-500 text-right">{formatSizeMB(sizeMB)}</td>
+                          <td className="px-5 py-3 text-sm text-neutral-500 text-right">{formatBytes(size)}</td>
                           <td className="px-5 py-3 text-center">
                             {archived ? <Badge color="success" size="sm" dot>Archived</Badge> : <Badge color="warning" size="sm">Pending</Badge>}
                           </td>

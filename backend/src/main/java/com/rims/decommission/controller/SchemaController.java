@@ -108,11 +108,11 @@ public class SchemaController {
                 if (tblName != null) {
                     Map<String,Object> stat = statLookup.get(s.getSystemId() + "|" + s.getName() + "|" + tblName);
                     if (stat != null) {
-                        // 真实统计覆盖 mock 值；统一输出 rows/sizeMB/archived 供前端渲染
+                        // 真实统计覆盖 mock 值；统一输出 rows/sizeBytes（原始字节）供前端动态格式化
                         long rows = ((Number) stat.get("rowCount")).longValue();
                         long bytes = ((Number) stat.get("sizeBytes")).longValue();
                         table.put("rows", rows);
-                        table.put("sizeMB", Math.round(bytes / (1024.0 * 1024.0) * 100.0) / 100.0);
+                        table.put("sizeBytes", bytes);
                         table.put("archived", true);
                     }
                 }
