@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, Fragment } from 'react';
 import {
-  ChevronDown, ChevronRight, Database, Layers, Search, Loader2, X, Filter, Plus,
+  ChevronDown, ChevronRight, Database, Layers, Search, Loader2, X, Filter, Plus, Download,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -54,6 +54,8 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
   const [draftFilters, setDraftFilters] = useState<FilterCond[]>([]);
   const [appliedFilters, setAppliedFilters] = useState<FilterCond[]>([]);
   const [showFilter, setShowFilter] = useState(false);
+  // 正在下载的行（rowKey）
+  const [downloadingRow, setDownloadingRow] = useState<string | null>(null);
 
   // 标记为脱敏的字段列名（alias 或 column）
   const maskedCols = new Set(
@@ -87,6 +89,92 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
   const clearFilters = () => {
     setDraftFilters([]);
     setAppliedFilters([]);
+  };
+
+  // CSV 单元格转义 + 生成文件下载
+  const csvCell = (v: any): string => {
+    if (v === null || v === undefined) return '';
+    const s = String(v);
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+
+  // 递归查询某行对应的所有下钻明细（多级）
+  const collectDrillRows = async (nodes: DrillNode[], parentRow: Record<string, any>): Promise<{ name: string; columns: string[]; rows: Record<string, any>[] }[]> => {
+    const out: { name: string; columns: string[]; rows: Record<string, any>[] }[] = [];
+    for (const node of nodes) {
+      const parentVal = parentRow[node.parentField];
+      if (parentVal === undefined || parentVal === null) continue;
+      const nodeParts = (node.baseTable || '').split('.');
+      const tblName = nodeParts.pop() || node.baseTable;
+      const d = database || (nodeParts.length ? nodeParts[0] : '') || 'mi';
+      const sel = node.fields?.length ? node.fields.map((f: any) => f.alias || f.column).join(', ') : '*';
+      const sql = `SELECT ${sel} FROM ${d}.archive.${tblName} WHERE ${node.childField} = '${parentVal}' LIMIT 200`;
+      try {
+        const res = await sparkExecuteQuery({ systemId, database, sql, page: 1, pageSize: 200 });
+        const cols = node.fields?.length ? node.fields.map((f: any) => f.alias || f.column) : (res?.columns ?? []);
+        const rows = res?.rows ?? [];
+        out.push({ name: node.name, columns: cols, rows });
+        // 递归子级明细
+        if (node.children?.length) {
+          for (const childRow of rows) {
+            const sub = await collectDrillRows(node.children, childRow);
+            out.push(...sub);
+          }
+        }
+      } catch {
+        // 子表查询失败不影响主数据
+      }
+    }
+    return out;
+  };
+
+  // 下载某一行：主表 + 关联的一对多明细
+  const downloadRow = async (row: Record<string, any>, rowKey: string) => {
+    if (downloadingRow) return;
+    setDownloadingRow(rowKey);
+    try {
+      const mainColsArr = mainCols.length ? mainCols : Object.keys(row);
+      // 收集所有明细表
+      const drillSets = await collectDrillRows(drillTree, row);
+
+      // 合并所有列（主表列 + 各明细表列），去重保序
+      const allCols: string[] = [];
+      const addCol = (c: string) => { if (c && !allCols.includes(c)) allCols.push(c); };
+      ['表', ...mainColsArr].forEach(addCol);
+      drillSets.forEach((s) => s.columns.forEach(addCol));
+
+      // 组装行：主表 1 行 + 每个明细若干行
+      const lines: Record<string, any>[] = [];
+      const mainRow: Record<string, any> = { '表': mainTableName };
+      mainColsArr.forEach((c) => { mainRow[c] = row[c]; });
+      lines.push(mainRow);
+      for (const ds of drillSets) {
+        for (const r of ds.rows) {
+          const line: Record<string, any> = { '表': ds.name };
+          ds.columns.forEach((c) => { line[c] = r[c]; });
+          lines.push(line);
+        }
+      }
+
+      // 生成 CSV
+      const header = allCols.map(csvCell).join(',');
+      const body = lines.map((l) => allCols.map((c) => csvCell(l[c])).join(','));
+      const content = '\uFEFF' + [header, ...body].join('\r\n');
+      const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const pk = mainColsArr[0] !== undefined ? row[mainColsArr[0]] : rowKey;
+      a.download = `${mainTableName}_${String(pk ?? rowKey)}_明细.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      window.alert('下载失败：' + (e?.message || '请稍后重试'));
+    } finally {
+      setDownloadingRow(null);
+    }
   };
 
   const mainTableParts = (mainTable || '').split('.');
@@ -333,12 +421,19 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
                               {maskedCols.has(c) ? maskValue(row[c]) : (row[c] === undefined || row[c] === null ? '—' : String(row[c]))}
                             </td>
                           ))}
-                          <td className="px-4 py-3 text-right">
-                            {drillTree.length > 0 && (
-                              <Button size="sm" variant="outline" icon={<Layers size={13} />} onClick={() => toggle(rowKey)}>
-                                查看明细
-                              </Button>
-                            )}
+                          <td className="px-4 py-3 text-right whitespace-nowrap">
+                            <Button size="sm" variant="outline" icon={<Layers size={13} />} onClick={() => toggle(rowKey)}>
+                              查看明细
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              icon={downloadingRow === rowKey ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+                              disabled={!!downloadingRow}
+                              onClick={() => downloadRow(row, rowKey)}
+                            >
+                              下载
+                            </Button>
                           </td>
                         </tr>
                         {isOpen && (
