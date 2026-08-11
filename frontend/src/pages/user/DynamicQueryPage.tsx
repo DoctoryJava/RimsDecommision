@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import type { KeyboardEvent } from 'react';
 import {
   Search, ChevronLeft, ChevronRight, Server, Database, Table2,
   Code2, Play, RefreshCw, X, ChevronDown, Layers, Check,
@@ -37,6 +38,11 @@ export default function DynamicQueryPage() {
   const [drillConfigId, setDrillConfigId] = useState('');
   const [drillOpen, setDrillOpen] = useState(false);
   const selectedCfg = queryConfigs.find((c: any) => c.id === drillConfigId);
+  // 方案A 预览用的独立 state（不影响现有 drillConfigId 逻辑）
+  const [cmdOpen, setCmdOpen] = useState(false);
+  const [cmdQuery, setCmdQuery] = useState('');
+  const [cmdIndex, setCmdIndex] = useState(0);
+  const [cmdSelectedId, setCmdSelectedId] = useState('');
 
   const loadSystems = useCallback(() => {
     getSystems({ pageNum: 1, pageSize: 100 }).then((p: any) => {
@@ -378,6 +384,164 @@ export default function DynamicQueryPage() {
         </div>
       </div>
       </>
+      )}
+
+      {/* ===== 方案A 预览：Command 风格搜索下拉（不接入现有逻辑） ===== */}
+      <div className="mt-8 pt-6 border-t border-neutral-200">
+        <div className="flex items-center gap-2 mb-3">
+          <Badge color="primary" size="sm">方案 A 预览</Badge>
+          <h3 className="text-base font-semibold text-neutral-900">Command 风格搜索下拉</h3>
+          <span className="text-xs text-neutral-400">（独立实现，尚未接入现有选择逻辑）</span>
+        </div>
+        <CommandSelect
+          options={queryConfigs}
+          value={cmdSelectedId}
+          onChange={setCmdSelectedId}
+          open={cmdOpen}
+          setOpen={setCmdOpen}
+          query={cmdQuery}
+          setQuery={setCmdQuery}
+          index={cmdIndex}
+          setIndex={setCmdIndex}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ===== 方案A：Command 风格搜索下拉 =====
+function CommandSelect({
+  options, value, onChange, open, setOpen, query, setQuery, index, setIndex,
+}: {
+  options: any[];
+  value: string;
+  onChange: (id: string) => void;
+  open: boolean;
+  setOpen: (v: boolean) => void;
+  query: string;
+  setQuery: (v: string) => void;
+  index: number;
+  setIndex: (v: number | ((p: number) => number)) => void;
+}) {
+  const selected = options.find((c: any) => c.id === value);
+
+  // 实时过滤
+  const filtered = options.filter((c: any) => {
+    const q = query.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      (c.name || '').toLowerCase().includes(q) ||
+      (c.baseTable || '').toLowerCase().includes(q) ||
+      (c.description || '').toLowerCase().includes(q)
+    );
+  });
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (open) { setIndex(0); setTimeout(() => inputRef.current?.focus(), 10); }
+  }, [open, setIndex]);
+
+  const handleKey = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setIndex((i) => Math.min(filtered.length - 1, i + 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setIndex((i) => Math.max(0, i - 1)); }
+    else if (e.key === 'Enter') {
+      e.preventDefault();
+      const item = filtered[index];
+      if (item) { onChange(item.id); setOpen(false); setQuery(''); }
+    } else if (e.key === 'Escape') { setOpen(false); setQuery(''); }
+  };
+
+  return (
+    <div className="relative w-full max-w-xl">
+      {/* 触发器 */}
+      <button
+        onClick={() => { setOpen(!open); if (!open) setQuery(''); }}
+        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-neutral-200 bg-white shadow-sm hover:border-primary-300 hover:shadow transition-all text-left"
+      >
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center shrink-0 shadow-sm">
+          <Search size={15} className="text-white" />
+        </div>
+        {selected ? (
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-neutral-800 truncate">{selected.name}</p>
+            <p className="text-xs text-neutral-500 font-mono truncate">{selected.baseTable}</p>
+          </div>
+        ) : (
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-neutral-400">搜索并选择查询配置…</p>
+            <p className="text-xs text-neutral-400">输入名称 / 表名 / 描述过滤</p>
+          </div>
+        )}
+        {selected && (
+          <Badge color={selected.status === 'active' ? 'success' : 'neutral'} size="sm">
+            {selected.status === 'active' ? '已发布' : '草稿'}
+          </Badge>
+        )}
+        <ChevronDown size={16} className={`text-neutral-400 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {/* 浮层 */}
+      {open && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
+          <div className="absolute z-40 mt-2 w-full rounded-xl border border-neutral-200 bg-white shadow-xl shadow-neutral-900/10 overflow-hidden animate-scale-in">
+            {/* 搜索框 */}
+            <div className="flex items-center gap-2 px-3 py-2.5 border-b border-neutral-100">
+              <Search size={16} className="text-neutral-400 shrink-0" />
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={(e) => { setQuery(e.target.value); setIndex(0); }}
+                onKeyDown={handleKey}
+                placeholder="搜索配置…"
+                className="flex-1 text-sm outline-none placeholder:text-neutral-400"
+              />
+              {query && (
+                <button onClick={() => setQuery('')} className="text-neutral-400 hover:text-neutral-600"><X size={15} /></button>
+              )}
+            </div>
+            {/* 选项列表 */}
+            <div className="max-h-64 overflow-y-auto py-1">
+              {filtered.length === 0 ? (
+                <div className="px-4 py-8 text-center text-sm text-neutral-400">未找到匹配的配置</div>
+              ) : (
+                filtered.map((c: any, i) => {
+                  const isSel = c.id === value;
+                  const isHi = i === index;
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => { onChange(c.id); setOpen(false); setQuery(''); }}
+                      onMouseEnter={() => setIndex(i)}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${isHi ? 'bg-primary-50/70' : ''}`}
+                    >
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isSel ? 'bg-primary-100 text-primary-600' : 'bg-neutral-100 text-neutral-400'}`}>
+                        <Layers size={15} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-neutral-800 truncate">{c.name}</p>
+                          {isSel && <Check size={14} className="text-primary-500 shrink-0" />}
+                        </div>
+                        <p className="text-xs text-neutral-500 font-mono truncate">{c.baseTable} · {c.fields?.length || 0} 字段 · {c.joins?.length || 0} 关联</p>
+                      </div>
+                      <Badge color={c.status === 'active' ? 'success' : 'neutral'} size="sm">
+                        {c.status === 'active' ? '已发布' : '草稿'}
+                      </Badge>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+            {/* 底部提示 */}
+            <div className="px-4 py-2 border-t border-neutral-100 bg-neutral-50/50 flex items-center gap-3 text-[11px] text-neutral-400">
+              <span className="flex items-center gap-1"><kbd className="px-1 rounded bg-white border border-neutral-200">↑↓</kbd> 导航</span>
+              <span className="flex items-center gap-1"><kbd className="px-1 rounded bg-white border border-neutral-200">↵</kbd> 选择</span>
+              <span className="flex items-center gap-1"><kbd className="px-1 rounded bg-white border border-neutral-200">esc</kbd> 关闭</span>
+              <span className="ml-auto">{filtered.length} 项</span>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
