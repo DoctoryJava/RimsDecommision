@@ -110,7 +110,7 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
       const sel = node.fields?.length ? node.fields.map((f: any) => f.alias || f.column).join(', ') : '*';
       const sql = `SELECT ${sel} FROM ${d}.archive.${tblName} WHERE ${node.childField} = '${parentVal}' LIMIT 200`;
       try {
-        const res = await sparkExecuteQuery({ systemId, database, sql, page: 1, pageSize: 200 });
+        const res = await sparkExecuteQuery({ systemId, database, sql, page: 1, pageSize: 200, purpose: 'download' });
         const cols = node.fields?.length ? node.fields.map((f: any) => f.alias || f.column) : (res?.columns ?? []);
         const rows = res?.rows ?? [];
         out.push({ name: node.name, columns: cols, rows });

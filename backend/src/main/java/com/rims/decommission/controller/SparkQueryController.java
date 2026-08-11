@@ -51,16 +51,19 @@ public class SparkQueryController {
         String systemId = (String) body.getOrDefault("systemId", "");
         String database = (String) body.getOrDefault("database", "");
         String sql = (String) body.getOrDefault("sql", "");
+        String purpose = (String) body.getOrDefault("purpose", "query");
         int page = body.get("page") instanceof Number n ? n.intValue() : 1;
         int pageSize = body.get("pageSize") instanceof Number n ? n.intValue() : 10;
+        // 审计类型：download 记录为 export，其余为 query，便于审计区分
+        String actionType = "download".equals(purpose) ? "export" : "query";
         try {
             Result<Map<String,Object>> res = Result.success(sparkQueryService.executeQuery(systemId, database, sql, page, pageSize));
-            auditLogService.record("query", truncate(sql), "success", systemId,
-                    Map.of("database", database == null ? "" : database, "rows", 0));
+            auditLogService.record(actionType, truncate(sql), "success", systemId,
+                    Map.of("database", database == null ? "" : database, "rows", 0, "purpose", purpose == null ? "" : purpose));
             return res;
         } catch (Exception e) {
-            auditLogService.record("query", truncate(sql), "failed", systemId,
-                    Map.of("database", database == null ? "" : database, "error", e.getMessage() == null ? "查询失败" : e.getMessage()));
+            auditLogService.record(actionType, truncate(sql), "failed", systemId,
+                    Map.of("database", database == null ? "" : database, "error", e.getMessage() == null ? "查询失败" : e.getMessage(), "purpose", purpose == null ? "" : purpose));
             return Result.fail(500, e.getMessage() == null ? "查询失败" : e.getMessage());
         }
     }

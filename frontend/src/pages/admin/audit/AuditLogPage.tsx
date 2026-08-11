@@ -13,6 +13,7 @@ import { getAuditLogs, deleteAuditLog } from '@/lib/api';
 const actionLabel: Record<AuditActionType, string> = {
   query: 'SQL 查询',
   etl: 'ETL 任务',
+  export: '数据下载',
 };
 
 const statusMap: Record<AuditStatus, { color: 'success' | 'error' | 'neutral' | 'warning'; label: string }> = {
@@ -111,6 +112,7 @@ export default function AuditLogPage() {
           <option value="all">All Types</option>
           <option value="query">SQL 查询</option>
           <option value="etl">ETL 任务</option>
+          <option value="export">数据下载</option>
         </select>
         <select
           value={statusFilter}
@@ -156,7 +158,7 @@ export default function AuditLogPage() {
                       </div>
                     </td>
                     <td className="px-5 py-3">
-                      <Badge color={log.actionType === 'etl' ? 'secondary' : 'primary'} size="sm">
+                      <Badge color={log.actionType === 'etl' ? 'secondary' : log.actionType === 'export' ? 'warning' : 'primary'} size="sm">
                         {actionLabel[log.actionType] || log.actionType}
                       </Badge>
                     </td>
@@ -202,7 +204,7 @@ export default function AuditLogPage() {
         >
           <div className="space-y-4">
             <div className="flex items-center gap-2 flex-wrap">
-              <Badge color={viewLog.actionType === 'etl' ? 'secondary' : 'primary'} size="sm">{actionLabel[viewLog.actionType] || viewLog.actionType}</Badge>
+              <Badge color={viewLog.actionType === 'etl' ? 'secondary' : viewLog.actionType === 'export' ? 'warning' : 'primary'} size="sm">{actionLabel[viewLog.actionType] || viewLog.actionType}</Badge>
               <Badge color={statusMap[viewLog.status]?.color ?? 'neutral'} size="sm" dot>{statusMap[viewLog.status]?.label ?? viewLog.status}</Badge>
               {viewLog.systemId && <Badge color="neutral" size="sm">system: {viewLog.systemId}</Badge>}
             </div>

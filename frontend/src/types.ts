@@ -197,7 +197,7 @@ export interface FilterCondition {
 }
 
 // 审计日志（r_audit_log）
-export type AuditActionType = 'query' | 'etl';
+export type AuditActionType = 'query' | 'etl' | 'export';
 export type AuditStatus = 'started' | 'success' | 'failed';
 
 export interface AuditLog {
