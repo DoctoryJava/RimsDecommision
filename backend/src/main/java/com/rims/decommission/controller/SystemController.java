@@ -1,9 +1,12 @@
 package com.rims.decommission.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.rims.decommission.common.PageResult;
 import com.rims.decommission.common.Result;
+import com.rims.decommission.entity.RSyncTableStat;
 import com.rims.decommission.entity.RSystem;
+import com.rims.decommission.mapper.RSyncTableStatMapper;
 import com.rims.decommission.service.RSystemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,9 +20,11 @@ import java.util.stream.Collectors;
 public class SystemController {
 
     private final RSystemService service;
+    private final RSyncTableStatMapper tableStatMapper;
 
-    public SystemController(RSystemService service) {
+    public SystemController(RSystemService service, RSyncTableStatMapper tableStatMapper) {
         this.service = service;
+        this.tableStatMapper = tableStatMapper;
     }
 
     @GetMapping
@@ -95,7 +100,32 @@ public class SystemController {
         m.put("tableCount", e.getTableCount() != null ? e.getTableCount() : 0);
         m.put("dataSizeGB", e.getDataSizeGb() != null ? e.getDataSizeGb() : 0);
         m.put("tags", e.getTags() != null ? e.getTags() : List.of());
+        // 用 r_sync_table_stat 的真实统计覆盖 mock 值
+        long[] agg = buildAgg(e.getId());
+        if (agg[0] > 0 || agg[1] > 0 || agg[2] > 0) {
+            m.put("schemaCount", agg[0]);
+            m.put("tableCount", agg[1]);
+            m.put("dataSizeGB", Math.round(agg[2] / (1024.0 * 1024.0 * 1024.0) * 100.0) / 100.0);
+        }
         return m;
+    }
+
+    /** 汇总某系统的 r_sync_table_stat：{schema 数, table 数, size 字节}。schema=去重的 databaseName。 */
+    private long[] buildAgg(String systemId) {
+        long[] agg = new long[]{0, 0, 0};
+        if (systemId == null || systemId.isBlank()) return agg;
+        List<RSyncTableStat> stats = tableStatMapper.selectList(
+                new LambdaQueryWrapper<RSyncTableStat>()
+                        .eq(RSyncTableStat::getSystemId, systemId)
+                        .isNotNull(RSyncTableStat::getTableName));
+        Set<String> schemas = new HashSet<>();
+        for (RSyncTableStat st : stats) {
+            if (st.getDatabaseName() != null && !st.getDatabaseName().isBlank()) schemas.add(st.getDatabaseName());
+            agg[1]++;
+            if (st.getSizeBytes() != null) agg[2] += st.getSizeBytes();
+        }
+        agg[0] = schemas.size();
+        return agg;
     }
 
     private RSystem fromMap(Map<String,Object> m) {
