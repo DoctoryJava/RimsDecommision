@@ -346,32 +346,6 @@ export async function releaseRetention(assignmentId: string, data: any = {}) {
   return (res.data as Result<any>).data;
 }
 
-// ===== Tags =====
-export async function getTags() {
-  const res = await api.get<Result<any[]>>('/tags');
-  return (res.data as Result<any[]>).data;
-}
-export async function createTag(data: any) {
-  const res = await api.post<Result<any>>('/tags', data);
-  return (res.data as Result<any>).data;
-}
-export async function deleteTag(id: string) {
-  const res = await api.delete<Result<null>>(`/tags/${id}`);
-  return res.data;
-}
-export async function getObjectTags(params: any = {}) {
-  const res = await api.get<Result<any[]>>('/tags/objects', { params });
-  return (res.data as Result<any[]>).data;
-}
-export async function assignObjectTag(data: any) {
-  const res = await api.post<Result<any>>('/tags/objects', data);
-  return (res.data as Result<any>).data;
-}
-export async function deleteObjectTag(id: string) {
-  const res = await api.delete<Result<null>>(`/tags/objects/${id}`);
-  return res.data;
-}
-
 // ===== Audit Logs =====
 export async function getAuditLogs(params: any = {}) {
   const res = await api.get<Result<PageResult<any>>>('/audit-logs', { params });

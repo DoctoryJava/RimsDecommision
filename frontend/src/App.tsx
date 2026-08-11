@@ -14,7 +14,6 @@ import DynamicQueryPage from '@/pages/user/DynamicQueryPage';
 import DataSourcesPage from '@/pages/user/DataSourcesPage';
 import ArchivePage from '@/pages/admin/archive/ArchivePage';
 import RetentionPage from '@/pages/admin/archive/RetentionPage';
-import TagsPage from '@/pages/admin/archive/TagsPage';
 import AuditLogPage from '@/pages/admin/audit/AuditLogPage';
 
 const pageTitles: Record<PageKey, string> = {
@@ -27,7 +26,6 @@ const pageTitles: Record<PageKey, string> = {
   'data-sources': 'Data Sources',
   archive: 'Archive Artifacts',
   retention: 'Retention & Compliance',
-  tags: 'Tags',
   users: 'Users',
   roles: 'Roles',
   permissions: 'Permissions',
@@ -46,7 +44,6 @@ const routeByKey: Record<PageKey, string> = {
   'data-sources': '/data-sources',
   archive: '/archive',
   retention: '/retention',
-  tags: '/tags',
   users: '/users',
   roles: '/roles',
   permissions: '/permissions',
@@ -114,7 +111,6 @@ export default function App() {
           {page === 'data-sources' && <DataSourcesPage onNavigate={navigate} />}
           {page === 'archive' && <ArchivePage />}
           {page === 'retention' && <RetentionPage />}
-          {page === 'tags' && <TagsPage />}
           {page === 'users' && <UsersPage />}
           {page === 'roles' && <RolesPage />}
           {page === 'permissions' && <PermissionsPage />}

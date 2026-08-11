@@ -17,7 +17,6 @@ import {
   SlidersHorizontal,
   Search as SearchIcon,
   Archive,
-  Tag as TagIcon,
   Monitor,
   Wrench,
   ScrollText,
@@ -34,7 +33,6 @@ export type PageKey =
   | 'data-sources'
   | 'archive'
   | 'retention'
-  | 'tags'
   | 'users'
   | 'roles'
   | 'permissions'
@@ -105,7 +103,6 @@ const navSections: NavSection[] = [
         items: [
           { key: 'archive', label: 'Archive Artifacts', icon: Archive },
           { key: 'retention', label: 'Retention & Compliance', icon: ShieldCheck },
-          { key: 'tags', label: 'Tags', icon: TagIcon },
         ],
       },
       {
