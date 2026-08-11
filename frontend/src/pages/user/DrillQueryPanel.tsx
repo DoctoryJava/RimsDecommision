@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, Fragment } from 'react';
 import {
-  ChevronDown, ChevronRight, Database, Layers, Search, Loader2, X,
+  ChevronDown, ChevronRight, Database, Layers, Search, Loader2, X, Filter, Plus,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -33,6 +33,14 @@ function keysOf(row: Record<string, any> | undefined): string[] {
   return row ? Object.keys(row) : [];
 }
 
+// 筛选条件：field = 配置字段的 alias（或 column），operator 精简集
+type FilterOperator = 'eq' | 'like' | 'gt' | 'lt' | 'is_null';
+interface FilterCond {
+  field: string;
+  operator: FilterOperator;
+  value: string;
+}
+
 export default function DrillQueryPanel({ systemId, database, configId, mainTable, mainFields, mainJoins = [] }: Props) {
   const [mainRows, setMainRows] = useState<Record<string, any>[]>([]);
   const [mainCols, setMainCols] = useState<string[]>([]);
@@ -41,6 +49,39 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
   const [drillTree, setDrillTree] = useState<DrillNode[]>([]);
   // 展开状态：主表行 order_id -> true；子级用 key
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  // 筛选：编辑态 + 已应用态
+  const [draftFilters, setDraftFilters] = useState<FilterCond[]>([]);
+  const [appliedFilters, setAppliedFilters] = useState<FilterCond[]>([]);
+  const [showFilter, setShowFilter] = useState(false);
+
+  // 配置中标记为可筛选的字段
+  const filterableFields = (mainFields || []).filter((f: any) => f.filterable);
+  // 标记为可筛选字段的候选下拉：alias(column)
+  const filterableOptions = filterableFields.map((f: any) => ({
+    label: f.alias || f.column,
+    value: f.alias || f.column,
+  }));
+
+  const addFilterRow = () => {
+    const first = filterableFields[0];
+    if (!first) return;
+    setDraftFilters(prev => [...prev, { field: first.alias || first.column, operator: 'eq', value: '' }]);
+  };
+  const updateFilterRow = (i: number, patch: Partial<FilterCond>) => {
+    setDraftFilters(prev => prev.map((c, idx) => idx === i ? { ...c, ...patch } : c));
+  };
+  const removeFilterRow = (i: number) => {
+    setDraftFilters(prev => prev.filter((_, idx) => idx !== i));
+  };
+  const applyFilters = () => {
+    // 去掉无效行：is_null 无需值，其余需填值
+    const valid = draftFilters.filter(c => c.operator === 'is_null' || (c.value && c.value.trim() !== ''));
+    setAppliedFilters(valid);
+  };
+  const clearFilters = () => {
+    setDraftFilters([]);
+    setAppliedFilters([]);
+  };
 
   const mainTableParts = (mainTable || '').split('.');
   const mainTableName = mainTableParts.pop() || mainTable;
@@ -88,7 +129,32 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
     }
 
     const from = `FROM ${phys(mainTable)} t0${joinClauses.length ? ' ' + joinClauses.join(' ') : ''}`;
-    const sql = `SELECT ${select} ${from} LIMIT 500`;
+
+    // 根据已应用的筛选条件生成 WHERE（字段按所属表加别名限定）
+    let where = '';
+    if (appliedFilters.length) {
+      const conds = appliedFilters.map((c) => {
+        const f = mainFields.find((x: any) => (x.alias || x.column) === c.field);
+        if (!f || !f.column) return null;
+        const tblRef = f.table || mainTable;
+        const a = aliasMap.get(tblRef) || 't0';
+        const colRef = `${a}.${f.column}`;
+        const val = (c.value || '').trim();
+        const isNum = /^-?\d+(\.\d+)?$/.test(val);
+        const v = isNum ? val : `'${val.replace(/'/g, "''")}'`;
+        switch (c.operator) {
+          case 'eq': return `${colRef} = ${v}`;
+          case 'like': return `${colRef} LIKE '%${val.replace(/'/g, "''")}%'`;
+          case 'gt': return `${colRef} > ${v}`;
+          case 'lt': return `${colRef} < ${v}`;
+          case 'is_null': return `${colRef} IS NULL`;
+          default: return null;
+        }
+      }).filter(Boolean);
+      if (conds.length) where = ' WHERE ' + conds.join(' AND ');
+    }
+
+    const sql = `SELECT ${select} ${from}${where} LIMIT 500`;
     sparkExecuteQuery({ systemId, database, sql, page: 1, pageSize: 500 })
       .then((res: any) => {
         setMainRows(res?.rows ?? []);
@@ -97,7 +163,7 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
       })
       .catch((e: any) => setError(e?.message || '查询失败'))
       .finally(() => setLoading(false));
-  }, [systemId, database, mainTable, mainTableName, mainFields, db, mainJoins]);
+  }, [systemId, database, mainTable, mainTableName, mainFields, db, mainJoins, appliedFilters]);
 
   useEffect(() => { loadMain(); }, [loadMain]);
 
@@ -152,8 +218,82 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
             <Database size={16} className="text-primary-500" />
             <h3 className="text-base font-semibold text-neutral-900">关联明细（行内展开）</h3>
           </div>
-          <Badge color="neutral" size="sm">{mainRows.length}</Badge>
+          <div className="flex items-center gap-2">
+            {appliedFilters.length > 0 && (
+              <Badge color="primary" size="sm">{appliedFilters.length} 个筛选</Badge>
+            )}
+            <Badge color="neutral" size="sm">{mainRows.length}</Badge>
+          </div>
         </div>
+
+        {/* 筛选工具栏 */}
+        {filterableFields.length > 0 && (
+          <div className="px-5 py-3 border-b border-neutral-100 bg-neutral-50/40">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setShowFilter(!showFilter)}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-600 hover:text-primary-600 transition-colors"
+              >
+                <Filter size={14} /> 筛选
+                <ChevronDown size={13} className={`transition-transform ${showFilter ? 'rotate-180' : ''}`} />
+              </button>
+              {showFilter && (
+                <>
+                  <Button size="sm" variant="outline" icon={<Plus size={13} />} onClick={addFilterRow}>添加条件</Button>
+                  <Button size="sm" disabled={!draftFilters.length} onClick={applyFilters}>应用筛选</Button>
+                  {(draftFilters.length > 0 || appliedFilters.length > 0) && (
+                    <Button size="sm" variant="ghost" onClick={clearFilters}>清除</Button>
+                  )}
+                </>
+              )}
+            </div>
+            {showFilter && (
+              <div className="mt-2 space-y-2">
+                {draftFilters.length === 0 && (
+                  <p className="text-xs text-neutral-400">未添加筛选条件，点击「添加条件」</p>
+                )}
+                {draftFilters.map((cond, i) => (
+                  <div key={i} className="flex items-center gap-2 flex-wrap">
+                    <select
+                      value={cond.field}
+                      onChange={(e) => updateFilterRow(i, { field: e.target.value })}
+                      className="px-2 py-1.5 text-sm rounded-md border border-neutral-200 bg-white outline-none font-mono"
+                    >
+                      {filterableOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                    <select
+                      value={cond.operator}
+                      onChange={(e) => updateFilterRow(i, { operator: e.target.value as FilterOperator })}
+                      className="px-2 py-1.5 text-sm rounded-md border border-neutral-200 bg-white outline-none"
+                    >
+                      <option value="eq">等于</option>
+                      <option value="like">包含</option>
+                      <option value="gt">大于</option>
+                      <option value="lt">小于</option>
+                      <option value="is_null">为空</option>
+                    </select>
+                    {cond.operator !== 'is_null' && (
+                      <input
+                        type="text"
+                        value={cond.value}
+                        onChange={(e) => updateFilterRow(i, { value: e.target.value })}
+                        placeholder="筛选值"
+                        className="px-2 py-1.5 text-sm rounded-md border border-neutral-200 bg-white outline-none flex-1 min-w-[140px]"
+                      />
+                    )}
+                    {cond.operator === 'is_null' && (
+                      <span className="text-sm text-neutral-400">（无需值）</span>
+                    )}
+                    <button onClick={() => removeFilterRow(i)} className="p-1.5 rounded text-neutral-400 hover:text-error-500 hover:bg-error-50 transition-colors">
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {error && <div className="p-3 bg-error-50 border-b border-error-200 text-sm text-error-600">{error}</div>}
         {loading ? (
           <div className="p-10 text-center text-sm text-neutral-400 flex items-center justify-center gap-2"><Loader2 size={16} className="animate-spin" /> 加载中…</div>
