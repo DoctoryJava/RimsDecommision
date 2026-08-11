@@ -108,10 +108,30 @@ export default function DynamicQueryPage() {
 
       {/* Mode toggle */}
       <div className="flex items-center gap-2 mb-5">
-        <button onClick={() => setMode('drill')} className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${mode === 'drill' ? 'bg-primary-500 text-white' : 'bg-white text-neutral-600 border border-neutral-200'}`}>
+        <button
+          onClick={() => setMode('drill')}
+          className={`group flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-150 ${
+            mode === 'drill'
+              ? 'text-white bg-gradient-to-r from-primary-500 to-primary-600 shadow-md shadow-primary-500/25 ring-1 ring-primary-400/40'
+              : 'text-neutral-600 bg-white border border-neutral-200 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50/30'
+          }`}
+        >
+          <span className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${mode === 'drill' ? 'bg-white/20' : 'bg-neutral-100 group-hover:bg-primary-100'}`}>
+            <Layers size={14} className={mode === 'drill' ? 'text-white' : 'text-neutral-400 group-hover:text-primary-500'} />
+          </span>
           关联明细下钻
         </button>
-        <button onClick={() => setMode('sql')} className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${mode === 'sql' ? 'bg-primary-500 text-white' : 'bg-white text-neutral-600 border border-neutral-200'}`}>
+        <button
+          onClick={() => setMode('sql')}
+          className={`group flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-150 ${
+            mode === 'sql'
+              ? 'text-white bg-gradient-to-r from-primary-500 to-primary-600 shadow-md shadow-primary-500/25 ring-1 ring-primary-400/40'
+              : 'text-neutral-600 bg-white border border-neutral-200 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50/30'
+          }`}
+        >
+          <span className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${mode === 'sql' ? 'bg-white/20' : 'bg-neutral-100 group-hover:bg-primary-100'}`}>
+            <Code2 size={14} className={mode === 'sql' ? 'text-white' : 'text-neutral-400 group-hover:text-primary-500'} />
+          </span>
           SQL 查询
         </button>
       </div>
