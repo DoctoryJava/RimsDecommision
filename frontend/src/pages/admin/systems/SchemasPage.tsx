@@ -3,31 +3,8 @@ import { Database, Table2, Download, Loader2, Search, ChevronRight, ChevronDown,
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import PageHeader from '@/components/ui/PageHeader';
-import { getSchemas, getSystems, sparkExecuteQuery } from '@/lib/api';
+import { getSchemas, getSystems, sparkExportCsv } from '@/lib/api';
 import type { SchemaRecord, SystemRecord } from '@/types';
-
-// 将值转成 CSV 单元格（含逗号/引号/换行时加引号并转义）
-function csvCell(v: unknown): string {
-  if (v === null || v === undefined) return '';
-  const s = String(v);
-  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
-
-// 触发浏览器下载
-function downloadCsv(filename: string, columns: string[], rows: Record<string, any>[]) {
-  const header = columns.map(csvCell).join(',');
-  const lines = rows.map((r) => columns.map((c) => csvCell(r[c])).join(','));
-  const content = '\uFEFF' + [header, ...lines].join('\r\n'); // \uFEFF 避免 Excel 中文乱码
-  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
 
 export default function SchemasPage() {
   const [search, setSearch] = useState('');
@@ -35,9 +12,9 @@ export default function SchemasPage() {
   const [expandedSchema, setExpandedSchema] = useState<string | null>(null);
   const [schemasData, setSchemasData] = useState<SchemaRecord[]>([]);
   const [systemsData, setSystemsData] = useState<SystemRecord[]>([]);
-  const [exporting, setExporting] = useState<string | null>(null); // 正在导出的表（table.id）
+  const [exporting, setExporting] = useState<string | null>(null); // 正在导出的表（schema|table）
 
-  // 用 Spark 查询某表数据并下载为 CSV（导出 key 用 schema+table 组合，避免 table.id 缺失/重复）
+  // 后端直接生成 CSV 流下载（导出 key 用 schema+table 组合，避免 table.id 缺失/重复）
   const exportTableCsv = async (schema: any, table: any) => {
     const tableName = table.name;
     const key = `${schema.id}|${tableName}`;
@@ -46,14 +23,7 @@ export default function SchemasPage() {
     const sql = `SELECT * FROM ${db}.archive.${tableName}`;
     setExporting(key);
     try {
-      const res = await sparkExecuteQuery({ systemId: schema.systemId, database: db, sql, page: 1, pageSize: 5000 });
-      const columns: string[] = res?.columns ?? [];
-      const rows: Record<string, any>[] = res?.rows ?? [];
-      if (!columns.length && rows.length) {
-        // 若无 columns，用第一行键作为表头
-        columns.push(...Object.keys(rows[0] || {}));
-      }
-      downloadCsv(`${schema.name}.${tableName}.csv`, columns, rows);
+      await sparkExportCsv({ systemId: schema.systemId, database: db, sql, filename: `${schema.name}.${tableName}` });
     } catch (e: any) {
       window.alert('导出失败：' + (e?.message || '请稍后重试'));
     } finally {

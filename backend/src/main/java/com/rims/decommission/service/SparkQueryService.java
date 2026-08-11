@@ -149,6 +149,34 @@ public class SparkQueryService {
         return result;
     }
 
+    /** 导出全量查询结果（不分页），返回列名 + 所有行，供后端直接生成 CSV。 */
+    public Map<String, Object> exportQuery(String systemId, String database, String sql) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            if (sql == null || sql.isBlank()) {
+                result.put("columns", List.of());
+                result.put("rows", List.of());
+                return result;
+            }
+            if (!props.isEnabled()) {
+                Map<String, Object> sim = simulate(sql, 1, Integer.MAX_VALUE);
+                result.put("columns", sim.get("columns"));
+                result.put("rows", sim.get("rows"));
+                return result;
+            }
+            String log = runSparkSql(sql);
+            ParsedResult parsed = parseResult(log);
+            if (parsed.error != null) {
+                throw new IllegalStateException(parsed.error);
+            }
+            result.put("columns", parsed.columns);
+            result.put("rows", parsed.rows);
+        } catch (Exception e) {
+            throw new IllegalStateException("Spark 导出失败：" + (e.getMessage() == null ? "" : e.getMessage()), e);
+        }
+        return result;
+    }
+
     /**
      * 调用 spark-submit 运行 QueryJob，返回合并 stdout（含 RESULT_ 前缀行 + Spark 日志）。
      * 子进程 JDK 隔离为 ≤11（Spark 3.3 限制），后端自身仍跑 17+。

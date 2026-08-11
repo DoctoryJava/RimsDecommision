@@ -5,7 +5,13 @@ import com.rims.decommission.service.AuditLogService;
 import com.rims.decommission.service.SparkQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.*;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @RestController
@@ -57,6 +63,65 @@ public class SparkQueryController {
                     Map.of("database", database == null ? "" : database, "error", e.getMessage() == null ? "查询失败" : e.getMessage()));
             return Result.fail(500, e.getMessage() == null ? "查询失败" : e.getMessage());
         }
+    }
+
+    /** 导出查询结果：后端直接生成 CSV 字节流返回，前端不拼接。 */
+    @PostMapping("/export")
+    @Operation(summary = "导出查询结果为 CSV（后端生成文件流）")
+    public void export(@RequestBody Map<String,Object> body, HttpServletResponse response) throws IOException {
+        String systemId = (String) body.getOrDefault("systemId", "");
+        String database = (String) body.getOrDefault("database", "");
+        String sql = (String) body.getOrDefault("sql", "");
+        String filename = (String) body.getOrDefault("filename", "export");
+        String status = "failed";
+        try {
+            Map<String,Object> res = sparkQueryService.exportQuery(systemId, database, sql);
+            @SuppressWarnings("unchecked")
+            List<String> columns = (List<String>) res.getOrDefault("columns", List.of());
+            @SuppressWarnings("unchecked")
+            List<Map<String,Object>> rows = (List<Map<String,Object>>) res.getOrDefault("rows", List.of());
+
+            String safeName = filename.replaceAll("[\\\\/:*?\"<>|\\s]", "_");
+            String fileName = safeName + ".csv";
+            response.setContentType("text/csv;charset=UTF-8");
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"; filename*=UTF-8''" + URLEncoder.encode(fileName, "UTF-8"));
+
+            Writer w = new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8);
+            // UTF-8 BOM，避免 Excel 打开中文乱码
+            w.write('\uFEFF');
+            w.write(joinCsv(columns));
+            w.write("\r\n");
+            for (Map<String,Object> row : rows) {
+                List<String> cells = new ArrayList<>();
+                for (String c : columns) cells.add(csvCell(row.get(c)));
+                w.write(joinCsv(cells));
+                w.write("\r\n");
+            }
+            w.flush();
+            status = "success";
+            auditLogService.record("query", truncate(sql), status, systemId,
+                    Map.of("database", database == null ? "" : database, "export", true, "rows", rows.size()));
+        } catch (Exception e) {
+            auditLogService.record("query", truncate(sql), status, systemId,
+                    Map.of("database", database == null ? "" : database, "export", true,
+                            "error", e.getMessage() == null ? "导出失败" : e.getMessage()));
+            // 已开始写流，无法再改状态码；写一行错误到 body
+            response.setContentType("text/csv;charset=UTF-8");
+            Writer w = new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8);
+            w.write("error," + csvCell(e.getMessage() == null ? "导出失败" : e.getMessage()));
+            w.flush();
+        }
+    }
+
+    private static String joinCsv(List<String> cells) {
+        return String.join(",", cells);
+    }
+
+    private static String csvCell(Object v) {
+        if (v == null) return "";
+        String s = String.valueOf(v);
+        return s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0 || s.indexOf('\r') >= 0
+                ? "\"" + s.replace("\"", "\"\"") + "\"" : s;
     }
 
     private static String truncate(String s) {

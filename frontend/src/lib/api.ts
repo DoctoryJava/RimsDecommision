@@ -190,6 +190,19 @@ export async function sparkExecuteQuery(data: any) {
   const res = await api.post<Result<any>>('/spark-query/execute', data);
   return (res.data as Result<any>).data;
 }
+// 后端直接生成 CSV 流，前端用 blob 触发下载
+export async function sparkExportCsv(data: any): Promise<void> {
+  const res = await api.post('/spark-query/export', data, { responseType: 'blob' });
+  const blob = res.data as Blob;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (data.filename || 'export') + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 // Schemas
 export async function getSchemas(params: any = {}) {
