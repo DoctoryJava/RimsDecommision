@@ -134,3 +134,50 @@
   .animate-pulse-dot { animation: pulseDot 1.5s ease-in-out infinite; }
   .animate-spin-slow { animation: spinSlow 2s linear infinite; }
 }
+
+/* ===== 科技感 / 霓虹风格工具类 ===== */
+@layer utilities {
+  /* 侧栏暗色玻璃渐变背景 + 网格底纹 */
+  .tech-sidebar-bg {
+    background:
+      radial-gradient(1200px 600px at 110% -10%, rgba(52, 120, 246, 0.18), transparent 60%),
+      radial-gradient(900px 500px at -20% 110%, rgba(16, 185, 129, 0.12), transparent 55%),
+      linear-gradient(180deg, #0b1220 0%, #070d1a 55%, #050a14 100%);
+    position: relative;
+  }
+  .tech-grid-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+    background-size: 26px 26px;
+    mask-image: linear-gradient(180deg, rgba(0,0,0,0.6), transparent 90%);
+    -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.6), transparent 90%);
+  }
+
+  /* 顶部细发光描边 */
+  .tech-topline {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(52,120,246,0.9), rgba(16,185,129,0.6), transparent);
+  }
+
+  /* 导航项发光 / 渐变图标容器 */
+  .nav-item-glow {
+    box-shadow: 0 0 0 1px rgba(52,120,246,0.18), 0 8px 24px -12px rgba(52,120,246,0.5);
+  }
+  .nav-icon-cyber {
+    background: linear-gradient(135deg, rgba(52,120,246,0.22), rgba(16,185,129,0.14));
+    border: 1px solid rgba(52,120,246,0.35);
+  }
+  .logo-cyber {
+    background: linear-gradient(135deg, #3478f6, #22d3ee 60%, #10b981);
+    box-shadow: 0 0 22px -4px rgba(52,120,246,0.9), inset 0 0 12px rgba(255,255,255,0.25);
+  }
+  .section-rule {
+    background: linear-gradient(90deg, rgba(52,120,246,0.6), rgba(16,185,129,0.3), transparent);
+  }
+}

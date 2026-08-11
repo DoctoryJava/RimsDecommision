@@ -115,45 +115,52 @@ export default function Sidebar({ current, onNavigate, onLogout }: SidebarProps)
 
   return (
     <aside
-      className={`${collapsed ? 'w-[68px]' : 'w-64'} flex flex-col bg-neutral-950 border-r border-neutral-800/50 transition-all duration-300 shrink-0`}
+      className={`${collapsed ? 'w-[68px]' : 'w-64'} relative flex flex-col tech-sidebar-bg border-r border-white/5 transition-all duration-300 shrink-0 overflow-hidden`}
     >
+      {/* 网格底纹 + 顶部发光描边 */}
+      <div className="tech-grid-overlay" />
+      <div className="tech-topline" />
+
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 h-16 border-b border-neutral-800/50">
-        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shrink-0">
-          <HardDrive size={20} className="text-white" />
+      <div className="relative flex items-center gap-3 px-4 h-16 border-b border-white/5">
+        <div className="w-9 h-9 rounded-lg logo-cyber flex items-center justify-center shrink-0">
+          <HardDrive size={20} className="text-white drop-shadow" />
         </div>
         {!collapsed && (
           <div className="overflow-hidden">
             <p className="text-sm font-semibold text-white tracking-tight whitespace-nowrap">Lifecycle</p>
-            <p className="text-xs text-neutral-500 whitespace-nowrap">Data Retention Suite</p>
+            <p className="text-[10px] text-primary-300/80 whitespace-nowrap font-mono tracking-widest uppercase">Data Retention Suite</p>
           </div>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2">
+      <nav className="relative flex-1 overflow-y-auto py-4 px-2.5">
         {navSections.map((section) => {
           const SectionIcon = section.icon;
           return (
-            <div key={section.title} className="mb-6">
+            <div key={section.title} className="mb-5">
               {!collapsed && (
                 <div className="flex items-center gap-2 px-3 mb-2">
-                  <SectionIcon size={13} className="text-primary-400" />
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-300/80">
+                  <span className="w-3.5 h-3.5 rounded-sm bg-primary-500/20 border border-primary-500/40 flex items-center justify-center">
+                    <span className="w-1.5 h-1.5 rounded-sm bg-primary-400 shadow-[0_0_6px_rgba(52,120,246,0.9)]" />
+                  </span>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-300/90">
                     {section.title}
                   </p>
+                  <span className="flex-1 h-px section-rule" />
                 </div>
               )}
               {collapsed && (
-                <div className="px-2 mb-2">
-                  <SectionIcon size={15} className="text-primary-400/70 mx-auto" />
+                <div className="px-2 mb-2 flex justify-center">
+                  <span className="w-5 h-px section-rule" />
                 </div>
               )}
               <div className="space-y-4">
                 {section.groups.map((group) => (
                   <div key={group.label}>
                     {!collapsed && (
-                      <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-neutral-600">
+                      <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
                         {group.label}
                       </p>
                     )}
@@ -165,14 +172,20 @@ export default function Sidebar({ current, onNavigate, onLogout }: SidebarProps)
                           key={item.key}
                           onClick={() => onNavigate(item.key)}
                           title={collapsed ? item.label : undefined}
-                          className={`group w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 mb-0.5 ${
+                          className={`group relative w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 mb-0.5 overflow-hidden ${
                             active
-                              ? 'bg-primary-500/10 text-primary-300'
-                              : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/50'
+                              ? 'nav-item-glow text-white bg-primary-500/15'
+                              : 'text-neutral-400 hover:text-neutral-100 hover:bg-white/5'
                           }`}
                         >
-                          <Icon size={18} className={`shrink-0 ${active ? 'text-primary-400' : ''}`} />
-                          {!collapsed && <span className="flex-1 text-left whitespace-nowrap">{item.label}</span>}
+                          {/* 激活左侧霓虹条 */}
+                          {active && (
+                            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full bg-gradient-to-b from-primary-400 to-secondary-400 shadow-[0_0_10px_rgba(52,120,246,0.9)]" />
+                          )}
+                          <span className={`relative w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150 ${active ? 'nav-icon-cyber' : 'bg-white/[0.04] border border-white/5 group-hover:border-primary-500/40 group-hover:bg-primary-500/10'}`}>
+                            <Icon size={16} className={`transition-colors ${active ? 'text-primary-300 drop-shadow-[0_0_4px_rgba(89,157,255,0.8)]' : 'text-neutral-500 group-hover:text-primary-300'}`} />
+                          </span>
+                          {!collapsed && <span className={`flex-1 text-left whitespace-nowrap ${active ? 'font-semibold' : ''}`}>{item.label}</span>}
                           {!collapsed && item.badge && (
                             <Badge color={active ? 'primary' : 'neutral'} variant={active ? 'soft' : 'solid'} size="sm">
                               {item.badge}
@@ -193,15 +206,15 @@ export default function Sidebar({ current, onNavigate, onLogout }: SidebarProps)
       </nav>
 
       {/* User & Collapse */}
-      <div className="border-t border-neutral-800/50 p-2">
-        <div className={`flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-neutral-800/50 cursor-pointer transition-colors ${collapsed ? 'justify-center' : ''}`}>
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-secondary-400 to-secondary-600 flex items-center justify-center text-white text-sm font-semibold shrink-0">
+      <div className="relative border-t border-white/5 p-2 bg-white/[0.02]">
+        <div className={`flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors ${collapsed ? 'justify-center' : ''}`}>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-secondary-400 to-secondary-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 shadow-[0_0_12px_-2px_rgba(16,185,129,0.7)]">
             SC
           </div>
           {!collapsed && (
             <div className="flex-1 overflow-hidden">
               <p className="text-sm font-medium text-white truncate">Sarah Chen</p>
-              <p className="text-xs text-neutral-500 truncate">Super Admin</p>
+              <p className="text-[10px] text-neutral-500 truncate font-mono tracking-wider uppercase">Super Admin</p>
             </div>
           )}
           {!collapsed && (
@@ -212,7 +225,7 @@ export default function Sidebar({ current, onNavigate, onLogout }: SidebarProps)
         </div>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="w-full mt-1 flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/50 transition-colors"
+          className="w-full mt-1 flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-neutral-500 hover:text-primary-300 hover:bg-white/5 transition-colors"
         >
           {collapsed ? <ChevronLeft size={16} className="rotate-180" /> : <ChevronsLeft size={16} />}
           {!collapsed && <span>Collapse</span>}
