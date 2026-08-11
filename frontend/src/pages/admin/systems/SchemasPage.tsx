@@ -37,13 +37,14 @@ export default function SchemasPage() {
   const [systemsData, setSystemsData] = useState<SystemRecord[]>([]);
   const [exporting, setExporting] = useState<string | null>(null); // 正在导出的表（table.id）
 
-  // 用 Spark 查询某表数据并下载为 CSV
+  // 用 Spark 查询某表数据并下载为 CSV（导出 key 用 schema+table 组合，避免 table.id 缺失/重复）
   const exportTableCsv = async (schema: any, table: any) => {
-    if (exporting) return;
     const tableName = table.name;
+    const key = `${schema.id}|${tableName}`;
+    if (exporting === key) return;
     const db = schema.name || '';
     const sql = `SELECT * FROM ${db}.archive.${tableName}`;
-    setExporting(table.id);
+    setExporting(key);
     try {
       const res = await sparkExecuteQuery({ systemId: schema.systemId, database: db, sql, page: 1, pageSize: 5000 });
       const columns: string[] = res?.columns ?? [];
@@ -224,7 +225,7 @@ export default function SchemasPage() {
                               title={`导出 ${table.name} 为 CSV`}
                               className="p-1.5 rounded text-neutral-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
                             >
-                              {exporting === table.id ? <Loader2 size={14} className="animate-spin text-primary-500" /> : <Download size={14} />}
+                              {exporting === `${schema.id}|${table.name}` ? <Loader2 size={14} className="animate-spin text-primary-500" /> : <Download size={14} />}
                             </button>
                           </td>
                         </tr>
