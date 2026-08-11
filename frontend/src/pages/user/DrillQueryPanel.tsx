@@ -48,9 +48,7 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [drillTree, setDrillTree] = useState<DrillNode[]>([]);
-  // 展开状态：主表行默认展开（有明细时），collapsedRows 记录用户手动收起的主表行
-  const [collapsedRows, setCollapsedRows] = useState<Set<string>>(new Set());
-  // 子级展开态用 expanded
+  // 展开状态：主表行 order_id -> true；子级用 key
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   // 筛选：编辑态 + 已应用态
   const [draftFilters, setDraftFilters] = useState<FilterCond[]>([]);
@@ -409,20 +407,12 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
                 ) : (
                   mainRows.map((row, i) => {
                     const rowKey = String(i);
-                    // 有明细时默认展开；用户点查看明细/箭头则切换收起状态
-                    const isOpen = drillTree.length > 0 && !collapsedRows.has(rowKey);
-                    const toggleMain = () => {
-                      setCollapsedRows((prev) => {
-                        const next = new Set(prev);
-                        if (next.has(rowKey)) next.delete(rowKey); else next.add(rowKey);
-                        return next;
-                      });
-                    };
+                    const isOpen = expanded.has(rowKey);
                     return (
                       <Fragment key={rowKey}>
                         <tr className="hover:bg-neutral-50/50">
                           <td className="px-4 py-3">
-                            <button onClick={toggleMain} className="text-neutral-400 hover:text-primary-500">
+                            <button onClick={() => toggle(rowKey)} className="text-neutral-400 hover:text-primary-500">
                               {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                             </button>
                           </td>
@@ -432,8 +422,8 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
                             </td>
                           ))}
                           <td className="px-4 py-3 text-right whitespace-nowrap">
-                            <Button size="sm" variant="outline" icon={<Layers size={13} />} onClick={toggleMain}>
-                              {isOpen ? '收起明细' : '查看明细'}
+                            <Button size="sm" variant="outline" icon={<Layers size={13} />} onClick={() => toggle(rowKey)}>
+                              查看明细
                             </Button>
                             <Button
                               size="sm"
