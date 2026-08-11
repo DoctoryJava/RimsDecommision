@@ -16,6 +16,7 @@ import {
 } from '@/lib/api';
 import { buildMainQuerySql } from '@/lib/sqlBuilder';
 import { setDrillTarget } from '@/lib/queryNav';
+import { maskValue } from '@/lib/mask';
 import type { PageKey } from '@/components/layout/Sidebar';
 
 interface QueryConfigsPageProps {
@@ -263,7 +264,7 @@ export default function QueryConfigsPage({ onNavigate }: QueryConfigsPageProps) 
                           <span key={f.id} className={`text-xs px-2 py-1 rounded-md font-mono ${f.visible ? 'bg-primary-50 text-primary-700' : 'bg-neutral-100 text-neutral-400 line-through'}`}>
                             {f.alias}
                             {f.filterable && <span className="ml-1 text-primary-400">🔍</span>}
-                            {f.sortable && <span className="ml-1 text-accent-500">↕</span>}
+                            {f.masked && <span className="ml-1 text-error-500">🔒</span>}
                           </span>
                         ))}
                       </div>
@@ -317,9 +318,9 @@ function ConfigEditorModal({ config, tables, isNew = false, onSave, onClose }: {
       alias: '',
       table: draft.baseTable,
       column: '',
-      sortable: false,
       filterable: false,
       visible: true,
+      masked: false,
     };
     setDraft({ ...draft, fields: [...draft.fields, newField] });
   };
@@ -569,8 +570,8 @@ function ConfigEditorModal({ config, tables, isNew = false, onSave, onClose }: {
                   <label className="flex items-center gap-1 text-xs text-neutral-600 cursor-pointer">
                     <input type="checkbox" checked={field.filterable} onChange={(e) => updateField(field.id, { filterable: e.target.checked })} className="w-3.5 h-3.5 rounded text-primary-500" /> 筛选
                   </label>
-                  <label className="flex items-center gap-1 text-xs text-neutral-600 cursor-pointer">
-                    <input type="checkbox" checked={field.sortable} onChange={(e) => updateField(field.id, { sortable: e.target.checked })} className="w-3.5 h-3.5 rounded text-primary-500" /> 排序
+                  <label className="flex items-center gap-1 text-xs text-neutral-600 cursor-pointer" title="查询结果对该字段做模糊打码（如手机号中间打码）">
+                    <input type="checkbox" checked={!!field.masked} onChange={(e) => updateField(field.id, { masked: e.target.checked })} className="w-3.5 h-3.5 rounded text-primary-500" /> 脱敏
                   </label>
                 </div>
                 <button onClick={() => removeField(field.id)} className="col-span-1 p-1.5 rounded text-neutral-400 hover:text-error-500 hover:bg-error-50 transition-colors justify-self-end">
@@ -956,7 +957,7 @@ function PreviewModal({ config, onClose }: { config: QueryConfig; onClose: () =>
                 <tr key={i} className="hover:bg-neutral-50/50">
                   {visibleFields.map((f) => (
                     <td key={f.id} className="px-3 py-2 text-xs text-neutral-700 whitespace-nowrap">
-                      {String(row[f.alias] ?? '—')}
+                      {f.masked ? maskValue(row[f.alias]) : String(row[f.alias] ?? '—')}
                     </td>
                   ))}
                 </tr>

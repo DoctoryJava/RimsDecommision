@@ -7,6 +7,7 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import PageHeader from '@/components/ui/PageHeader';
 import { getDrillConfigs, sparkExecuteQuery } from '@/lib/api';
+import { maskValue } from '@/lib/mask';
 
 // ===== 类型 =====
 export interface DrillNode {
@@ -53,6 +54,11 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
   const [draftFilters, setDraftFilters] = useState<FilterCond[]>([]);
   const [appliedFilters, setAppliedFilters] = useState<FilterCond[]>([]);
   const [showFilter, setShowFilter] = useState(false);
+
+  // 标记为脱敏的字段列名（alias 或 column）
+  const maskedCols = new Set(
+    (mainFields || []).filter((f: any) => f.masked).map((f: any) => f.alias || f.column),
+  );
 
   // 配置中标记为可筛选的字段
   const filterableFields = (mainFields || []).filter((f: any) => f.filterable);
@@ -323,7 +329,9 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
                             </button>
                           </td>
                           {mainCols.map((c) => (
-                            <td key={c} className="px-4 py-3 text-sm text-neutral-700 whitespace-nowrap">{row[c] === undefined || row[c] === null ? '—' : String(row[c])}</td>
+                            <td key={c} className="px-4 py-3 text-sm text-neutral-700 whitespace-nowrap">
+                              {maskedCols.has(c) ? maskValue(row[c]) : (row[c] === undefined || row[c] === null ? '—' : String(row[c]))}
+                            </td>
                           ))}
                           <td className="px-4 py-3 text-right">
                             {drillTree.length > 0 && (

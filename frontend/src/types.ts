@@ -159,9 +159,9 @@ export interface FieldMapping {
   alias: string;
   table: string;
   column: string;
-  sortable: boolean;
   filterable: boolean;
   visible: boolean;
+  masked?: boolean;
   options?: string[];
 }
 
