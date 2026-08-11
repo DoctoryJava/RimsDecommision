@@ -55,6 +55,30 @@ export default function DataSyncPage() {
     return `${n.toFixed(1)} ${units[i]}`;
   };
 
+  // 从真实同步任务统计 Databricks banner 数据
+  const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+  const isToday = (s?: string) => {
+    if (!s) return false;
+    const d = new Date(s);
+    return !isNaN(d.getTime()) && new Date(d).toLocaleDateString('en-CA') === todayStr;
+  };
+  const parseDurationSec = (d?: string): number => {
+    if (!d) return 0;
+    const m = d.match(/([\d.]+)\s*s/);
+    return m ? parseFloat(m[1]) : 0;
+  };
+  const jobsToday = jobsData.filter((j) => isToday(j.startedAt));
+  const todayCount = jobsToday.length;
+  const durations = jobsToday.map((j) => parseDurationSec(j.duration)).filter((s) => s > 0);
+  const avgSec = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0;
+  const avgDurationStr = avgSec > 0
+    ? (avgSec >= 60 ? `${Math.floor(avgSec / 60)}m ${avgSec % 60}s` : `${avgSec}s`)
+    : '—';
+  const doneToday = jobsToday.filter((j) => j.status === 'success' || j.status === 'failed');
+  const successRate = doneToday.length
+    ? Math.round((jobsToday.filter((j) => j.status === 'success').length / doneToday.length) * 100)
+    : 0;
+
   // 数据全部来自后端
   useEffect(() => {
     getSyncJobs({ pageNum: 1, pageSize: 100 }).then((p: any) => { if(p?.list) setJobsData(p.list as SyncJob[]); }).catch(()=>{});
@@ -87,15 +111,15 @@ export default function DataSyncPage() {
           <div className="flex items-center gap-6">
             <div className="text-right">
               <p className="text-xs text-neutral-500">Jobs Today</p>
-              <p className="text-lg font-semibold text-white">12</p>
+              <p className="text-lg font-semibold text-white">{todayCount}</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-neutral-500">Avg Duration</p>
-              <p className="text-lg font-semibold text-white">8m 24s</p>
+              <p className="text-lg font-semibold text-white">{avgDurationStr}</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-neutral-500">Success Rate</p>
-              <p className="text-lg font-semibold text-secondary-400">83%</p>
+              <p className="text-lg font-semibold text-secondary-400">{successRate}%</p>
             </div>
             <Button variant="outline" size="sm" icon={<Settings size={14} />} className="border-neutral-700 text-neutral-300 hover:bg-neutral-800">Configure</Button>
           </div>
