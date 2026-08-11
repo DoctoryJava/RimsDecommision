@@ -26,6 +26,15 @@ export default function SchemasPage() {
   const totalTables = filteredSchemas.reduce((sum, s) => sum + s.tables.length, 0);
   const totalSize = filteredSchemas.reduce((sum, s) => sum + s.tables.reduce((ts, t) => ts + (t.sizeMB ?? 0), 0), 0);
 
+  // 按数量级动态显示大小（MB 为输入单位）：<1MB->KB, 1~1024MB->MB, ...->GB/TB
+  const formatSizeMB = (mb: number): string => {
+    if (!mb || mb < 0) return '0 B';
+    if (mb < 1) return `${(mb * 1024).toFixed(1)} KB`;
+    if (mb < 1024) return `${mb.toFixed(1)} MB`;
+    if (mb < 1024 * 1024) return `${(mb / 1024).toFixed(1)} GB`;
+    return `${(mb / (1024 * 1024)).toFixed(1)} TB`;
+  };
+
   return (
     <div className="p-6">
       {/* API Integration: this page now has backend /api/* ready, frontend will call via src/lib/api.ts with fallback to mockData */}
@@ -61,7 +70,7 @@ export default function SchemasPage() {
               <HardDrive size={20} className="text-accent-600" />
             </div>
             <div>
-              <p className="text-2xl font-semibold text-neutral-900">{(totalSize / 1024).toFixed(1)} GB</p>
+              <p className="text-2xl font-semibold text-neutral-900">{formatSizeMB(totalSize)}</p>
               <p className="text-xs text-neutral-500">Total Size</p>
             </div>
           </div>
@@ -150,7 +159,7 @@ export default function SchemasPage() {
                           </td>
                           <td className="px-5 py-3 text-sm text-neutral-500 text-right">{columns}</td>
                           <td className="px-5 py-3 text-sm text-neutral-500 text-right">{rows.toLocaleString()}</td>
-                          <td className="px-5 py-3 text-sm text-neutral-500 text-right">{sizeMB} MB</td>
+                          <td className="px-5 py-3 text-sm text-neutral-500 text-right">{formatSizeMB(sizeMB)}</td>
                           <td className="px-5 py-3 text-center">
                             {archived ? <Badge color="success" size="sm" dot>Archived</Badge> : <Badge color="warning" size="sm">Pending</Badge>}
                           </td>
