@@ -6,11 +6,8 @@ import {
   AlertTriangle,
   Clock,
   Database,
-  ChevronRight,
   ChevronDown,
-  Table2,
   HardDrive,
-  Download,
   Settings,
   Zap,
 } from 'lucide-react';
@@ -19,8 +16,8 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
-import type { SyncStatus, SyncJob, SchemaRecord, SystemRecord } from '@/types';
-import { getSystems, getSyncJobs, getSchemas, getSyncJobTableStats } from '@/lib/api';
+import type { SyncStatus, SyncJob, SystemRecord } from '@/types';
+import { getSystems, getSyncJobs, getSyncJobTableStats } from '@/lib/api';
 
 const syncStatusMap: Record<SyncStatus, { color: 'success' | 'warning' | 'error' | 'primary' | 'neutral'; label: string }> = {
   success: { color: 'success', label: 'Success' },
@@ -33,9 +30,7 @@ const syncStatusMap: Record<SyncStatus, { color: 'success' | 'warning' | 'error'
 // TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function DataSyncPage() {
   const [showSyncModal, setShowSyncModal] = useState(false);
-  const [expandedSchema, setExpandedSchema] = useState<string | null>(null);
   const [jobsData, setJobsData] = useState<SyncJob[]>([]);
-  const [schemasData, setSchemasData] = useState<SchemaRecord[]>([]);
   const [systemsData, setSystemsData] = useState<SystemRecord[]>([]);
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const [jobTables, setJobTables] = useState<any[]>([]);
@@ -63,7 +58,6 @@ export default function DataSyncPage() {
   // 数据全部来自后端
   useEffect(() => {
     getSyncJobs({ pageNum: 1, pageSize: 100 }).then((p: any) => { if(p?.list) setJobsData(p.list as SyncJob[]); }).catch(()=>{});
-    getSchemas().then((list: any) => { if(Array.isArray(list) && list.length) { setSchemasData(list as unknown as SchemaRecord[]); setExpandedSchema((list[0] as any).id); } }).catch(()=>{});
     getSystems({ pageNum: 1, pageSize: 100 }).then((p: any) => { if(p?.list) setSystemsData(p.list as SystemRecord[]); }).catch(()=>{});
   }, []);
 
@@ -187,79 +181,6 @@ export default function DataSyncPage() {
             })}
           </tbody>
         </table>
-      </Card>
-
-      {/* Schema browser */}
-      <Card className="overflow-hidden">
-        <div className="px-5 py-4 border-b border-neutral-100">
-          <h3 className="text-base font-semibold text-neutral-900">Schema Browser</h3>
-          <p className="text-xs text-neutral-500 mt-0.5">Browse synced schemas and tables across systems</p>
-        </div>
-        <div className="divide-y divide-neutral-100">
-          {schemasData.map((schema) => {
-            const isExpanded = expandedSchema === schema.id;
-            const system = systemsData.find((s) => s.id === schema.systemId);
-            return (
-              <div key={schema.id}>
-                <button
-                  onClick={() => setExpandedSchema(isExpanded ? null : schema.id)}
-                  className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-neutral-50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    {isExpanded ? <ChevronDown size={16} className="text-neutral-400" /> : <ChevronRight size={16} className="text-neutral-400" />}
-                    <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center">
-                      <Database size={16} className="text-primary-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-neutral-900 font-mono">{schema.name}</p>
-                      <p className="text-xs text-neutral-500">{system?.name} · {schema.tables.length} tables · synced {schema.syncedAt}</p>
-                    </div>
-                  </div>
-                  <Badge color="neutral" size="sm">{schema.tables.length} tables</Badge>
-                </button>
-                {isExpanded && (
-                  <div className="pl-16 pr-5 pb-3 animate-fade-in">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="text-xs text-neutral-500 border-b border-neutral-100">
-                          <th className="text-left py-2 font-medium">Table</th>
-                          <th className="text-right py-2 font-medium">Columns</th>
-                          <th className="text-right py-2 font-medium">Rows</th>
-                          <th className="text-right py-2 font-medium">Size</th>
-                          <th className="text-center py-2 font-medium">Status</th>
-                          <th className="text-right py-2 font-medium">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-neutral-50">
-                        {schema.tables.map((table) => (
-                          <tr key={table.id} className="hover:bg-neutral-50 transition-colors">
-                            <td className="py-2.5">
-                              <div className="flex items-center gap-2">
-                                <Table2 size={14} className="text-neutral-400" />
-                                <span className="text-sm font-mono text-neutral-700">{table.name}</span>
-                              </div>
-                            </td>
-                            <td className="py-2.5 text-sm text-neutral-500 text-right">{table.columns}</td>
-                            <td className="py-2.5 text-sm text-neutral-500 text-right">{table.rows.toLocaleString()}</td>
-                            <td className="py-2.5 text-sm text-neutral-500 text-right">{table.sizeMB} MB</td>
-                            <td className="py-2.5 text-center">
-                              {table.archived ? <Badge color="success" size="sm" dot>Archived</Badge> : <Badge color="neutral" size="sm">Pending</Badge>}
-                            </td>
-                            <td className="py-2.5 text-right">
-                              <button className="p-1.5 rounded text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors">
-                                <Download size={14} />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
       </Card>
 
       {/* Trigger Sync Modal */}
