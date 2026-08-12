@@ -39,6 +39,10 @@ public class SyncController {
             @RequestParam(required=false) String status,
             @RequestParam(required=false) String systemId) {
         LambdaQueryWrapper<RSyncJob> w = new LambdaQueryWrapper<>();
+        // 列表不需要大字段 logs，显式只查必要列，避免 filesort 加载 JSON 大字段
+        w.select(RSyncJob::getId, RSyncJob::getSystemId, RSyncJob::getSystemName, RSyncJob::getType,
+                RSyncJob::getStatus, RSyncJob::getStartedAt, RSyncJob::getDuration,
+                RSyncJob::getRecords, RSyncJob::getTriggeredBy, RSyncJob::getCreatedAt);
         if (status != null && !status.isBlank()) {
             w.eq(RSyncJob::getStatus, status);
         }
