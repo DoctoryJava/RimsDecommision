@@ -30,7 +30,6 @@
   .pill-both { background:rgba(245,158,11,.14); color:#fbbf24; border:1px solid rgba(245,158,11,.4); }
 
   .grid { display:grid; gap:16px; }
-  .g4 { grid-template-columns:repeat(4,1fr); }
   .g2 { grid-template-columns:1fr 1fr; }
   .card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:18px 20px; }
   .card h3 { font-size:14px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px; color:#fff; }
@@ -39,9 +38,6 @@
   .card li { font-size:12.5px; color:#c8d6ea; padding:4px 0; border-bottom:1px dashed rgba(255,255,255,.06); line-height:1.5; }
   .card li:last-child { border-bottom:none; }
   .card li b { color:#fff; font-weight:600; }
-
-  .stat-num { font-size:34px; font-weight:800; background:linear-gradient(120deg,#7db1ff,#4ed6a8); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .stat-label { color:#8aa0bb; font-size:11.5px; margin-top:2px; }
 
   .table-wrap { border:1px solid rgba(255,255,255,.08); border-radius:12px; overflow:hidden; background:rgba(255,255,255,.04); }
   table { width:100%; border-collapse:collapse; font-size:12px; }
@@ -83,7 +79,7 @@
   <div class="head">
     <div>
       <h1>RIMS Decommission · AI <span class="glow">协作开发</span>分析</h1>
-      <p class="sub">数据退役归档平台 · 后端 Java / 前端 React · 60+ 提交 · 16 个迁移 · 全流程人机协同</p>
+      <p class="sub">数据退役归档平台 · 后端 Java / 前端 React · 全流程人机协同</p>
     </div>
     <div class="pills">
       <span class="pill pill-ai">🤖 AI ≈ 70% 工作量</span>
@@ -92,21 +88,13 @@
     </div>
   </div>
 
-  <!-- 关键数字 -->
-  <div class="grid g4" style="margin-bottom:16px;">
-    <div class="card" style="text-align:center"><div class="stat-num">60+</div><div class="stat-label">功能/修复提交</div></div>
-    <div class="card" style="text-align:center"><div class="stat-num">16</div><div class="stat-label">Flyway 迁移</div></div>
-    <div class="card" style="text-align:center"><div class="stat-num">8+</div><div class="stat-label">核心模块</div></div>
-    <div class="card" style="text-align:center"><div class="stat-num">~70/30</div><div class="stat-label">AI/人 投入占比</div></div>
-  </div>
-
   <!-- AI vs 人 -->
   <div class="grid g2" style="margin-bottom:16px;">
     <div class="card">
       <h3><span class="ic" style="background:rgba(52,120,246,.2)">🤖</span>AI 承担</h3>
       <ul>
         <li><b>编码实现</b>：后端接口/实体/Mapper、前端页面/组件/样式</li>
-        <li><b>数据库设计</b>：表结构 + 16 个 Flyway 迁移</li>
+        <li><b>数据库设计</b>：表结构 + Flyway 迁移</li>
         <li><b>查询/同步</b>：SeaTunnel 同步、Spark SQL、字段/关联/下钻 SQL</li>
         <li><b>功能迭代</b>：下钻、审计、CSV 导出、脱敏、科技感 UI</li>
         <li><b>排错修复</b>：权限/排序内存/导出流/超时/大小统计等</li>
