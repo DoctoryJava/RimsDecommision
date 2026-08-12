@@ -130,6 +130,11 @@ export async function deleteRole(id: string) {
   const res = await api.delete<Result<null>>(`/roles/${id}`);
   return res.data;
 }
+// 更新角色与权限的关联（permissions: 权限 code 列表）
+export async function updateRolePermissions(id: string, permissions: string[]) {
+  const res = await api.put<Result<any>>(`/roles/${id}/permissions`, { permissions });
+  return (res.data as Result<any>).data;
+}
 
 // Permissions
 export async function getPermissions() {

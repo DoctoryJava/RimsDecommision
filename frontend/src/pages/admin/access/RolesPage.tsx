@@ -6,7 +6,7 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import PageHeader from '@/components/ui/PageHeader';
 import type { RoleCategory } from '@/types';
-import { getRoles, getPermissions } from '@/lib/api';
+import { getRoles, getPermissions, createRole, updateRole, updateRolePermissions, deleteRole } from '@/lib/api';
 
 const roleColorMap: Record<string, 'primary' | 'secondary' | 'accent' | 'warning' | 'error' | 'neutral'> = {
   primary: 'primary',
@@ -29,12 +29,17 @@ const colorBg: Record<string, string> = {
 // TODO Phase 1-5: replace mockData with api calls in useEffect (fallback to mock if API unreachable)
 export default function RolesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editRole, setEditRole] = useState<any | null>(null);
   const [activeTab, setActiveTab] = useState<RoleCategory>('admin');
   const [selectedRoleId, setSelectedRoleId] = useState<string>('');
   const [rolesData, setRolesData] = useState<any[]>([]);
   const [permsData, setPermsData] = useState<any[]>([]);
-  useEffect(() => {
+
+  const loadRoles = () => {
     getRoles().then((list: any) => { if(list?.length) setRolesData(list as any[]); }).catch(()=>{});
+  };
+  useEffect(() => {
+    loadRoles();
     getPermissions().then((list: any) => { if(list?.length) setPermsData(list as any[]); }).catch(()=>{});
   }, []);
 
@@ -155,9 +160,12 @@ export default function RolesPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" icon={<Pencil size={14} />}>Edit</Button>
+                <Button variant="outline" size="sm" icon={<Pencil size={14} />} onClick={() => setEditRole(selectedRole)}>Edit</Button>
                 {!selectedRole.isBuiltin && (
-                  <Button variant="danger" size="sm" icon={<Trash2 size={14} />}>Delete</Button>
+                  <Button variant="danger" size="sm" icon={<Trash2 size={14} />} onClick={async () => {
+                    if (!window.confirm(`确认删除角色 ${selectedRole.name}？`)) return;
+                    try { await deleteRole(selectedRole.id); loadRoles(); } catch (e: any) { window.alert('删除失败：' + (e?.message || '请稍后重试')); }
+                  }}>Delete</Button>
                 )}
               </div>
             </div>
@@ -215,70 +223,142 @@ export default function RolesPage() {
         </div>
       </div>
 
-      <Modal
-        open={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        title="Create New Role"
-        subtitle="Define a new role and assign permissions"
-        size="lg"
-        footer={
-          <>
-            <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
-            <Button>Create Role</Button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Role Category</label>
-            <div className="grid grid-cols-2 gap-2">
-              <label className="flex items-center gap-2.5 p-3 rounded-lg border border-neutral-200 hover:border-primary-300 hover:bg-primary-50/30 cursor-pointer transition-all has-[:checked]:border-primary-400 has-[:checked]:bg-primary-50">
-                <input type="radio" name="roleCategory" defaultChecked className="w-4 h-4 text-primary-500" />
+      {showAddModal && (
+        <RoleFormModal
+          mode="create"
+          permsData={permsData}
+          onClose={() => setShowAddModal(false)}
+          onSaved={async () => { setShowAddModal(false); loadRoles(); }}
+        />
+      )}
+
+      {editRole && (
+        <RoleFormModal
+          mode="edit"
+          role={editRole}
+          permsData={permsData}
+          onClose={() => setEditRole(null)}
+          onSaved={async () => { setEditRole(null); loadRoles(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+// 角色表单弹窗：新建 / 编辑（基本信息 + 权限关联）
+function RoleFormModal({
+  mode, role, permsData, onClose, onSaved,
+}: {
+  mode: 'create' | 'edit';
+  role?: any;
+  permsData: any[];
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const isCreate = mode === 'create';
+  const [name, setName] = useState(role?.name || '');
+  const [key, setKey] = useState(role?.key || role?.roleKey || '');
+  const [description, setDescription] = useState(role?.description || '');
+  const [category, setCategory] = useState<RoleCategory>(role?.category || 'admin');
+  const [permissions, setPermissions] = useState<string[]>(role?.permissions || []);
+  const [color, setColor] = useState(role?.color || 'primary');
+  const [saving, setSaving] = useState(false);
+
+  const togglePerm = (code: string) => {
+    setPermissions(prev => prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]);
+  };
+
+  const handleSave = async () => {
+    if (!name.trim() || !key.trim()) { window.alert('请填写角色名称和 Key'); return; }
+    setSaving(true);
+    try {
+      const base = { name, key, roleKey: key, description, category, color, userCount: role?.userCount || 0 };
+      if (isCreate) {
+        await createRole({ ...base, permissions, isBuiltin: false });
+      } else {
+        await updateRole(role.id, base);
+        await updateRolePermissions(role.id, permissions);
+      }
+      onSaved();
+    } catch (e: any) {
+      window.alert('保存失败：' + (e?.message || '请稍后重试'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={isCreate ? 'Create New Role' : `Edit Role: ${role?.name || ''}`}
+      subtitle={isCreate ? 'Define a new role and assign permissions' : '修改角色信息与权限关联'}
+      size="lg"
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button icon={<Pencil size={16} />} disabled={saving} onClick={handleSave}>
+            {isCreate ? 'Create Role' : 'Save Changes'}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 mb-1.5">Role Category</label>
+          <div className="grid grid-cols-2 gap-2">
+            {(['admin', 'tenant'] as const).map((cat) => (
+              <label key={cat} className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${category === cat ? 'border-primary-400 bg-primary-50' : 'border-neutral-200 hover:border-primary-300'}`}>
+                <input type="radio" checked={category === cat} onChange={() => setCategory(cat)} className="w-4 h-4 text-primary-500" />
                 <div>
-                  <p className="text-sm font-medium text-neutral-800">Platform Admin</p>
-                  <p className="text-xs text-neutral-500">Global access to all systems</p>
+                  <p className="text-sm font-medium text-neutral-800">{cat === 'admin' ? 'Platform Admin' : 'System Tenant'}</p>
+                  <p className="text-xs text-neutral-500">{cat === 'admin' ? 'Global access to all systems' : 'Scoped to assigned systems only'}</p>
                 </div>
               </label>
-              <label className="flex items-center gap-2.5 p-3 rounded-lg border border-neutral-200 hover:border-secondary-300 hover:bg-secondary-50/30 cursor-pointer transition-all has-[:checked]:border-secondary-400 has-[:checked]:bg-secondary-50">
-                <input type="radio" name="roleCategory" className="w-4 h-4 text-secondary-500" />
-                <div>
-                  <p className="text-sm font-medium text-neutral-800">System Tenant</p>
-                  <p className="text-xs text-neutral-500">Scoped to assigned systems only</p>
-                </div>
-              </label>
-            </div>
+            ))}
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Role Name</label>
-              <input type="text" placeholder="e.g. Data Analyst" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Role Key</label>
-              <input type="text" placeholder="e.g. data_analyst" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all font-mono" />
-            </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Role Name</label>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Data Analyst" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white focus:border-primary-400 outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Description</label>
-            <textarea rows={2} placeholder="Describe what this role can do..." className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all resize-none" />
+            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Role Key</label>
+            <input type="text" value={key} onChange={(e) => setKey(e.target.value)} placeholder="e.g. data_analyst" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white focus:border-primary-400 outline-none font-mono" />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">Permissions</label>
-            <div className="space-y-1.5 max-h-48 overflow-y-auto border border-neutral-200 rounded-lg p-3">
-              {permsData.map((perm) => (
-                <label key={perm.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-50 cursor-pointer transition-colors">
-                  <input type="checkbox" className="w-4 h-4 rounded border-neutral-300 text-primary-500 focus:ring-primary-200" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 mb-1.5">Description</label>
+          <textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe what this role can do..." className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white focus:border-primary-400 outline-none resize-none" />
+        </div>
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-sm font-medium text-neutral-700">Permissions</label>
+            <div className="flex items-center gap-2 text-xs">
+              <button type="button" onClick={() => setPermissions(permsData.map(p => p.code))} className="text-primary-500 hover:underline">全选</button>
+              <span className="text-neutral-300">·</span>
+              <button type="button" onClick={() => setPermissions([])} className="text-neutral-500 hover:underline">清空</button>
+              <Badge color="primary" size="sm">{permissions.length} 已选</Badge>
+            </div>
+          </div>
+          <div className="space-y-1.5 max-h-56 overflow-y-auto border border-neutral-200 rounded-lg p-3">
+            {permsData.map((perm) => {
+              const checked = permissions.includes(perm.code);
+              return (
+                <label key={perm.id} className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${checked ? 'bg-primary-50/60' : 'hover:bg-neutral-50'}`}>
+                  <input type="checkbox" checked={checked} onChange={() => togglePerm(perm.code)} className="w-4 h-4 rounded border-neutral-300 text-primary-500 focus:ring-primary-200" />
                   <div className="flex-1">
                     <p className="text-sm text-neutral-700">{perm.name}</p>
                     <p className="text-xs text-neutral-500 font-mono">{perm.code}</p>
                   </div>
                   <Badge color={perm.category === 'admin' ? 'primary' : 'secondary'} size="sm">{perm.category}</Badge>
                 </label>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
-      </Modal>
-    </div>
+      </div>
+    </Modal>
   );
 }
