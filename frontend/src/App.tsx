@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import Sidebar, { type PageKey, TopBar } from '@/components/layout/Sidebar';
+import { getUserInfo, getPages } from '@/lib/api';
 import LoginPage from '@/pages/auth/LoginPage';
 import DashboardPage from '@/pages/dashboard/DashboardPage';
 import SystemsPage from '@/pages/admin/systems/SystemsPage';
@@ -65,12 +66,43 @@ function pageFromHash(): PageKey {
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(() => !!localStorage.getItem('rims_token'));
   const [page, setPage] = useState<PageKey>(pageFromHash);
+  // 当前用户可见的页面 key 集合（由 r_page.visible_to 与用户角色决定）
+  const [visiblePages, setVisiblePages] = useState<Set<PageKey> | null>(null);
 
   // 若刷新后 token 仍在，保持登录态；也可在此预加载 user-info
   useEffect(() => {
     const token = localStorage.getItem('rims_token');
     if (token) setLoggedIn(true);
   }, []);
+
+  // 登录后按用户角色加载可见页面，驱动动态菜单
+  useEffect(() => {
+    if (!loggedIn) return;
+    let cancelled = false;
+    (async () => {
+      let roles: string[] = [];
+      try { const u = await getUserInfo(); roles = (u?.roles || []); } catch { /* 用空角色兜底 */ }
+      // roles 转小写，与 r_page.visible_to 中的 role_key 对齐
+      const lowerRoles = roles.map((r) => r.toLowerCase());
+      let pages: any[] = [];
+      try { pages = (await getPages()) || []; } catch { /* 加载失败则不限制 */ }
+      const allowed = new Set<PageKey>(Object.keys(routeByKey) as PageKey[]);
+      // 若无法确定用户角色（roles 为空），则不限制菜单，保证演示可用
+      if (lowerRoles.length > 0) {
+        pages.forEach((p) => {
+          const key = keyByRoute[p.path];
+          if (!key) return;
+          const visibleTo = p.visibleTo || [];
+          // 该页面对应菜单存在 r_page 配置且当前角色未命中 -> 隐藏；否则默认可见
+          const isVisible = visibleTo.length === 0
+            || visibleTo.some((r: string) => lowerRoles.includes(String(r).toLowerCase()));
+          if (!isVisible) allowed.delete(key);
+        });
+      }
+      if (!cancelled) setVisiblePages(allowed);
+    })();
+    return () => { cancelled = true; };
+  }, [loggedIn]);
 
   // 监听 hashchange，支持浏览器前进/后退与手动改地址
   useEffect(() => {
@@ -84,11 +116,12 @@ export default function App() {
     setPage(p);
   }, []);
 
-  const handleLogin = () => setLoggedIn(true);
+  const handleLogin = () => { setLoggedIn(true); setVisiblePages(null); };
   const handleLogout = () => {
     localStorage.removeItem('rims_token');
     localStorage.removeItem('rims_user');
     setLoggedIn(false);
+    setVisiblePages(null);
     window.location.hash = routeByKey.dashboard;
   };
 
@@ -98,7 +131,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-neutral-50 overflow-hidden">
-      <Sidebar current={page} onNavigate={navigate} onLogout={handleLogout} />
+      <Sidebar current={page} onNavigate={navigate} onLogout={handleLogout} visiblePages={visiblePages} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <TopBar title={pageTitles[page]} />
         <main className="flex-1 overflow-y-auto">

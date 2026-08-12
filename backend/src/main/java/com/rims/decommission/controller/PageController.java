@@ -30,6 +30,22 @@ public class PageController {
         return Result.success(query(role));
     }
 
+    /** 更新页面（可见角色 visibleTo / 启用状态）。 */
+    @PutMapping("/{id}")
+    public Result<Map<String,Object>> update(@PathVariable String id, @RequestBody Map<String,Object> body) {
+        RPage pg = mapper.selectById(id);
+        if (pg == null) return Result.fail(404, "页面不存在");
+        if (body.get("visibleTo") instanceof List<?> l) {
+            @SuppressWarnings("unchecked")
+            List<String> vt = (List<String>) l;
+            pg.setVisibleTo(vt);
+        }
+        if (body.get("enabled") instanceof Boolean b) pg.setEnabled(b ? 1 : 0);
+        if (body.get("sortOrder") instanceof Number n) pg.setSortOrder(n.intValue());
+        mapper.updateById(pg);
+        return Result.success(toMap(mapper.selectById(id)));
+    }
+
     @PutMapping("/order")
     public Result<List<Map<String,Object>>> order(@RequestBody Map<String,Object> body) {
         if (body.get("pages") instanceof List<?> pages) {

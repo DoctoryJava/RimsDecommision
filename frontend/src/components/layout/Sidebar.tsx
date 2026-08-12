@@ -43,6 +43,8 @@ interface SidebarProps {
   current: PageKey;
   onNavigate: (page: PageKey) => void;
   onLogout: () => void;
+  /** 当前用户可见的页面 key 集合；为 null 时显示全部（未加载完成或无需过滤） */
+  visiblePages?: Set<PageKey> | null;
 }
 
 type NavItem = { key: PageKey; label: string; icon: typeof LayoutDashboard; badge?: string };
@@ -110,8 +112,23 @@ const navSections: NavSection[] = [
   },
 ];
 
-export default function Sidebar({ current, onNavigate, onLogout }: SidebarProps) {
+export default function Sidebar({ current, onNavigate, onLogout, visiblePages }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+
+  // 根据用户可见页面过滤导航：过滤掉不可见的菜单项；空分组隐藏；空分区隐藏
+  const filteredSections = visiblePages
+    ? navSections
+        .map((section) => ({
+          ...section,
+          groups: section.groups
+            .map((group) => ({
+              ...group,
+              items: group.items.filter((item) => visiblePages.has(item.key)),
+            }))
+            .filter((group) => group.items.length > 0),
+        }))
+        .filter((section) => section.groups.length > 0)
+    : navSections;
 
   return (
     <aside
@@ -136,7 +153,7 @@ export default function Sidebar({ current, onNavigate, onLogout }: SidebarProps)
 
       {/* Navigation */}
       <nav className="relative flex-1 overflow-y-auto py-4 px-2.5">
-        {navSections.map((section) => {
+        {filteredSections.map((section) => {
           const SectionIcon = section.icon;
           return (
             <div key={section.title} className="mb-5">

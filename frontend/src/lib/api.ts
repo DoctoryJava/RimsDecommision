@@ -147,6 +147,10 @@ export async function getPages() {
   const res = await api.get<Result<any[]>>('/pages');
   return (res.data as Result<any[]>).data;
 }
+export async function updatePage(id: string, data: any) {
+  const res = await api.put<Result<any>>(`/pages/${id}`, data);
+  return (res.data as Result<any>).data;
+}
 
 // Dashboard
 export async function getSystemStats() {
