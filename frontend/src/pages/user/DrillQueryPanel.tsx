@@ -6,7 +6,7 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import PageHeader from '@/components/ui/PageHeader';
-import { getDrillConfigs, sparkExecuteQuery } from '@/lib/api';
+import { getDrillConfigs, sparkExecuteQuery, downloadAttachment } from '@/lib/api';
 import { maskValue } from '@/lib/mask';
 
 // ===== 类型 =====
@@ -56,11 +56,32 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
   const [showFilter, setShowFilter] = useState(false);
   // 正在下载的行（rowKey）
   const [downloadingRow, setDownloadingRow] = useState<string | null>(null);
+  // 正在下载的附件（key: rowKey|col）
+  const [downloadingAtt, setDownloadingAtt] = useState<string | null>(null);
 
   // 标记为脱敏的字段列名（alias 或 column）
   const maskedCols = new Set(
     (mainFields || []).filter((f: any) => f.masked).map((f: any) => f.alias || f.column),
   );
+  // 标记为附件的字段列名（alias 或 column）
+  const attachmentCols = new Set(
+    (mainFields || []).filter((f: any) => f.attachment).map((f: any) => f.alias || f.column),
+  );
+
+  // 下载附件：调后端接口按路径读文件流
+  const downloadFile = async (path: string, rowKey: string, col: string) => {
+    if (!path) return;
+    const key = `${rowKey}|${col}`;
+    if (downloadingAtt) return;
+    setDownloadingAtt(key);
+    try {
+      await downloadAttachment({ path, systemId });
+    } catch (e: any) {
+      window.alert('附件下载失败：' + (e?.message || '请稍后重试'));
+    } finally {
+      setDownloadingAtt(null);
+    }
+  };
 
   // 配置中标记为可筛选的字段
   const filterableFields = (mainFields || []).filter((f: any) => f.filterable);
@@ -416,11 +437,28 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
                               {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                             </button>
                           </td>
-                          {mainCols.map((c) => (
+                          {mainCols.map((c) => {
+                            const raw = row[c];
+                            const isAtt = attachmentCols.has(c) && raw !== undefined && raw !== null && String(raw).trim() !== '';
+                            return (
                             <td key={c} className="px-4 py-3 text-sm text-neutral-700 whitespace-nowrap">
-                              {maskedCols.has(c) ? maskValue(row[c]) : (row[c] === undefined || row[c] === null ? '—' : String(row[c]))}
+                              {isAtt ? (
+                                <div className="flex items-center gap-1.5">
+                                  <span className="truncate max-w-[180px] font-mono text-xs text-neutral-600">{String(raw)}</span>
+                                  <button
+                                    title={`下载 ${String(raw)}`}
+                                    onClick={() => downloadFile(String(raw), rowKey, c)}
+                                    className="p-1 rounded text-primary-500 hover:bg-primary-50 transition-colors shrink-0"
+                                  >
+                                    {downloadingAtt === `${rowKey}|${c}` ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                                  </button>
+                                </div>
+                              ) : (
+                                maskedCols.has(c) ? maskValue(raw) : (raw === undefined || raw === null ? '—' : String(raw))
+                              )}
                             </td>
-                          ))}
+                            );
+                          })}
                           <td className="px-4 py-3 text-right whitespace-nowrap">
                             <Button size="sm" variant="outline" icon={<Layers size={13} />} onClick={() => toggle(rowKey)}>
                               查看明细

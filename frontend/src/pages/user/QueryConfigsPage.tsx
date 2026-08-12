@@ -265,6 +265,7 @@ export default function QueryConfigsPage({ onNavigate }: QueryConfigsPageProps) 
                             {f.alias}
                             {f.filterable && <span className="ml-1 text-primary-400">🔍</span>}
                             {f.masked && <span className="ml-1 text-error-500">🔒</span>}
+                            {f.attachment && <span className="ml-1 text-accent-500">📎</span>}
                           </span>
                         ))}
                       </div>
@@ -321,6 +322,7 @@ function ConfigEditorModal({ config, tables, isNew = false, onSave, onClose }: {
       filterable: false,
       visible: true,
       masked: false,
+      attachment: false,
     };
     setDraft({ ...draft, fields: [...draft.fields, newField] });
   };
@@ -563,7 +565,7 @@ function ConfigEditorModal({ config, tables, isNew = false, onSave, onClose }: {
                   <option value="">列</option>
                   {getColumns(field.table).map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
                 </select>
-                <div className="col-span-3 flex items-center gap-2">
+                <div className="col-span-3 flex items-center gap-2 flex-wrap">
                   <label className="flex items-center gap-1 text-xs text-neutral-600 cursor-pointer">
                     <input type="checkbox" checked={field.visible} onChange={(e) => updateField(field.id, { visible: e.target.checked })} className="w-3.5 h-3.5 rounded text-primary-500" /> 显示
                   </label>
@@ -572,6 +574,9 @@ function ConfigEditorModal({ config, tables, isNew = false, onSave, onClose }: {
                   </label>
                   <label className="flex items-center gap-1 text-xs text-neutral-600 cursor-pointer" title="查询结果对该字段做模糊打码（如手机号中间打码）">
                     <input type="checkbox" checked={!!field.masked} onChange={(e) => updateField(field.id, { masked: e.target.checked })} className="w-3.5 h-3.5 rounded text-primary-500" /> 脱敏
+                  </label>
+                  <label className="flex items-center gap-1 text-xs text-neutral-600 cursor-pointer" title="该字段值是附件路径，查询结果里提供下载">
+                    <input type="checkbox" checked={!!field.attachment} onChange={(e) => updateField(field.id, { attachment: e.target.checked })} className="w-3.5 h-3.5 rounded text-primary-500" /> 附件
                   </label>
                 </div>
                 <button onClick={() => removeField(field.id)} className="col-span-1 p-1.5 rounded text-neutral-400 hover:text-error-500 hover:bg-error-50 transition-colors justify-self-end">

@@ -204,6 +204,23 @@ export async function sparkExportCsv(data: any): Promise<void> {
   URL.revokeObjectURL(url);
 }
 
+// 下载本地附件（后端按路径读文件流）；返回文件名供前端命名
+export async function downloadAttachment(data: any): Promise<void> {
+  const res = await api.post('/attachments/download', data, { responseType: 'blob' });
+  const blob = res.data as Blob;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  // 从路径取文件名
+  const p = data.path || '';
+  const name = p.split(/[\\/]/).pop() || 'attachment';
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 // Schemas
 export async function getSchemas(params: any = {}) {
   const res = await api.get<Result<any[]>>('/schemas', { params });

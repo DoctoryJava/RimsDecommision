@@ -162,6 +162,7 @@ export interface FieldMapping {
   filterable: boolean;
   visible: boolean;
   masked?: boolean;
+  attachment?: boolean;  // 该字段值是附件路径，查询结果里提供下载
   options?: string[];
 }
 
