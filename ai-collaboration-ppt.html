@@ -69,13 +69,34 @@
   .sec-title { font-size:22px; font-weight:800; margin-bottom:4px; }
   .sec-sub { color:#8aa0bb; font-size:13px; margin-bottom:14px; }
   .cat-cell { font-weight:700; color:#fff; white-space:nowrap; font-size:12px; line-height:1.5; }
+
+  /* ===== PPT 分页 ===== */
+  .deck { position:relative; }
+  .slide { display:none; }
+  .slide.active { display:block; animation:fadeSlide .45s ease; }
+  @keyframes fadeSlide { from { opacity:0; transform:translateX(30px); } to { opacity:1; transform:none; } }
+
+  .nav-bar { display:flex; align-items:center; justify-content:center; gap:18px; margin-top:26px; }
+  .nav-btn {
+    width:44px; height:44px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.05); color:#e5edf8; cursor:pointer; font-size:20px;
+    display:flex; align-items:center; justify-content:center; transition:.2s; user-select:none;
+  }
+  .nav-btn:hover { background:rgba(52,120,246,.25); border-color:rgba(52,120,246,.6); }
+  .nav-btn:disabled { opacity:.3; cursor:default; }
+  .dots { display:flex; gap:9px; }
+  .dot-s { width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,.18); cursor:pointer; transition:.3s; }
+  .dot-s.on { background:var(--p2,#22d3ee); box-shadow:0 0 9px rgba(34,211,238,.7); }
+  .page-label { font-size:13px; color:#8aa0bb; min-width:44px; text-align:center; font-family:ui-monospace,monospace; }
 </style>
 </head>
 <body>
 <div class="topline"></div>
 <div class="wrap">
+  <div class="deck" id="deck">
 
   <!-- 标题 -->
+  <section class="slide" data-title="总览">
   <div class="head">
     <div>
       <h1>RIMS Decommission · AI <span class="glow">协作开发</span>分析</h1>
@@ -87,9 +108,18 @@
       <span class="pill pill-both">🔁 全程协同</span>
     </div>
   </div>
+  <div class="card" style="margin-top:8px; text-align:center; padding:36px 24px;">
+    <div style="font-size:16px; color:#c8d6ea; line-height:1.9;">
+      <b style="color:#7db1ff">AI 负责“怎么写”</b>（编码 / 设计 / 排错）　·　<b style="color:#4ed6a8">人负责“为什么 / 对不对”</b>（决策 / 环境 / 验收）<br>
+      <span style="color:#8aa0bb; font-size:14px;">一个需求往往一轮对话即可落地可用 —— 人机协作的价值在于：<b style="color:#fbbf24">AI 提速，人掌舵</b>。</span>
+    </div>
+  </div>
+  </section>
 
   <!-- AI vs 人 -->
-  <div class="grid g2" style="margin-bottom:16px;">
+  <section class="slide" data-title="分工">
+  <div class="sec-title">🤖 AI vs 人 · 分工</div>
+  <div class="grid g2">
     <div class="card">
       <h3><span class="ic" style="background:rgba(52,120,246,.2)">🤖</span>AI 承担</h3>
       <ul>
@@ -110,9 +140,12 @@
       </ul>
     </div>
   </div>
+  </section>
 
   <!-- 多维时间表 -->
-  <div class="table-wrap" style="margin-bottom:16px;">
+  <section class="slide" data-title="时间投入">
+  <div class="sec-title">📊 多维时间投入</div>
+  <div class="table-wrap">
     <table>
       <thead>
         <tr><th>维度</th><th>子项</th><th style="width:22%">AI 时间</th><th style="width:22%">人工时间</th><th style="width:18%">合计占比</th></tr>
@@ -129,8 +162,11 @@
       </tbody>
     </table>
   </div>
+  </section>
 
   <!-- 协作模式 + 占比 -->
+  <section class="slide" data-title="协作模式">
+  <div class="sec-title">🔁 协作模式 & 投入占比</div>
   <div class="grid g2">
     <div class="card">
       <h3><span class="ic" style="background:rgba(52,120,246,.2)">🔁</span>协作模式</h3>
@@ -155,10 +191,10 @@
       <p style="font-size:13px; color:#c8d6ea; line-height:1.6">结论：<b style="color:#7db1ff">AI 提速、人掌舵</b> —— 把人力从写代码中解放出来，投入到决策、环境与验证。</p>
     </div>
   </div>
-
-  <div class="divider" style="margin:28px 0"></div>
+  </section>
 
   <!-- ============ 功能实现对照表 ============ -->
+  <section class="slide" data-title="功能对照">
   <div class="sec-title">📋 功能实现对照表</div>
   <p class="sec-sub">对照规划蓝图，逐项核对当前系统是否已实现 —— 覆盖数据迁移 / 接入 / 归档 / 存储安全 / 检索 / 合规审计 / 集成 / 治理。</p>
   <div class="legend-impl">
@@ -219,7 +255,50 @@
     统计：<b style="color:#4ed6a8">已实现 8 项</b> · <b style="color:#fbbf24">部分实现 6 项</b> · <b style="color:#f87171">未实现 8 项</b>
     &nbsp;|&nbsp; 核心检索 / 导出 / 脱敏 / 审计 / 用户权限已可用，迁移治理、归档转换、存储安全与连接器等模块待完善。
   </div>
+  </section>
+
+  </div><!-- /deck -->
+
+  <!-- PPT 导航 -->
+  <div class="nav-bar">
+    <button class="nav-btn" id="prev" aria-label="上一页">‹</button>
+    <div class="dots" id="dots"></div>
+    <span class="page-label" id="pageLabel">1 / 5</span>
+    <button class="nav-btn" id="next" aria-label="下一页">›</button>
+  </div>
 
 </div>
+<script>
+  const slides = Array.from(document.querySelectorAll('#deck .slide'));
+  const dotsWrap = document.getElementById('dots');
+  const pageLabel = document.getElementById('pageLabel');
+  let cur = 0;
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot-s' + (i === 0 ? ' on' : '');
+    d.addEventListener('click', () => go(i));
+    dotsWrap.appendChild(d);
+  });
+  const dotEls = Array.from(dotsWrap.children);
+
+  function go(i) {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, idx) => s.classList.toggle('active', idx === cur));
+    dotEls.forEach((d, idx) => d.classList.toggle('on', idx === cur));
+    pageLabel.textContent = (cur + 1) + ' / ' + slides.length;
+    document.getElementById('prev').disabled = cur === 0;
+    document.getElementById('next').disabled = cur === slides.length - 1;
+  }
+  document.getElementById('next').addEventListener('click', () => go(cur + 1));
+  document.getElementById('prev').addEventListener('click', () => go(cur - 1));
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(cur - 1); }
+    if (e.key === 'Home') go(0);
+    if (e.key === 'End') go(slides.length - 1);
+  });
+  go(0);
+</script>
 </body>
 </html>
