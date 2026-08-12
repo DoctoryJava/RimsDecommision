@@ -3,424 +3,160 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RIMS Decommission · AI 协作分析报告</title>
+<title>RIMS Decommission · AI 协作分析</title>
 <style>
-  :root {
-    --primary: #3478f6;
-    --primary-2: #22d3ee;
-    --secondary: #10b981;
-    --accent: #f59e0b;
-    --error: #ef4444;
-    --bg: #0b1220;
-    --bg-2: #070d1a;
-    --card: rgba(255,255,255,0.04);
-    --card-border: rgba(255,255,255,0.08);
-    --text: #e5edf8;
-    --muted: #8aa0bb;
-  }
   * { margin:0; padding:0; box-sizing:border-box; }
-  html,body { height:100%; }
   body {
-    font-family: 'Inter','Segoe UI','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
-    background: radial-gradient(1200px 600px at 110% -10%, rgba(52,120,246,0.18), transparent 60%),
-                radial-gradient(900px 500px at -20% 110%, rgba(16,185,129,0.12), transparent 55%),
-                linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
-    color: var(--text);
-    overflow:hidden;
-  }
-  .grid-overlay {
-    position: fixed; inset:0; pointer-events:none;
-    background-image:
-      linear-gradient(rgba(148,163,184,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(148,163,184,0.04) 1px, transparent 1px);
-    background-size: 32px 32px;
+    font-family:'Inter','Segoe UI','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+    min-height:100vh; padding:34px 40px;
+    background: radial-gradient(1000px 500px at 110% -10%, rgba(52,120,246,.16), transparent 60%),
+                radial-gradient(800px 400px at -20% 110%, rgba(16,185,129,.10), transparent 55%),
+                linear-gradient(180deg,#0b1220,#070d1a);
+    color:#e5edf8;
+    overflow-x:auto;
   }
   .topline { position:fixed; top:0; left:0; right:0; height:1px;
-    background: linear-gradient(90deg, transparent, rgba(52,120,246,0.9), rgba(16,185,129,0.6), transparent); }
+    background:linear-gradient(90deg,transparent,rgba(52,120,246,.9),rgba(16,185,129,.6),transparent); }
+  .wrap { max-width:1500px; margin:0 auto; }
 
-  /* 幻灯片容器 */
-  .deck { position:relative; width:100vw; height:100vh; }
-  .slide {
-    position:absolute; inset:0; padding:7vh 8vw;
-    display:none; flex-direction:column; justify-content:center;
-    opacity:0; transform:translateY(24px);
-  }
-  .slide.active { display:flex; animation: slideIn .5s ease forwards; }
-  @keyframes slideIn { to { opacity:1; transform:none; } }
-
-  /* 排版 */
-  .kicker {
-    display:inline-flex; align-items:center; gap:8px;
-    font-size:12px; letter-spacing:.22em; text-transform:uppercase;
-    color:var(--primary-2); margin-bottom:18px; font-weight:600;
-  }
-  .kicker::before { content:''; width:26px; height:1px; background:linear-gradient(90deg,var(--primary-2),transparent); }
-  h1 { font-size:56px; font-weight:800; letter-spacing:-.02em; line-height:1.12; }
-  h2 { font-size:38px; font-weight:800; letter-spacing:-.01em; margin-bottom:6px; }
-  .sub { color:var(--muted); font-size:17px; margin-top:14px; max-width:70%; line-height:1.7; }
-  .glow { background:linear-gradient(120deg,#599dff,#22d3ee 60%,#34d399); -webkit-background-clip:text; background-clip:text; color:transparent; }
-
-  .slide-head { margin-bottom:34px; }
-  .slide-head .sub { font-size:15px; margin-top:6px; }
-
-  .pill { display:inline-block; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:600; }
+  .head { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:20px; }
+  .head h1 { font-size:30px; font-weight:800; letter-spacing:-.01em; }
+  .head h1 .glow { background:linear-gradient(120deg,#599dff,#22d3ee 60%,#34d399); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .head .sub { color:#8aa0bb; font-size:13px; margin-top:5px; }
+  .pills { display:flex; gap:8px; flex-wrap:wrap; }
+  .pill { display:inline-block; padding:3px 11px; border-radius:999px; font-size:11px; font-weight:600; }
   .pill-ai { background:rgba(52,120,246,.16); color:#7db1ff; border:1px solid rgba(52,120,246,.4); }
   .pill-human { background:rgba(16,185,129,.14); color:#4ed6a8; border:1px solid rgba(16,185,129,.4); }
   .pill-both { background:rgba(245,158,11,.14); color:#fbbf24; border:1px solid rgba(245,158,11,.4); }
 
   .grid { display:grid; gap:16px; }
+  .g4 { grid-template-columns:repeat(4,1fr); }
   .g2 { grid-template-columns:1fr 1fr; }
-  .g3 { grid-template-columns:repeat(3,1fr); }
-  .card {
-    background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:22px;
-    backdrop-filter:blur(6px);
-  }
-  .card h3 { font-size:16px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:9px; }
-  .card h3 .ic { width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:13px; }
+  .card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:18px 20px; }
+  .card h3 { font-size:14px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px; color:#fff; }
+  .card h3 .ic { width:24px; height:24px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:12px; }
   .card ul { list-style:none; }
-  .card li { font-size:13.5px; color:#c8d6ea; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,.06); line-height:1.55; }
+  .card li { font-size:12.5px; color:#c8d6ea; padding:4px 0; border-bottom:1px dashed rgba(255,255,255,.06); line-height:1.5; }
   .card li:last-child { border-bottom:none; }
   .card li b { color:#fff; font-weight:600; }
-  .count { font-size:13px; color:var(--muted); margin-top:10px; }
-  .accent-num { font-size:42px; font-weight:800; background:linear-gradient(120deg,#7db1ff,#4ed6a8); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .stat-label { color:var(--muted); font-size:13px; margin-top:2px; }
 
-  /* 表格 */
-  .table-wrap { border:1px solid var(--card-border); border-radius:14px; overflow:hidden; background:var(--card); }
-  table { width:100%; border-collapse:collapse; font-size:13.5px; }
-  thead th { text-align:left; padding:12px 16px; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); background:rgba(255,255,255,.03); border-bottom:1px solid var(--card-border); }
-  tbody td { padding:11px 16px; border-bottom:1px solid rgba(255,255,255,.05); vertical-align:top; color:#d6e2f2; }
+  .stat-num { font-size:34px; font-weight:800; background:linear-gradient(120deg,#7db1ff,#4ed6a8); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .stat-label { color:#8aa0bb; font-size:11.5px; margin-top:2px; }
+
+  .table-wrap { border:1px solid rgba(255,255,255,.08); border-radius:12px; overflow:hidden; background:rgba(255,255,255,.04); }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  thead th { text-align:left; padding:9px 14px; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#8aa0bb; background:rgba(255,255,255,.03); border-bottom:1px solid rgba(255,255,255,.08); }
+  tbody td { padding:8px 14px; border-bottom:1px solid rgba(255,255,255,.05); color:#d6e2f2; vertical-align:top; }
   tbody tr:last-child td { border-bottom:none; }
-  tbody tr:hover { background:rgba(52,120,246,.05); }
-  td.mono, .mono { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:12.5px; }
+  .mono { font-family:ui-monospace,monospace; font-size:11.5px; }
 
-  /* 进度条 */
-  .bar { height:12px; border-radius:6px; background:rgba(255,255,255,.06); overflow:hidden; }
-  .bar-fill { height:100%; border-radius:6px; }
-  .bar-ai { background:linear-gradient(90deg,#3478f6,#22d3ee); box-shadow:0 0 12px rgba(52,120,246,.5); }
-  .bar-human { background:linear-gradient(90deg,#059669,#34d399); box-shadow:0 0 12px rgba(16,185,129,.5); }
-  .legend { display:flex; gap:22px; font-size:13px; color:var(--muted); margin-top:12px; }
-  .legend span { display:flex; align-items:center; gap:7px; }
-  .dot { width:10px; height:10px; border-radius:3px; display:inline-block; }
-
-  .foot { position:absolute; bottom:5.5vh; left:8vw; right:8vw; display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--muted); }
-  .pager { display:flex; align-items:center; gap:14px; }
-  .nav-btn { width:38px; height:38px; border-radius:10px; border:1px solid var(--card-border); background:rgba(255,255,255,.04); color:var(--text); cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; transition:.2s; }
-  .nav-btn:hover { background:rgba(52,120,246,.2); border-color:rgba(52,120,246,.5); }
-  .dots { display:flex; gap:8px; }
-  .dot-slide { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.18); transition:.3s; cursor:pointer; }
-  .dot-slide.on { background:var(--primary-2); box-shadow:0 0 8px rgba(34,211,238,.6); }
-
-  .divider { height:1px; background:linear-gradient(90deg,transparent,rgba(52,120,246,.5),transparent); margin:18px 0; }
-  .ai-badge { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#7db1ff; }
-  .human-badge { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#4ed6a8; }
+  .bar { height:9px; border-radius:5px; background:rgba(255,255,255,.06); overflow:hidden; margin:4px 0 8px; }
+  .bar-fill { height:100%; border-radius:5px; }
+  .bar-ai { background:linear-gradient(90deg,#3478f6,#22d3ee); }
+  .bar-human { background:linear-gradient(90deg,#059669,#34d399); }
+  .legend { display:flex; gap:16px; font-size:11.5px; color:#8aa0bb; margin-top:6px; }
+  .legend span { display:flex; align-items:center; gap:6px; }
+  .dot { width:9px; height:9px; border-radius:3px; display:inline-block; }
+  .tag { font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px; white-space:nowrap; }
+  .t-ai { background:rgba(52,120,246,.16); color:#7db1ff; }
+  .t-human { background:rgba(16,185,129,.14); color:#4ed6a8; }
+  .t-both { background:rgba(245,158,11,.14); color:#fbbf24; }
+  .divider { height:1px; background:linear-gradient(90deg,transparent,rgba(52,120,246,.5),transparent); margin:16px 0; }
 </style>
 </head>
 <body>
-<div class="grid-overlay"></div>
 <div class="topline"></div>
+<div class="wrap">
 
-<div class="deck" id="deck">
-
-  <!-- ============ Slide 1 封面 ============ -->
-  <section class="slide active" data-title="封面">
-    <span class="kicker">AI · Human Collaboration Analysis</span>
-    <h1>RIMS Decommission<br>AI <span class="glow">协作开发</span>分析报告</h1>
-    <p class="sub">数据退役 / 归档管理平台的开发过程复盘 —— 梳理在项目推进中 <b style="color:#7db1ff">AI 承担了什么</b>、<b style="color:#4ed6a8">人承担了什么</b>，以及两者在多个维度上的时间与工作量分布。</p>
-    <div style="margin-top:40px; display:flex; gap:14px; flex-wrap:wrap;">
-      <span class="pill pill-ai">AI 自动化开发</span>
-      <span class="pill pill-human">人工决策与配置</span>
-      <span class="pill pill-both">人机协作</span>
+  <!-- 标题 -->
+  <div class="head">
+    <div>
+      <h1>RIMS Decommission · AI <span class="glow">协作开发</span>分析</h1>
+      <p class="sub">数据退役归档平台 · 后端 Java / 前端 React · 60+ 提交 · 16 个迁移 · 全流程人机协同</p>
     </div>
-    <p class="sub" style="margin-top:34px; font-size:13px; color:#5f7392;">基于 60+ 次功能提交 · 全栈（后端 Java / 前端 React）· 数据库设计与 Flyway 迁移</p>
-  </section>
-
-  <!-- ============ Slide 2 项目概览 ============ -->
-  <section class="slide" data-title="项目概览">
-    <div class="slide-head">
-      <span class="kicker">01 · 项目概览</span>
-      <h2>我们做了什么</h2>
-      <p class="sub">一个数据退役归档平台：把源库数据通过 SeaTunnel 同步为 Iceberg 落盘，再用 Spark 查询，并提供下钻、导出、审计等能力。</p>
-    </div>
-    <div class="grid g3">
-      <div class="card">
-        <h3><span class="ic" style="background:rgba(52,120,246,.2)">🧊</span>数据接入</h3>
-        <ul>
-          <li>数据源管理（MySQL 连接）</li>
-          <li>SeaTunnel 全量同步 → Iceberg</li>
-          <li>表统计 / 表结构落库</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3><span class="ic" style="background:rgba(16,185,129,.2)">🔍</span>动态查询</h3>
-        <ul>
-          <li>Spark 执行 SQL 查 Iceberg</li>
-          <li>查询配置 + 字段映射 + 脱敏</li>
-          <li>多级关联明细下钻</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3><span class="ic" style="background:rgba(245,158,11,.2)">🛡️</span>治理能力</h3>
-        <ul>
-          <li>系统 / 用户 / 角色 / 权限</li>
-          <li>审计日志（查询 / ETL / 导出）</li>
-          <li>CSV 导出 · 科技感 UI</li>
-        </ul>
-      </div>
-    </div>
-    <div style="margin-top:22px; display:flex; gap:34px; flex-wrap:wrap;">
-      <div><div class="accent-num">60+</div><div class="stat-label">功能 / 修复提交</div></div>
-      <div><div class="accent-num">16</div><div class="stat-label">Flyway 迁移</div></div>
-      <div><div class="accent-num">8+</div><div class="stat-label">核心功能模块</div></div>
-    </div>
-  </section>
-
-  <!-- ============ Slide 3 整体分工概览 ============ -->
-  <section class="slide" data-title="分工概览">
-    <div class="slide-head">
-      <span class="kicker">02 · 分工概览</span>
-      <h2>AI 与人，各司其职</h2>
-    </div>
-    <div class="grid g2">
-      <div class="card">
-        <h3><span class="ic" style="background:rgba(52,120,246,.2)">🤖</span>AI 主要承担</h3>
-        <ul>
-          <li><b>编码实现</b>：后端接口、实体/Mapper、前端页面、样式</li>
-          <li><b>数据库设计</b>：表结构、Flyway 迁移 V1–V16</li>
-          <li><b>逻辑排错</b>：SQL 拼接、排序内存、导出流、超时等</li>
-          <li><b>快速迭代</b>：下钻、审计、导出、UI 美化</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3><span class="ic" style="background:rgba(16,185,129,.2)">🧑‍💻</span>人主要承担</h3>
-        <ul>
-          <li><b>需求与决策</b>：定方案、选型（SeaTunnel/Spark/JDK）</li>
-          <li><b>环境配置</b>：本地 SeaTunnel/Spark/DB、跑迁移</li>
-          <li><b>真实数据</b>：源库连接、同步、验证结果</li>
-          <li><b>测试反馈</b>：发现 bug、确认交互方向</li>
-        </ul>
-      </div>
-    </div>
-    <div class="divider"></div>
-    <div class="grid g3">
-      <div class="card" style="text-align:center">
-        <div class="accent-num">≈70%</div>
-        <div class="stat-label">工作量由 AI 承担</div>
-      </div>
-      <div class="card" style="text-align:center">
-        <div class="accent-num" style="background:linear-gradient(120deg,#4ed6a8,#34d399); -webkit-background-clip:text; background-clip:text;">≈30%</div>
-        <div class="stat-label">由人工承担</div>
-      </div>
-      <div class="card" style="text-align:center">
-        <div class="accent-num" style="background:linear-gradient(120deg,#fbbf24,#f59e0b); -webkit-background-clip:text; background-clip:text;">极高</div>
-        <div class="stat-label">协作密度（全程人机协同）</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ Slide 4 分工明细表 ============ -->
-  <section class="slide" data-title="分工明细表">
-    <div class="slide-head">
-      <span class="kicker">03 · 分工明细</span>
-      <h2>AI vs 人：做了什么</h2>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th style="width:14%">工作项</th><th style="width:33%">🤖 AI 负责</th><th style="width:33%">🧑‍💻 人负责</th><th style="width:20%">协作程度</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="mono">需求定义</td>
-            <td>把模糊需求拆成可实现的步骤、给出多方案（A/B/C）</td>
-            <td>定方向、拍板选型（行内下钻 / Command 下拉等）</td>
-            <td><span class="pill pill-both">高 · 共同</span></td>
-          </tr>
-          <tr>
-            <td class="mono">后端开发</td>
-            <td>Controller / Service / Entity / Mapper 全量编写</td>
-            <td>提供接口规格与业务约束</td>
-            <td><span class="pill pill-ai">AI 主导</span></td>
-          </tr>
-          <tr>
-            <td class="mono">数据库</td>
-            <td>表设计 + 16 个 Flyway 迁移（V1–V16）</td>
-            <td>在本地执行迁移、提供真实表统计</td>
-            <td><span class="pill pill-ai">AI 设计</span></td>
-          </tr>
-          <tr>
-            <td class="mono">数据同步</td>
-            <td>SeaTunnel 同步、Iceberg 落盘、表统计采集</td>
-            <td>配置 SEATUNNEL_HOME / 环境、跑真实同步</td>
-            <td><span class="pill pill-both">共同</span></td>
-          </tr>
-          <tr>
-            <td class="mono">查询引擎</td>
-            <td>Spark SQL 执行、字段/关联/下钻 SQL 生成</td>
-            <td>确认本地 Spark/JDK 环境</td>
-            <td><span class="pill pill-ai">AI 主导</span></td>
-          </tr>
-          <tr>
-            <td class="mono">前端 UI</td>
-            <td>页面、组件、样式、交互（含科技感美化）</td>
-            <td>给出视觉方向偏好、验收</td>
-            <td><span class="pill pill-ai">AI 主导</span></td>
-          </tr>
-          <tr>
-            <td class="mono">Bug 修复</td>
-            <td>定位并修复：权限报错、排序内存、导出流、脱敏等</td>
-            <td>运行报错并反馈日志 / 现象</td>
-            <td><span class="pill pill-both">共同</span></td>
-          </tr>
-          <tr>
-            <td class="mono">验收测试</td>
-            <td>类型检查 / 构建 / 边界逻辑核对</td>
-            <td>端到端验证、真实数据核对</td>
-            <td><span class="pill pill-both">共同</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- ============ Slide 5 时间投入 ============ -->
-  <section class="slide" data-title="时间投入">
-    <div class="slide-head">
-      <span class="kicker">04 · 时间投入</span>
-      <h2>AI 与人的时间分布</h2>
-      <p class="sub">按"负责主体"维度估算（总投入折算约 100%）。AI 承担编码/设计等大头，人主要投入在决策、配置与验证。</p>
-    </div>
-    <div class="grid g2">
-      <div class="card">
-        <h3>负责主体占比</h3>
-        <div style="margin-bottom:8px"><span class="ai-badge">🤖 AI</span></div>
-        <div class="bar"><div class="bar-fill bar-ai" style="width:70%"></div></div>
-        <div class="legend"><span><span class="dot" style="background:#22d3ee"></span>AI ≈ 70%</span><span><span class="dot" style="background:#34d399"></span>人 ≈ 30%</span></div>
-      </div>
-      <div class="card">
-        <h3>工作阶段占比</h3>
-        <ul>
-          <li><b>编码实现</b> —— AI 高投入 · 人验收（≈45%）</li>
-          <li><b>排错 / 修复</b> —— AI 分析、人复现（≈20%）</li>
-          <li><b>需求与设计</b> —— 人主导决策（≈15%）</li>
-          <li><b>环境配置 / 迁移</b> —— 人执行（≈12%）</li>
-          <li><b>测试验证</b> —— 人为主、AI 协助（≈8%）</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ Slide 6 多维时间表 ============ -->
-  <section class="slide" data-title="多维时间表">
-    <div class="slide-head">
-      <span class="kicker">05 · 多维拆解</span>
-      <h2>分维度时间表</h2>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>维度</th><th>子项</th><th style="width:26%">AI 时间</th><th style="width:26%">人工时间</th><th style="width:22%">合计占比</th></tr>
-        </thead>
-        <tbody>
-          <tr><td rowspan="3" class="mono">功能模块</td><td>后端 + 数据库</td><td>≈90%</td><td>≈10%（迁移执行）</td><td>≈35%</td></tr>
-          <tr><td>前端 UI + 交互</td><td>≈85%</td><td>≈15%（方向/验收）</td><td>≈25%</td></tr>
-          <tr><td>数据同步 / 查询</td><td>≈60%</td><td>≈40%（环境 + 真实数据）</td><td>≈20%</td></tr>
-          <tr><td rowspan="3" class="mono">工作类型</td><td>编码与实现</td><td>≈95%</td><td>≈5%</td><td>≈45%</td></tr>
-          <tr><td>排错 / 修复</td><td>≈70%</td><td>≈30%（复现反馈）</td><td>≈20%</td></tr>
-          <tr><td>决策 / 配置 / 验证</td><td>≈20%</td><td>≈80%</td><td>≈35%</td></tr>
-          <tr><td rowspan="2" class="mono">投入角色</td><td>设计（表 / 接口 / 交互）</td><td>≈75%</td><td>≈25%（把关）</td><td>≈30%</td></tr>
-          <tr><td>执行（写代码 / 跑任务）</td><td>≈70%</td><td>≈30%</td><td>≈70%</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- ============ Slide 7 协作模式 ============ -->
-  <section class="slide" data-title="协作模式">
-    <div class="slide-head">
-      <span class="kicker">06 · 协作模式</span>
-      <h2>如何高效协同</h2>
-    </div>
-    <div class="grid g2">
-      <div class="card">
-        <h3><span class="ic" style="background:rgba(52,120,246,.2)">🔁</span>“决策 → 实现 → 反馈”闭环</h3>
-        <ul>
-          <li>人：给出目标与约束，做关键决策</li>
-          <li>AI：把需求落成代码、表结构、页面</li>
-          <li>人：本地运行、验证、反馈报错 → AI 修复</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3><span class="ic" style="background:rgba(16,185,129,.2)">🧭</span>AI 擅长 / 人擅长</h3>
-        <ul>
-          <li><b>AI</b>：大量重复编码、SQL 生成、框架对接、样式细节</li>
-          <li><b>人</b>：真实环境、业务判断、数据核对、最终验收</li>
-          <li>互补点：AI 提速，人保证真实性与正确方向</li>
-        </ul>
-      </div>
-    </div>
-    <div class="divider"></div>
-    <div class="card">
-      <h3><span class="ic" style="background:rgba(245,158,11,.2)">📌</span>经验小结</h3>
-      <ul>
-        <li><b>环境类问题要靠人</b>：SeaTunnel / Spark / JDK / DB 白名单等，AI 给方案、人落地执行。</li>
-        <li><b>真实数据是校验尺</b>：行数 / 大小 / 同步结果由人提供，AI 据此修统计与逻辑。</li>
-        <li><b>迭代极快</b>：一个需求从提出到可用，往往只需“一轮人机对话”。</li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- ============ Slide 8 结尾 ============ -->
-  <section class="slide" data-title="结语">
-    <span class="kicker">07 · 结语</span>
-    <h1>AI 做 <span class="glow">“怎么写”</span><br>人做 <span class="glow">“为什么 / 对不对”</span></h1>
-    <p class="sub">在这个项目里，AI 承担了绝大多数编码、设计与排错，把人力从“写代码”中解放出来，投入到决策、环境与验证上 —— 这正是人机协作的最大价值：<b style="color:#7db1ff">AI 提速，人掌舵。</b></p>
-    <div style="margin-top:40px; display:flex; gap:14px; flex-wrap:wrap;">
-      <span class="pill pill-ai">AI：实现引擎</span>
-      <span class="pill pill-human">人：决策与验收</span>
-    </div>
-  </section>
-
-  <!-- 导航 -->
-  <div class="foot">
-    <div class="dots" id="dots"></div>
-    <div class="pager">
-      <span id="pageLabel">1 / 8</span>
-      <button class="nav-btn" id="prev">‹</button>
-      <button class="nav-btn" id="next">›</button>
+    <div class="pills">
+      <span class="pill pill-ai">🤖 AI ≈ 70% 工作量</span>
+      <span class="pill pill-human">🧑‍💻 人 ≈ 30% 工作量</span>
+      <span class="pill pill-both">🔁 全程协同</span>
     </div>
   </div>
+
+  <!-- 关键数字 -->
+  <div class="grid g4" style="margin-bottom:16px;">
+    <div class="card" style="text-align:center"><div class="stat-num">60+</div><div class="stat-label">功能/修复提交</div></div>
+    <div class="card" style="text-align:center"><div class="stat-num">16</div><div class="stat-label">Flyway 迁移</div></div>
+    <div class="card" style="text-align:center"><div class="stat-num">8+</div><div class="stat-label">核心模块</div></div>
+    <div class="card" style="text-align:center"><div class="stat-num">~70/30</div><div class="stat-label">AI/人 投入占比</div></div>
+  </div>
+
+  <!-- AI vs 人 -->
+  <div class="grid g2" style="margin-bottom:16px;">
+    <div class="card">
+      <h3><span class="ic" style="background:rgba(52,120,246,.2)">🤖</span>AI 承担</h3>
+      <ul>
+        <li><b>编码实现</b>：后端接口/实体/Mapper、前端页面/组件/样式</li>
+        <li><b>数据库设计</b>：表结构 + 16 个 Flyway 迁移</li>
+        <li><b>查询/同步</b>：SeaTunnel 同步、Spark SQL、字段/关联/下钻 SQL</li>
+        <li><b>功能迭代</b>：下钻、审计、CSV 导出、脱敏、科技感 UI</li>
+        <li><b>排错修复</b>：权限/排序内存/导出流/超时/大小统计等</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="ic" style="background:rgba(16,185,129,.2)">🧑‍💻</span>人承担</h3>
+      <ul>
+        <li><b>需求与决策</b>：定方案、选型（行内下钻 / Command 下拉 / JDK）</li>
+        <li><b>环境配置</b>：本地 SeaTunnel/Spark/JDK/DB、执行迁移</li>
+        <li><b>真实数据</b>：源库连接、同步、表统计核对</li>
+        <li><b>测试反馈</b>：复现报错、确认交互方向、端到端验收</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 多维时间表 -->
+  <div class="table-wrap" style="margin-bottom:16px;">
+    <table>
+      <thead>
+        <tr><th>维度</th><th>子项</th><th style="width:22%">AI 时间</th><th style="width:22%">人工时间</th><th style="width:18%">合计占比</th></tr>
+      </thead>
+      <tbody>
+        <tr><td rowspan="3" class="mono">功能模块</td><td>后端 + 数据库</td><td>≈90%</td><td>≈10%</td><td>≈35%</td></tr>
+        <tr><td>前端 UI + 交互</td><td>≈85%</td><td>≈15%</td><td>≈25%</td></tr>
+        <tr><td>数据同步 / 查询</td><td>≈60%</td><td>≈40%</td><td>≈20%</td></tr>
+        <tr><td rowspan="3" class="mono">工作类型</td><td>编码与实现</td><td>≈95%</td><td>≈5%</td><td>≈45%</td></tr>
+        <tr><td>排错 / 修复</td><td>≈70%</td><td>≈30%</td><td>≈20%</td></tr>
+        <tr><td>决策 / 配置 / 验证</td><td>≈20%</td><td>≈80%</td><td>≈35%</td></tr>
+        <tr><td rowspan="2" class="mono">投入角色</td><td>设计（表/接口/交互）</td><td>≈75%</td><td>≈25%</td><td>≈30%</td></tr>
+        <tr><td>执行（写代码/跑任务）</td><td>≈70%</td><td>≈30%</td><td>≈70%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 协作模式 + 占比 -->
+  <div class="grid g2">
+    <div class="card">
+      <h3><span class="ic" style="background:rgba(52,120,246,.2)">🔁</span>协作模式</h3>
+      <ul>
+        <li><b>决策 → 实现 → 反馈</b> 闭环：人定方向，AI 落地，人验证反馈</li>
+        <li><b>AI</b> 负责“怎么写”（编码/设计/排错），<b>人</b>负责“为什么/对不对”</li>
+        <li><b>环境与真实数据靠人</b>：AI 给方案，人执行迁移、连接、核对</li>
+        <li><b>迭代极快</b>：一个需求往往一轮对话即可落地可用</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="ic" style="background:rgba(245,158,11,.2)">📊</span>投入占比</h3>
+      <div style="font-size:12px; color:#8aa0bb; margin-bottom:2px">🤖 AI</div>
+      <div class="bar"><div class="bar-fill bar-ai" style="width:70%"></div></div>
+      <div style="font-size:12px; color:#8aa0bb; margin:8px 0 2px">🧑‍💻 人</div>
+      <div class="bar"><div class="bar-fill bar-human" style="width:30%"></div></div>
+      <div class="legend">
+        <span><span class="dot" style="background:#22d3ee"></span>AI ≈ 70%</span>
+        <span><span class="dot" style="background:#34d399"></span>人 ≈ 30%</span>
+      </div>
+      <div class="divider"></div>
+      <p style="font-size:13px; color:#c8d6ea; line-height:1.6">结论：<b style="color:#7db1ff">AI 提速、人掌舵</b> —— 把人力从写代码中解放出来，投入到决策、环境与验证。</p>
+    </div>
+  </div>
+
 </div>
-
-<script>
-  const slides = Array.from(document.querySelectorAll('.slide'));
-  const dotsWrap = document.getElementById('dots');
-  const pageLabel = document.getElementById('pageLabel');
-  let cur = 0;
-
-  slides.forEach((_, i) => {
-    const d = document.createElement('div');
-    d.className = 'dot-slide' + (i === 0 ? ' on' : '');
-    d.addEventListener('click', () => go(i));
-    dotsWrap.appendChild(d);
-  });
-  const dotEls = Array.from(dotsWrap.children);
-
-  function go(i) {
-    cur = Math.max(0, Math.min(slides.length - 1, i));
-    slides.forEach((s, idx) => s.classList.toggle('active', idx === cur));
-    dotEls.forEach((d, idx) => d.classList.toggle('on', idx === cur));
-    pageLabel.textContent = (cur + 1) + ' / ' + slides.length;
-  }
-  document.getElementById('next').addEventListener('click', () => go(cur + 1));
-  document.getElementById('prev').addEventListener('click', () => go(cur - 1));
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(cur + 1); }
-    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(cur - 1); }
-    if (e.key === 'Home') go(0);
-    if (e.key === 'End') go(slides.length - 1);
-  });
-  go(0);
-</script>
 </body>
 </html>
