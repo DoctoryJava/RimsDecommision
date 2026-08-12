@@ -62,6 +62,17 @@
   .t-human { background:rgba(16,185,129,.14); color:#4ed6a8; }
   .t-both { background:rgba(245,158,11,.14); color:#fbbf24; }
   .divider { height:1px; background:linear-gradient(90deg,transparent,rgba(52,120,246,.5),transparent); margin:16px 0; }
+
+  /* 功能实现状态 */
+  .st { display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .st-y { background:rgba(16,185,129,.16); color:#4ed6a8; border:1px solid rgba(16,185,129,.45); }
+  .st-p { background:rgba(245,158,11,.16); color:#fbbf24; border:1px solid rgba(245,158,11,.45); }
+  .st-n { background:rgba(239,68,68,.15); color:#f87171; border:1px solid rgba(239,68,68,.45); }
+  .legend-impl { display:flex; gap:16px; font-size:12px; color:#8aa0bb; margin-top:12px; flex-wrap:wrap; }
+  .legend-impl span { display:flex; align-items:center; gap:6px; }
+  .sec-title { font-size:22px; font-weight:800; margin-bottom:4px; }
+  .sec-sub { color:#8aa0bb; font-size:13px; margin-bottom:14px; }
+  .cat-cell { font-weight:700; color:#fff; white-space:nowrap; font-size:12px; line-height:1.5; }
 </style>
 </head>
 <body>
@@ -155,6 +166,70 @@
       <div class="divider"></div>
       <p style="font-size:13px; color:#c8d6ea; line-height:1.6">结论：<b style="color:#7db1ff">AI 提速、人掌舵</b> —— 把人力从写代码中解放出来，投入到决策、环境与验证。</p>
     </div>
+  </div>
+
+  <div class="divider" style="margin:28px 0"></div>
+
+  <!-- ============ 功能实现对照表 ============ -->
+  <div class="sec-title">📋 功能实现对照表</div>
+  <p class="sec-sub">对照规划蓝图，逐项核对当前系统是否已实现 —— 覆盖数据迁移 / 接入 / 归档 / 存储安全 / 检索 / 合规审计 / 集成 / 治理。</p>
+  <div class="legend-impl">
+    <span><span class="st st-y">✓ 已实现</span> 功能已可用</span>
+    <span><span class="st st-p">▲ 部分实现</span> 有关联能力，但非完整闭环</span>
+    <span><span class="st st-n">✗ 未实现</span> 尚未开发</span>
+  </div>
+  <div style="margin-top:14px"></div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th style="width:24%">功能大类</th><th>功能点</th><th style="width:13%">状态</th><th style="width:32%">说明 / 对应模块</th></tr>
+      </thead>
+      <tbody>
+        <tr><td rowspan="4" class="cat-cell">01 存量历史数据迁移与标准化</td>
+          <td>历史数据批量导入</td><td><span class="st st-p">▲ 部分</span></td><td>SeaTunnel 全量同步可批量入库，但无独立"历史导入"流程</td></tr>
+        <tr><td>迁移规则配置</td><td><span class="st st-n">✗ 未实现</span></td><td>无迁移规则配置界面</td></tr>
+        <tr><td>迁移任务管理</td><td><span class="st st-p">▲ 部分</span></td><td>Data Sync 同步任务管理已实现</td></tr>
+        <tr><td>迁移完整性校验</td><td><span class="st st-p">▲ 部分</span></td><td>同步表统计（行数/大小）有核对，无独立校验规则</td></tr>
+
+        <tr><td rowspan="2" class="cat-cell">02 实时数据接入与常态化数据治理</td>
+          <td>元数据标准与来源管理</td><td><span class="st st-p">▲ 部分</span></td><td>数据源管理 + Schema Browser 已实现</td></tr>
+        <tr><td>冷数据识别与接入</td><td><span class="st st-n">✗ 未实现</span></td><td>无冷数据识别逻辑</td></tr>
+
+        <tr><td rowspan="3" class="cat-cell">03 记录归档与档案全生命周期管理</td>
+          <td>标准归档模型管理</td><td><span class="st st-p">▲ 部分</span></td><td>Archive Artifacts 归档批次/集合已实现</td></tr>
+        <tr><td>标准归档转换与校验</td><td><span class="st st-n">✗ 未实现</span></td><td>无归档转换/校验流程</td></tr>
+        <tr><td>到期处置与 Legal Hold 管理</td><td><span class="st st-y">✓ 已实现</span></td><td>Retention &amp; Compliance（保留策略 + Hold/Release）</td></tr>
+
+        <tr><td rowspan="4" class="cat-cell">04 数据存储与境内数据安全管控</td>
+          <td>境内数据驻留管理</td><td><span class="st st-n">✗ 未实现</span></td><td>—</td></tr>
+        <tr><td>数据加密与密钥管理</td><td><span class="st st-n">✗ 未实现</span></td><td>—</td></tr>
+        <tr><td>数据备份与灾难恢复</td><td><span class="st st-n">✗ 未实现</span></td><td>—</td></tr>
+        <tr><td>字段级数据脱敏管理</td><td><span class="st st-y">✓ 已实现</span></td><td>查询配置 → 字段映射 → 脱敏</td></tr>
+
+        <tr><td rowspan="3" class="cat-cell">05 档案检索、智能发现与业务利用</td>
+          <td>基础档案检索</td><td><span class="st st-y">✓ 已实现</span></td><td>Dynamic Query（SQL / 关联明细下钻）</td></tr>
+        <tr><td>检索结果展示与预览</td><td><span class="st st-y">✓ 已实现</span></td><td>结果表格 / SQL 预览</td></tr>
+        <tr><td>检索结果导出</td><td><span class="st st-y">✓ 已实现</span></td><td>CSV 导出（后端流式，含明细下载）</td></tr>
+
+        <tr><td rowspan="1" class="cat-cell">06 合规管控、审计追踪与合规报表</td>
+          <td>用户操作审计追踪</td><td><span class="st st-y">✓ 已实现</span></td><td>Audit Log（查询 / ETL / 导出分类追踪）</td></tr>
+
+        <tr><td rowspan="4" class="cat-cell">07 多源系统集成与标准化连接器</td>
+          <td>多源数据连接管理</td><td><span class="st st-y">✓ 已实现</span></td><td>数据源管理（多源 MySQL + 连接测试）</td></tr>
+        <tr><td>集成标准与接口管理</td><td><span class="st st-n">✗ 未实现</span></td><td>—</td></tr>
+        <tr><td>连接器模板管理</td><td><span class="st st-n">✗ 未实现</span></td><td>—</td></tr>
+        <tr><td>连接器运行监控与审计</td><td><span class="st st-p">▲ 部分</span></td><td>同步任务运行监控已实现，非连接器级</td></tr>
+
+        <tr><td rowspan="1" class="cat-cell">08 系统全局治理、运维与监控</td>
+          <td>用户与角色管理</td><td><span class="st st-y">✓ 已实现</span></td><td>Users / Roles / Permissions / Pages</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:16px; font-size:12.5px; color:#8aa0bb; line-height:1.7;">
+    统计：<b style="color:#4ed6a8">已实现 8 项</b> · <b style="color:#fbbf24">部分实现 6 项</b> · <b style="color:#f87171">未实现 8 项</b>
+    &nbsp;|&nbsp; 核心检索 / 导出 / 脱敏 / 审计 / 用户权限已可用，迁移治理、归档转换、存储安全与连接器等模块待完善。
   </div>
 
 </div>
