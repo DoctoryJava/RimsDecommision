@@ -60,6 +60,33 @@ public class SyncTableConfigController {
         String sourceDbId = str(body.get("sourceDatabaseId"));
         String tableName = str(body.get("tableName"));
         if (sourceDbId == null || tableName == null) return Result.fail(400, "缺少源库ID或表名");
+        RSyncTableConfig c = upsert(body, sourceDbId, tableName);
+        return Result.success(toMap(c));
+    }
+
+    /** 批量保存某源库所有表的同步配置（一次接口调用）。 */
+    @PostMapping("/batch")
+    @Operation(summary = "批量保存某源库所有表的同步配置")
+    public Result<Integer> saveBatch(@RequestBody Map<String,Object> body) {
+        String sourceDbId = str(body.get("sourceDatabaseId"));
+        if (sourceDbId == null) return Result.fail(400, "缺少源库ID");
+        Object items = body.get("tables");
+        if (!(items instanceof List<?> list)) return Result.fail(400, "缺少表配置列表");
+        int count = 0;
+        for (Object o : list) {
+            if (!(o instanceof Map<?,?> m)) continue;
+            @SuppressWarnings("unchecked")
+            Map<String,Object> item = (Map<String,Object>) m;
+            String tableName = str(item.get("tableName"));
+            if (tableName == null || tableName.isBlank()) continue;
+            upsert(item, sourceDbId, tableName);
+            count++;
+        }
+        return Result.success(count);
+    }
+
+    /** 新增或更新某表配置，返回保存后的实体。 */
+    private RSyncTableConfig upsert(Map<String,Object> body, String sourceDbId, String tableName) {
         RSyncTableConfig c = mapper.selectOne(new LambdaQueryWrapper<RSyncTableConfig>()
                 .eq(RSyncTableConfig::getSourceDatabaseId, sourceDbId)
                 .eq(RSyncTableConfig::getTableName, tableName));
@@ -77,7 +104,7 @@ public class SyncTableConfigController {
         if (body.get("retainYears") instanceof Number n) c.setRetainYears(n.intValue());
         else if (body.get("retainYears") == null) c.setRetainYears(null);
         if (isNew) mapper.insert(c); else mapper.updateById(c);
-        return Result.success(toMap(mapper.selectById(c.getId())));
+        return c;
     }
 
     @DeleteMapping("/{id}")

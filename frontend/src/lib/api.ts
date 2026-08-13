@@ -192,6 +192,10 @@ export async function saveSyncTableConfig(data: any) {
   const res = await api.post<Result<any>>('/sync-table-configs', data);
   return (res.data as Result<any>).data;
 }
+export async function saveSyncTableConfigsBatch(sourceDatabaseId: string, tables: any[]) {
+  const res = await api.post<Result<any>>('/sync-table-configs/batch', { sourceDatabaseId, tables });
+  return (res.data as Result<any>).data;
+}
 export async function deleteSyncTableConfig(id: string) {
   const res = await api.delete<Result<null>>(`/sync-table-configs/${id}`);
   return res.data;

@@ -17,7 +17,7 @@ import {
   getSyncJobTableStats,
   checkAlreadySynced,
   getSyncTableConfigs,
-  saveSyncTableConfig,
+  saveSyncTableConfigsBatch,
 } from '@/lib/api';
 import type { PageKey } from '@/components/layout/Sidebar';
 
@@ -479,25 +479,20 @@ function TableConfigModal({ db, systemId, onClose }: { db: any; systemId: string
     setTables((prev) => prev.map((t) => t.tableName === tableName ? { ...t, ...patch } : t));
   };
 
-  // 一次性保存所有表
+  // 一次性保存所有表（只调一次批量接口，成功后关闭弹窗）
   const saveAll = async () => {
     setSaving(true); setMsg('');
     try {
-      for (const t of tables) {
-        await saveSyncTableConfig({
-          sourceDatabaseId: db.id,
-          systemId,
-          tableName: t.tableName,
-          enabled: t.enabled,
-          dateColumn: t.dateColumn || null,
-          retainYears: t.retainYears != null ? t.retainYears : null,
-        });
-      }
-      setMsg(`已保存全部 ${tables.length} 张表的配置`);
-      load();
+      const payload = tables.map((t) => ({
+        tableName: t.tableName,
+        enabled: t.enabled,
+        dateColumn: t.dateColumn || null,
+        retainYears: t.retainYears != null ? t.retainYears : null,
+      }));
+      await saveSyncTableConfigsBatch(db.id, payload);
+      onClose();
     } catch (e: any) {
       setMsg('保存失败：' + (e?.message || '请稍后重试'));
-    } finally {
       setSaving(false);
     }
   };
