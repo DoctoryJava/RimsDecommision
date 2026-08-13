@@ -1386,42 +1386,66 @@
                         <td>AKS 节点池按 VM 计费<br>+ 控制平面费用</td>
                         <td><strong>我方</strong>：集群运维、版本升级、应用发布</td>
                     </tr>
-                    <tr class="grp"><td colspan="7">④-1 .NET 后端子组件（参考 Demo 后端 Java 组件映射到 .NET 生产方案）</td></tr>
+                    <tr class="grp"><td colspan="7">④-1 .NET 后端子组件（.NET 生态常用框架/库）</td></tr>
                     <tr>
-                        <td><span class="ts-nm">ASP.NET Core</span><span class="ts-sub">Web API / 依赖注入 / 中间件</span></td>
+                        <td><span class="ts-nm">ASP.NET Core</span><span class="ts-sub">Web API / 依赖注入 / 中间件管线</span></td>
                         <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
                         <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
                         <td>随 .NET 运行时<br>开源免费</td><td><strong>我方</strong>：与主服务同池发布</td>
                     </tr>
                     <tr>
-                        <td><span class="ts-nm">EF Core + Pomelo.MySql</span><span class="ts-sub">ORM 数据访问层</span></td>
+                        <td><span class="ts-nm">Entity Framework Core</span><span class="ts-sub">ORM · 元数据/配置/审计表访问</span></td>
                         <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
                         <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
-                        <td>开源免费</td><td><strong>我方</strong>：与 Demo 的 MyBatis-Plus 对应</td>
+                        <td>开源免费</td><td><strong>我方</strong>：数据访问层；也可选 Dapper 微 ORM</td>
                     </tr>
                     <tr>
-                        <td><span class="ts-nm">EF Core Migrations</span><span class="ts-sub">数据库版本化迁移</span></td>
+                        <td><span class="ts-nm">EF Core Migrations</span><span class="ts-sub">Schema 版本化迁移</span></td>
                         <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
                         <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
-                        <td>开源免费</td><td><strong>我方</strong>：对应 Demo 的 Flyway</td>
+                        <td>开源免费</td><td><strong>我方</strong>：建表/变更用迁移脚本管理</td>
                     </tr>
                     <tr>
-                        <td><span class="ts-nm">JwtBearer 认证</span><span class="ts-sub">Microsoft.AspNetCore.Authentication.JwtBearer</span></td>
+                        <td><span class="ts-nm">Microsoft.AspNetCore.Authentication.JwtBearer</span><span class="ts-sub">JWT / Bearer 认证</span></td>
                         <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
                         <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
-                        <td>开源免费</td><td><strong>我方</strong>：对应 Demo 的 jjwt</td>
+                        <td>开源免费</td><td><strong>我方</strong>：登录签发与接口鉴权</td>
                     </tr>
                     <tr>
-                        <td><span class="ts-nm">Swashbuckle</span><span class="ts-sub">Swagger API 文档</span></td>
+                        <td><span class="ts-nm">Swashbuckle / NSwag</span><span class="ts-sub">Swagger OpenAPI 文档</span></td>
                         <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
                         <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
-                        <td>开源免费</td><td><strong>我方</strong>：对应 Demo 的 springdoc-openapi</td>
+                        <td>开源免费</td><td><strong>我方</strong>：API 文档与客户端生成</td>
                     </tr>
                     <tr>
-                        <td><span class="ts-nm">Azure.Storage.Blobs SDK</span><span class="ts-sub">ADLS/Blob 附件读写</span></td>
+                        <td><span class="ts-nm">Serilog</span><span class="ts-sub">结构化日志</span></td>
                         <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
                         <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
-                        <td>开源免费<br>走存储流量费</td><td><strong>我方</strong>：附件取流 / SAS 签发</td>
+                        <td>开源免费</td><td><strong>我方</strong>：结构化日志，对接 App Insights</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">Polly</span><span class="ts-sub">弹性与容错（重试/熔断/超时）</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费</td><td><strong>我方</strong>：调 Databricks/ADLS 的重试与熔断</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">Quartz.NET / Hangfire</span><span class="ts-sub">后台任务与调度</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费</td><td><strong>我方</strong>：销毁调度 / 到期扫描 / 定时任务</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">StackExchange.Redis</span><span class="ts-sub">Redis 客户端</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费<br>Redis 另按实例计费</td><td><strong>我方</strong>：Token / 元数据缓存</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">Azure SDK for .NET</span><span class="ts-sub">Azure.Identity / Storage.Blobs / KeyVault.Secrets</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费<br>走存储/密钥用量费</td><td><strong>我方</strong>：托管标识免密、附件读写、密钥托管</td>
                     </tr>
                     <tr>
                         <td><span class="ts-nm">Databricks .NET SDK</span><span class="ts-sub">Databricks.sdk</span></td>
@@ -1430,12 +1454,18 @@
                         <td>开源免费</td><td><strong>我方</strong>：写侧 Job / 查询调用（B2 全量用）</td>
                     </tr>
                     <tr>
-                        <td><span class="ts-nm">Microsoft.Extensions.Caching.StackExchangeRedis</span><span class="ts-sub">Redis 缓存</span></td>
+                        <td><span class="ts-nm">FluentValidation</span><span class="ts-sub">请求参数校验</span></td>
                         <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
                         <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
-                        <td>开源免费<br>Redis 另按实例计费</td><td><strong>我方</strong>：Token / 元数据缓存</td>
+                        <td>开源免费</td><td><strong>我方</strong>：DTO 入参校验</td>
                     </tr>
                     <tr>
+                        <td><span class="ts-nm">Mapster / AutoMapper</span><span class="ts-sub">对象映射</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费</td><td><strong>我方</strong>：实体 → DTO 映射</td>
+                    </tr>
+<tr>
                         <td><span class="ts-nm">Azure Application Insights</span><span class="ts-sub">审计日志、操作留痕、链路追踪</span></td>
                         <td class="c"><span class="ts-pill ts-paas">PaaS 托管</span></td>
                         <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
