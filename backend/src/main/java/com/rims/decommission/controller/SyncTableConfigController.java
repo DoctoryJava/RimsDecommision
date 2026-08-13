@@ -45,7 +45,7 @@ public class SyncTableConfigController {
             Map<String,Object> m = new LinkedHashMap<>();
             m.put("tableName", t);
             m.put("configId", c != null ? c.getId() : null);
-            m.put("enabled", c != null ? (c.getEnabled() != null && c.getEnabled() == 1) : true);
+            m.put("enabled", c != null && (c.getEnabled() != null && c.getEnabled() == 1));
             m.put("dateColumn", c != null ? c.getDateColumn() : null);
             m.put("retainYears", c != null ? c.getRetainYears() : null);
             out.add(m);

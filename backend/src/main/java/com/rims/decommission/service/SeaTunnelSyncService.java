@@ -128,7 +128,8 @@ public class SeaTunnelSyncService {
         List<String> result = new ArrayList<>();
         for (String t : allTables) {
             RSyncTableConfig c = cfgByTable.get(t);
-            boolean enabled = (c == null) || (c.getEnabled() != null && c.getEnabled() == 1);
+            // 只同步明确勾选(enabled=1)的表；未配置或取消勾选都不同步
+            boolean enabled = (c != null) && (c.getEnabled() != null && c.getEnabled() == 1);
             if (enabled) result.add(t);
         }
         return result;

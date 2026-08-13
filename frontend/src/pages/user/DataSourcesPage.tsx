@@ -502,6 +502,13 @@ function TableConfigModal({ db, systemId, onClose }: { db: any; systemId: string
           <span className="text-neutral-300">·</span>
           <span>保留策略说明：如「保留 5 年」，同步时会删除 {new Date().getFullYear() - 5} 年及更早的数据（按所选时间字段判断）</span>
         </div>
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-neutral-500">只同步勾选的表：</span>
+          <button onClick={() => setTables((prev) => prev.map((t) => ({ ...t, enabled: true })))} className="text-primary-600 hover:underline">全选</button>
+          <span className="text-neutral-300">·</span>
+          <button onClick={() => setTables((prev) => prev.map((t) => ({ ...t, enabled: false })))} className="text-neutral-500 hover:underline">清空</button>
+          <span className="text-neutral-300 ml-2">已勾选 <b className="text-primary-600">{tables.filter((t) => t.enabled).length}</b> / {tables.length}</span>
+        </div>
         {loading ? (
           <div className="p-10 text-center text-sm text-neutral-400 flex items-center justify-center gap-2"><Loader2 size={16} className="animate-spin" /> 加载表…</div>
         ) : tables.length === 0 ? (
