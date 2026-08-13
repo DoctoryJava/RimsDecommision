@@ -33,16 +33,22 @@ public class SeaTunnelSyncService {
     private final RSyncTableStatMapper tableStatMapper;
     private final RSchemaMapper schemaMapper;
     private final AuditLogService auditLogService;
+    private final com.rims.decommission.mapper.RSyncTableConfigMapper tableConfigMapper;
+    private final SparkQueryService sparkQueryService;
 
     public SeaTunnelSyncService(SeaTunnelProperties props, RSourceDatabaseMapper sourceDbMapper,
                                 RSyncJobMapper syncJobMapper, RSyncTableStatMapper tableStatMapper,
-                                RSchemaMapper schemaMapper, AuditLogService auditLogService) {
+                                RSchemaMapper schemaMapper, AuditLogService auditLogService,
+                                com.rims.decommission.mapper.RSyncTableConfigMapper tableConfigMapper,
+                                SparkQueryService sparkQueryService) {
         this.props = props;
         this.sourceDbMapper = sourceDbMapper;
         this.syncJobMapper = syncJobMapper;
         this.tableStatMapper = tableStatMapper;
         this.schemaMapper = schemaMapper;
         this.auditLogService = auditLogService;
+        this.tableConfigMapper = tableConfigMapper;
+        this.sparkQueryService = sparkQueryService;
     }
 
     /** 触发同步（异步调用）。 */
@@ -84,10 +90,12 @@ public class SeaTunnelSyncService {
     private long syncOneSource(RSyncJob job, RSourceDatabase src, List<Map<String, Object>> logs) throws Exception {
         String engine = src.getDbType() == null ? "mysql" : src.getDbType().toLowerCase();
         int port = src.getPort() != null ? src.getPort() : defaultPort(engine);
-        List<String> tables = listTables(engine, src.getServer(), port, src.getDatabaseName(),
+        List<String> allTables = listTables(engine, src.getServer(), port, src.getDatabaseName(),
                 src.getUsername(), src.getPassword());
+        // 按同步前配置过滤：只同步 enabled=1 的表
+        List<String> tables = filterEnabledTables(src, allTables);
         if (tables.isEmpty()) {
-            addLog(logs, "WARN", "源库 " + src.getDatabaseName() + " 无表可同步");
+            addLog(logs, "WARN", "源库 " + src.getDatabaseName() + " 无表可同步（或全部被禁用）");
             return 0;
         }
         addLog(logs, "INFO", "待同步表: " + String.join(", ", tables));
@@ -100,12 +108,61 @@ public class SeaTunnelSyncService {
             // 物理清理该库的 Iceberg 落盘目录，确保每次同步都是一份全新数据（不累积旧文件/版本）
             cleanTableDirs(src, logs);
             rows = runSeatunnel(src, engine, port, tables, logs);
+            // 同步完成后，按每表生命周期保留策略删除超期数据
+            applyRetention(src, tables, logs);
         }
         // 同步完成后，扫描落盘目录，统计每个表的大小与行数并入库
         collectTableStats(job, src, tables);
         // 保存该源库各表的表结构（字段名+类型）到 r_schema，供 Query Config 选字段
         saveTableSchema(job.getSystemId(), src, tables);
         return rows;
+    }
+
+    /** 按 r_sync_table_config 过滤要同步的表（无配置默认同步）。 */
+    private List<String> filterEnabledTables(RSourceDatabase src, List<String> allTables) {
+        Map<String, RSyncTableConfig> cfgByTable = new HashMap<>();
+        if (src.getId() != null) {
+            for (RSyncTableConfig c : tableConfigMapper.selectList(
+                    new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RSyncTableConfig>()
+                            .eq(RSyncTableConfig::getSourceDatabaseId, src.getId()))) {
+                cfgByTable.put(c.getTableName(), c);
+            }
+        }
+        List<String> result = new ArrayList<>();
+        for (String t : allTables) {
+            RSyncTableConfig c = cfgByTable.get(t);
+            boolean enabled = (c == null) || (c.getEnabled() != null && c.getEnabled() == 1);
+            if (enabled) result.add(t);
+        }
+        return result;
+    }
+
+    /** 对配置了 retain_years 的表，用 Spark DELETE 删除 N 年前的数据。 */
+    private void applyRetention(RSourceDatabase src, List<String> tables, List<Map<String,Object>> logs) {
+        if (src.getId() == null) return;
+        Map<String, RSyncTableConfig> cfgByTable = new HashMap<>();
+        for (RSyncTableConfig c : tableConfigMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RSyncTableConfig>()
+                        .eq(RSyncTableConfig::getSourceDatabaseId, src.getId()))) {
+            cfgByTable.put(c.getTableName(), c);
+        }
+        int currentYear = java.time.Year.now().getValue();
+        String db = safeName(src.getDatabaseName());
+        for (String t : tables) {
+            RSyncTableConfig c = cfgByTable.get(t);
+            if (c == null || c.getRetainYears() == null || c.getDateColumn() == null || c.getDateColumn().isBlank()) continue;
+            int cutoffYear = currentYear - c.getRetainYears();
+            // Iceberg 表名：catalog.db.archive.table
+            String fullTable = db + ".archive." + safeName(t);
+            String sql = "DELETE FROM " + fullTable + " WHERE " + c.getDateColumn() + " < '" + cutoffYear + "-01-01'";
+            addLog(logs, "INFO", "生命周期策略: " + t + " 保留 " + c.getRetainYears() + " 年，删除 " + cutoffYear + " 年前数据（字段 " + c.getDateColumn() + "）");
+            try {
+                sparkQueryService.executeQuery(src.getSystemId(), src.getDatabaseName(), sql, 1, 10);
+                addLog(logs, "INFO", t + " 生命周期删除完成");
+            } catch (Exception e) {
+                addLog(logs, "WARN", t + " 生命周期删除失败: " + safe(e.getMessage()));
+            }
+        }
     }
 
     /** 每次同步前，清空该系统旧的表统计（r_sync_table_stat）与表结构（r_schema），保证只保留最新一次。 */

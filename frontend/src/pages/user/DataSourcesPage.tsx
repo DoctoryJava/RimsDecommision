@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Database, Plus, Pencil, Trash2, RefreshCw, Search, Play, Server, History, PlugZap, ChevronDown } from 'lucide-react';
+import { Database, Plus, Pencil, Trash2, RefreshCw, Search, Play, Server, History, PlugZap, ChevronDown, Settings2, Save, Loader2 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -16,6 +16,8 @@ import {
   createSyncJob,
   getSyncJobTableStats,
   checkAlreadySynced,
+  getSyncTableConfigs,
+  saveSyncTableConfig,
 } from '@/lib/api';
 import type { PageKey } from '@/components/layout/Sidebar';
 
@@ -46,6 +48,7 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [jobTables, setJobTables] = useState<any[]>([]);
   const [jobTablesLoading, setJobTablesLoading] = useState(false);
+  const [tableConfigDb, setTableConfigDb] = useState<any | null>(null);
 
   const toggleJob = async (jobId: string) => {
     if (expandedJob === jobId) { setExpandedJob(null); setJobTables([]); return; }
@@ -279,6 +282,13 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
                           {testingId === db.id ? <RefreshCw size={12} className="animate-spin" /> : <PlugZap size={12} />}
                           {testResults[db.id] ? (testResults[db.id].ok ? '成功' : '失败') : 'Test'}
                         </button>
+                        <button
+                          onClick={() => setTableConfigDb(db)}
+                          title="配置要同步的表与生命周期保留策略"
+                          className="p-1.5 rounded text-neutral-400 hover:text-primary-600 hover:bg-primary-50"
+                        >
+                          <Settings2 size={14} />
+                        </button>
                         <button onClick={() => openEdit(db)} className="p-1.5 rounded text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100"><Pencil size={14} /></button>
                         <button onClick={() => del(db.id)} className="p-1.5 rounded text-neutral-400 hover:text-error-500 hover:bg-neutral-100"><Trash2 size={14} /></button>
                       </div>
@@ -426,6 +436,125 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
           </div>
         </div>
       </Modal>
+
+      {/* 表同步配置弹窗 */}
+      {tableConfigDb && (
+        <TableConfigModal
+          db={tableConfigDb}
+          systemId={systemId}
+          onClose={() => setTableConfigDb(null)}
+        />
+      )}
     </div>
+  );
+}
+
+// 表同步配置：勾选要同步的表，并为每张表配置时间字段 + 生命周期保留年限
+function TableConfigModal({ db, systemId, onClose }: { db: any; systemId: string; onClose: () => void }) {
+  const [tables, setTables] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [msg, setMsg] = useState('');
+
+  const load = () => {
+    setLoading(true); setMsg('');
+    getSyncTableConfigs(db.id).then((list) => setTables(list || [])).catch(() => setTables([])).finally(() => setLoading(false));
+  };
+  useEffect(() => { load(); }, [db.id]);
+
+  const updateRow = (tableName: string, patch: Partial<any>) => {
+    setTables((prev) => prev.map((t) => t.tableName === tableName ? { ...t, ...patch } : t));
+  };
+
+  const saveRow = async (t: any) => {
+    setSavingId(t.tableName); setMsg('');
+    try {
+      await saveSyncTableConfig({
+        sourceDatabaseId: db.id,
+        systemId,
+        tableName: t.tableName,
+        enabled: t.enabled,
+        dateColumn: t.dateColumn || null,
+        retainYears: t.retainYears != null ? t.retainYears : null,
+      });
+      setMsg(`已保存「${t.tableName}」`);
+      load();
+    } catch (e: any) {
+      setMsg('保存失败：' + (e?.message || '请稍后重试'));
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={`同步表配置：${db.databaseName}`}
+      subtitle="勾选要同步的表；对需要生命周期管理的表，选择时间字段并设置保留最近 N 年"
+      size="xl"
+      footer={<Button variant="outline" onClick={onClose}>关闭</Button>}
+    >
+      <div className="space-y-3">
+        {msg && <div className="p-2 rounded-md bg-primary-50 text-sm text-primary-700">{msg}</div>}
+        <div className="flex items-center gap-2 text-xs text-neutral-500 mb-1 flex-wrap">
+          <span>共 {tables.length} 张表</span>
+          <span className="text-neutral-300">·</span>
+          <span>保留策略说明：如「保留 5 年」，同步时会删除 {new Date().getFullYear() - 5} 年及更早的数据（按所选时间字段判断）</span>
+        </div>
+        {loading ? (
+          <div className="p-10 text-center text-sm text-neutral-400 flex items-center justify-center gap-2"><Loader2 size={16} className="animate-spin" /> 加载表…</div>
+        ) : tables.length === 0 ? (
+          <div className="p-10 text-center text-sm text-neutral-400">未能自动读取该源库的表（请检查连接与账号权限）</div>
+        ) : (
+          <div className="overflow-x-auto max-h-[60vh] overflow-y-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-neutral-50 border-b border-neutral-200">
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-neutral-600 uppercase tracking-wider w-10">同步</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-neutral-600 uppercase tracking-wider">表名</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-neutral-600 uppercase tracking-wider">时间字段</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-neutral-600 uppercase tracking-wider">保留年限</th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-neutral-600 uppercase tracking-wider">操作</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100">
+                {tables.map((t) => (
+                  <tr key={t.tableName} className="hover:bg-neutral-50/50">
+                    <td className="px-4 py-2.5">
+                      <input type="checkbox" checked={!!t.enabled} onChange={(e) => updateRow(t.tableName, { enabled: e.target.checked })} className="w-4 h-4 rounded text-primary-500" />
+                    </td>
+                    <td className="px-4 py-2.5 font-mono text-neutral-700">{t.tableName}</td>
+                    <td className="px-4 py-2.5">
+                      <input
+                        value={t.dateColumn || ''}
+                        onChange={(e) => updateRow(t.tableName, { dateColumn: e.target.value })}
+                        placeholder="如 created_at"
+                        className="px-2 py-1.5 text-xs rounded-md border border-neutral-200 bg-white outline-none font-mono"
+                      />
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <select
+                        value={t.retainYears ?? ''}
+                        onChange={(e) => updateRow(t.tableName, { retainYears: e.target.value === '' ? null : Number(e.target.value) })}
+                        className="px-2 py-1.5 text-xs rounded-md border border-neutral-200 bg-white outline-none"
+                      >
+                        <option value="">不按时间删除</option>
+                        <option value={3}>保留 3 年</option>
+                        <option value={4}>保留 4 年</option>
+                        <option value={5}>保留 5 年</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-2.5 text-right">
+                      <Button size="sm" variant="ghost" icon={savingId === t.tableName ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />} onClick={() => saveRow(t)}>保存</Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </Modal>
   );
 }

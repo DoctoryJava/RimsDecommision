@@ -183,6 +183,19 @@ export async function checkAlreadySynced(systemId: string) {
   const res = await api.get<Result<any>>('/sync/check-already-synced', { params: { systemId } });
   return (res.data as Result<any>).data;
 }
+// ===== 同步表配置（表选择 + 生命周期保留策略） =====
+export async function getSyncTableConfigs(sourceDatabaseId: string) {
+  const res = await api.get<Result<any[]>>('/sync-table-configs', { params: { sourceDatabaseId } });
+  return (res.data as Result<any[]>).data;
+}
+export async function saveSyncTableConfig(data: any) {
+  const res = await api.post<Result<any>>('/sync-table-configs', data);
+  return (res.data as Result<any>).data;
+}
+export async function deleteSyncTableConfig(id: string) {
+  const res = await api.delete<Result<null>>(`/sync-table-configs/${id}`);
+  return res.data;
+}
 export async function getSparkSyncedTables(systemId: string) {
   const res = await api.get<Result<any[]>>('/spark-query/synced-tables', { params: { systemId } });
   return (res.data as Result<any[]>).data;
