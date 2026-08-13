@@ -213,6 +213,10 @@ export async function deleteSyncJobConfig(id: string) {
   const res = await api.delete<Result<null>>(`/sync-job-configs/${id}`);
   return res.data;
 }
+export async function runSyncJobConfig(id: string) {
+  const res = await api.post<Result<any>>(`/sync-job-configs/${id}/run`);
+  return (res.data as Result<any>).data;
+}
 export async function deleteSyncTableConfig(id: string) {
   const res = await api.delete<Result<null>>(`/sync-table-configs/${id}`);
   return res.data;

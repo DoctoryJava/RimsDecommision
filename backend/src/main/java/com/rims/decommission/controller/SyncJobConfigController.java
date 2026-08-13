@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.rims.decommission.common.Result;
 import com.rims.decommission.entity.RSyncJobConfig;
 import com.rims.decommission.mapper.RSyncJobConfigMapper;
+import com.rims.decommission.service.SeaTunnelSyncService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.scheduling.support.CronExpression;
@@ -17,9 +18,22 @@ import java.util.*;
 public class SyncJobConfigController {
 
     private final RSyncJobConfigMapper mapper;
+    private final SeaTunnelSyncService seaTunnelSyncService;
 
-    public SyncJobConfigController(RSyncJobConfigMapper mapper) {
+    public SyncJobConfigController(RSyncJobConfigMapper mapper, SeaTunnelSyncService seaTunnelSyncService) {
         this.mapper = mapper;
+        this.seaTunnelSyncService = seaTunnelSyncService;
+    }
+
+    /** 手动立即执行一次该 job（触发对应系统的生命周期保留删除）。 */
+    @PostMapping("/{id}/run")
+    @Operation(summary = "手动立即执行一次（对系统已落盘数据做保留删除）")
+    public Result<Map<String,Object>> runNow(@PathVariable String id) {
+        RSyncJobConfig j = mapper.selectById(id);
+        if (j == null) return Result.fail(404, "配置不存在");
+        if (j.getSystemId() == null || j.getSystemId().isBlank()) return Result.fail(400, "该 job 未绑定系统");
+        seaTunnelSyncService.runRetentionForSystem(j.getSystemId());
+        return Result.success(Map.of("systemId", j.getSystemId(), "started", true));
     }
 
     @GetMapping

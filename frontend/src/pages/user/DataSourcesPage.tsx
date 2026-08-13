@@ -22,6 +22,7 @@ import {
   createSyncJobConfig,
   updateSyncJobConfig,
   deleteSyncJobConfig,
+  runSyncJobConfig,
 } from '@/lib/api';
 import type { PageKey } from '@/components/layout/Sidebar';
 
@@ -57,6 +58,7 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
   const [showJobModal, setShowJobModal] = useState(false);
   const [editingJob, setEditingJob] = useState<any | null>(null);
   const [jobForm, setJobForm] = useState<any>({ cronExpr: '', jobName: '' });
+  const [runningJobId, setRunningJobId] = useState<string | null>(null);
 
   const toggleJob = async (jobId: string) => {
     if (expandedJob === jobId) { setExpandedJob(null); setJobTables([]); return; }
@@ -250,6 +252,18 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
   const delJob = async (j: any) => {
     if (!window.confirm(`确认删除定时任务「${j.jobName || j.cronExpr}」？`)) return;
     try { await deleteSyncJobConfig(j.id); loadJobConfigs(); } catch (e: any) { window.alert('删除失败：' + (e?.message || '请稍后重试')); }
+  };
+  const runJobNow = async (j: any) => {
+    if (runningJobId) return;
+    setRunningJobId(j.id);
+    try {
+      await runSyncJobConfig(j.id);
+      window.alert('已触发执行，正在后台对已落盘数据做保留删除。');
+    } catch (e: any) {
+      window.alert('触发失败：' + (e?.message || '请稍后重试'));
+    } finally {
+      setRunningJobId(null);
+    }
   };
 
   return (
@@ -473,6 +487,15 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
                       </button>
                     </td>
                     <td className="px-5 py-3 text-right whitespace-nowrap">
+                      <button
+                        onClick={() => runJobNow(j)}
+                        disabled={!!runningJobId}
+                        title="手动立即执行一次（对已落盘数据做保留删除）"
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border border-neutral-200 text-primary-600 hover:border-primary-300 hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {runningJobId === j.id ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
+                        立即执行
+                      </button>
                       <button onClick={() => openEditJob(j)} className="p-1.5 rounded text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100"><Pencil size={14} /></button>
                       <button onClick={() => delJob(j)} className="p-1.5 rounded text-neutral-400 hover:text-error-500 hover:bg-neutral-100"><Trash2 size={14} /></button>
                     </td>
