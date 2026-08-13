@@ -406,6 +406,8 @@ erDiagram
 
     %% ============ 关系 ============
     R_ROLE ||--o{ R_USER : "roleKey 归属"
+    R_ROLE }o--o{ R_PERMISSION : "permissions[] 引用 permission.code"
+    R_ROLE }o--o{ R_PAGE : "page.visible_to[] 引用 role_key"
     R_SYSTEM ||--o{ R_SOURCE_DATABASE : "拥有源库"
     R_SYSTEM ||--o{ R_UNSTRUCTURED_SOURCE : "拥有非结构化源"
     R_UNSTRUCTURED_SOURCE ||--o{ R_UNSTRUCTURED_ITEM : "包含条目"
@@ -494,6 +496,8 @@ erDiagram
 | 关系 | 关联字段 |
 | --- | --- |
 | 用户 → 角色 | `r_user.role_code` = `r_role.role_key` |
+| 角色 → 权限 | `r_role.permissions`（JSON 数组）= `r_permission.code` |
+| 角色 → 页面 | `r_page.visible_to`（JSON 数组）= `r_role.role_key` |
 | 用户 → 系统 | `r_user.system_ids`（JSON 列表）= `r_system.id` |
 | 系统 → 源库 | `r_source_database.source_system_id` = `r_system.id` |
 | 系统 → 非结构化源 | `r_unstructured_source.source_system_id` = `r_system.id` |
