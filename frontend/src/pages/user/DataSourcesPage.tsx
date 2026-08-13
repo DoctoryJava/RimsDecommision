@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Database, Plus, Pencil, Trash2, RefreshCw, Search, Play, Server, History, PlugZap, ChevronDown, Settings2, Save, Loader2 } from 'lucide-react';
+import { Database, Plus, Pencil, Trash2, RefreshCw, Search, Play, Server, History, PlugZap, ChevronDown, Settings2, Save, Loader2, Clock, CalendarClock } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -18,6 +18,10 @@ import {
   checkAlreadySynced,
   getSyncTableConfigs,
   saveSyncTableConfigsBatch,
+  getSyncJobConfigs,
+  createSyncJobConfig,
+  updateSyncJobConfig,
+  deleteSyncJobConfig,
 } from '@/lib/api';
 import type { PageKey } from '@/components/layout/Sidebar';
 
@@ -49,6 +53,10 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
   const [jobTables, setJobTables] = useState<any[]>([]);
   const [jobTablesLoading, setJobTablesLoading] = useState(false);
   const [tableConfigDb, setTableConfigDb] = useState<any | null>(null);
+  const [jobConfigs, setJobConfigs] = useState<any[]>([]);
+  const [showJobModal, setShowJobModal] = useState(false);
+  const [editingJob, setEditingJob] = useState<any | null>(null);
+  const [jobForm, setJobForm] = useState<any>({ cronExpr: '', jobName: '' });
 
   const toggleJob = async (jobId: string) => {
     if (expandedJob === jobId) { setExpandedJob(null); setJobTables([]); return; }
@@ -94,9 +102,15 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
     });
   }, [systemId]);
 
+  const loadJobConfigs = useCallback(() => {
+    if (!systemId) { setJobConfigs([]); return; }
+    getSyncJobConfigs(systemId).then((list) => setJobConfigs(list || [])).catch(() => setJobConfigs([]));
+  }, [systemId]);
+
   useEffect(() => { loadSystems(); }, [loadSystems]);
   useEffect(() => { loadDbs(); }, [loadDbs]);
   useEffect(() => { loadJobs(); }, [loadJobs]);
+  useEffect(() => { loadJobConfigs(); }, [loadJobConfigs]);
 
   const defaultPort = (t: string) => {
     switch (t) {
@@ -201,6 +215,41 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
       if (k === 'dbType') next.port = defaultPort(v);
       return next;
     });
+  };
+
+  const openCreateJob = () => {
+    setEditingJob(null);
+    setJobForm({ jobName: '', cronExpr: '0 0 3 1 * ?' });
+    setShowJobModal(true);
+  };
+  const openEditJob = (j: any) => {
+    setEditingJob(j);
+    setJobForm({ jobName: j.jobName || '', cronExpr: j.cronExpr || '' });
+    setShowJobModal(true);
+  };
+  const saveJob = async () => {
+    if (!jobForm.cronExpr?.trim()) { window.alert('请填写 cron 表达式'); return; }
+    const payload = { systemId, jobName: jobForm.jobName, cronExpr: jobForm.cronExpr.trim(), enabled: true };
+    try {
+      if (editingJob) await updateSyncJobConfig(editingJob.id, payload);
+      else await createSyncJobConfig(payload);
+      setShowJobModal(false);
+      loadJobConfigs();
+    } catch (e: any) {
+      window.alert('保存失败：' + (e?.message || '请稍后重试'));
+    }
+  };
+  const toggleJobEnabled = async (j: any) => {
+    try {
+      await updateSyncJobConfig(j.id, { enabled: !j.enabled });
+      loadJobConfigs();
+    } catch (e: any) {
+      window.alert('操作失败：' + (e?.message || '请稍后重试'));
+    }
+  };
+  const delJob = async (j: any) => {
+    if (!window.confirm(`确认删除定时任务「${j.jobName || j.cronExpr}」？`)) return;
+    try { await deleteSyncJobConfig(j.id); loadJobConfigs(); } catch (e: any) { window.alert('删除失败：' + (e?.message || '请稍后重试')); }
   };
 
   return (
@@ -384,6 +433,83 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
           )}
         </Card>
       </div>
+
+      {/* 定时同步 Job 配置 */}
+      <Card className="overflow-hidden mt-5">
+        <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CalendarClock size={16} className="text-primary-500" />
+            <h3 className="text-base font-semibold text-neutral-900">定时同步 Job 配置</h3>
+          </div>
+          <Button size="sm" icon={<Plus size={14} />} onClick={openCreateJob}>新增定时任务</Button>
+        </div>
+        {!systemId ? (
+          <div className="p-8 text-center text-sm text-neutral-400">请先选择系统</div>
+        ) : jobConfigs.length === 0 ? (
+          <div className="p-8 text-center text-sm text-neutral-400">
+            尚未配置定时同步任务。定时任务到点后会对该系统已落盘数据执行生命周期保留删除（不重新全量同步）。
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-neutral-50 border-b border-neutral-200">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-600 uppercase tracking-wider">任务名称</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-600 uppercase tracking-wider">cron 表达式</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-600 uppercase tracking-wider">下次执行</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-neutral-600 uppercase tracking-wider">状态</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-neutral-600 uppercase tracking-wider">操作</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100">
+                {jobConfigs.map((j) => (
+                  <tr key={j.id} className="hover:bg-neutral-50/50">
+                    <td className="px-5 py-3 text-sm font-medium text-neutral-800">{j.jobName || '—'}</td>
+                    <td className="px-5 py-3 text-sm font-mono text-neutral-600">{j.cronExpr}</td>
+                    <td className="px-5 py-3 text-sm text-neutral-500">{j.nextRunAt ? j.nextRunAt.replace('T', ' ') : '—'}</td>
+                    <td className="px-5 py-3">
+                      <button onClick={() => toggleJobEnabled(j)} title="点击切换启停">
+                        <Badge color={j.enabled ? 'success' : 'neutral'} dot>{j.enabled ? '启用' : '停用'}</Badge>
+                      </button>
+                    </td>
+                    <td className="px-5 py-3 text-right whitespace-nowrap">
+                      <button onClick={() => openEditJob(j)} className="p-1.5 rounded text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100"><Pencil size={14} /></button>
+                      <button onClick={() => delJob(j)} className="p-1.5 rounded text-neutral-400 hover:text-error-500 hover:bg-neutral-100"><Trash2 size={14} /></button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      {/* 定时 Job 配置弹窗 */}
+      <Modal
+        open={showJobModal}
+        onClose={() => setShowJobModal(false)}
+        title={editingJob ? '编辑定时任务' : '新增定时任务'}
+        subtitle="到点对已落盘数据执行生命周期保留删除（不重新全量同步）"
+        size="md"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setShowJobModal(false)}>取消</Button>
+            <Button onClick={saveJob}>{editingJob ? '保存' : '创建'}</Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1.5">任务名称</label>
+            <input value={jobForm.jobName || ''} onChange={(e) => setJobForm({ ...jobForm, jobName: e.target.value })} placeholder="如：每月保留删除" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white focus:border-primary-400 outline-none" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1.5">cron 表达式 <span className="text-neutral-400 font-normal">(Spring 6 段)</span></label>
+            <input value={jobForm.cronExpr || ''} onChange={(e) => setJobForm({ ...jobForm, cronExpr: e.target.value })} placeholder="0 0 3 1 * ?" className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 bg-white focus:border-primary-400 outline-none font-mono" />
+            <p className="mt-1 text-xs text-neutral-400">例：每月 1 号 03:00 → <span className="font-mono">0 0 3 1 * ?</span>；每分钟 → <span className="font-mono">0 * * * * *</span></p>
+          </div>
+        </div>
+      </Modal>
 
       {/* Create / Edit modal */}
       <Modal

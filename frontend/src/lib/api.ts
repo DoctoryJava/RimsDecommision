@@ -196,6 +196,23 @@ export async function saveSyncTableConfigsBatch(sourceDatabaseId: string, tables
   const res = await api.post<Result<any>>('/sync-table-configs/batch', { sourceDatabaseId, tables });
   return (res.data as Result<any>).data;
 }
+// ===== 定时同步 Job 配置 =====
+export async function getSyncJobConfigs(systemId?: string) {
+  const res = await api.get<Result<any[]>>('/sync-job-configs', { params: systemId ? { systemId } : {} });
+  return (res.data as Result<any[]>).data;
+}
+export async function createSyncJobConfig(data: any) {
+  const res = await api.post<Result<any>>('/sync-job-configs', data);
+  return (res.data as Result<any>).data;
+}
+export async function updateSyncJobConfig(id: string, data: any) {
+  const res = await api.put<Result<any>>(`/sync-job-configs/${id}`, data);
+  return (res.data as Result<any>).data;
+}
+export async function deleteSyncJobConfig(id: string) {
+  const res = await api.delete<Result<null>>(`/sync-job-configs/${id}`);
+  return res.data;
+}
 export async function deleteSyncTableConfig(id: string) {
   const res = await api.delete<Result<null>>(`/sync-table-configs/${id}`);
   return res.data;

@@ -53,6 +53,34 @@ public class SeaTunnelSyncService {
         new Thread(() -> runSync(systemId, systemName, jobId, triggeredBy), "seatunnel-sync-" + jobId).start();
     }
 
+    /** 定时任务专用：对某系统已落盘的数据按保留策略删除过期数据（不重新全量同步）。 */
+    public void runRetentionForSystem(String systemId) {
+        new Thread(() -> {
+            try {
+                List<RSourceDatabase> sources = sourceDbMapper.selectList(
+                        new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RSourceDatabase>()
+                                .eq(RSourceDatabase::getSourceSystemId, systemId));
+                if (sources.isEmpty()) return;
+                for (RSourceDatabase src : sources) {
+                    // 取该源库已同步的表（来自 r_sync_table_stat）
+                    List<RSyncTableStat> stats = tableStatMapper.selectList(
+                            new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RSyncTableStat>()
+                                    .eq(RSyncTableStat::getSystemId, systemId)
+                                    .eq(RSyncTableStat::getDatabaseName, src.getDatabaseName()));
+                    List<String> tables = stats.stream()
+                            .map(RSyncTableStat::getTableName)
+                            .filter(t -> t != null && !t.isBlank())
+                            .toList();
+                    if (tables.isEmpty()) continue;
+                    List<Map<String, Object>> logs = new ArrayList<>();
+                    addLog(logs, "INFO", "定时保留删除：系统 " + systemId + " 源库 " + src.getDatabaseName());
+                    applyRetention(src, tables, logs);
+                }
+            } catch (Exception ignored) {
+            }
+        }, "retention-" + systemId).start();
+    }
+
     private void runSync(String systemId, String systemName, String jobId, String triggeredBy) {
         RSyncJob job = syncJobMapper.selectById(jobId);
         if (job == null) return;
@@ -154,16 +182,17 @@ public class SeaTunnelSyncService {
                         .eq(RSyncTableConfig::getSourceDatabaseId, src.getId()))) {
             cfgByTable.put(c.getTableName(), c);
         }
-        int currentYear = java.time.Year.now().getValue();
         String db = safeName(src.getDatabaseName());
         for (String t : tables) {
             RSyncTableConfig c = cfgByTable.get(t);
             if (c == null || c.getRetainYears() == null || c.getDateColumn() == null || c.getDateColumn().isBlank()) continue;
-            int cutoffYear = currentYear - c.getRetainYears();
+            // 保留最近 N 年：删除「当前日期往前推 N 年」之前的数据（精确到日）
+            // 例：2026-08-13 保留 5 年 → 删除 2021-08-13 之前的数据
+            String cutoff = java.time.LocalDate.now().minusYears(c.getRetainYears()).toString();
             // Iceberg 表名：catalog.db.archive.table
             String fullTable = db + ".archive." + safeName(t);
-            String sql = "DELETE FROM " + fullTable + " WHERE " + c.getDateColumn() + " < '" + cutoffYear + "-01-01'";
-            addLog(logs, "INFO", "生命周期策略: " + t + " 保留 " + c.getRetainYears() + " 年，删除 " + cutoffYear + " 年前数据（字段 " + c.getDateColumn() + "）");
+            String sql = "DELETE FROM " + fullTable + " WHERE " + c.getDateColumn() + " < '" + cutoff + "'";
+            addLog(logs, "INFO", "生命周期策略: " + t + " 保留 " + c.getRetainYears() + " 年，删除 " + cutoff + " 之前数据（字段 " + c.getDateColumn() + "）");
             try {
                 sparkQueryService.executeQuery(src.getSourceSystemId(), src.getDatabaseName(), sql, 1, 10);
                 addLog(logs, "INFO", t + " 生命周期删除完成");
