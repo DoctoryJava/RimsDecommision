@@ -6,13 +6,13 @@
 
 RIMS Decommission 解决的核心问题：
 
-| 问题 | 解决方案 |
-|------|----------|
-| 旧系统（ERP/CRM/OA…）下线，服务器即将销毁 | 全量数据自动抽取，1:1 原样入湖归档 |
-| 历史数据需要长期保存，满足合规审计 | Iceberg 格式归档至 Azure ADLS Gen2，支持时间旅行 |
-| 归档数据需要安全查询，不能裸暴露 | Unity Catalog 统一治理 + Column Mask 字段级脱敏 |
-| 不同退役系统的查询页面无法逐一开发 | Schema Registry 驱动的动态配置化前端 |
-| 数据到期后需要物理销毁 | 自动化 DROP + VACUUM 物理回收 |
+| 问题                                      | 解决方案                                         |
+| ----------------------------------------- | ------------------------------------------------ |
+| 旧系统（ERP/CRM/OA…）下线，服务器即将销毁 | 全量数据自动抽取，1:1 原样入湖归档               |
+| 历史数据需要长期保存，满足合规审计        | Iceberg 格式归档至 Azure ADLS Gen2，支持时间旅行 |
+| 归档数据需要安全查询，不能裸暴露          | Unity Catalog 统一治理 + Column Mask 字段级脱敏  |
+| 不同退役系统的查询页面无法逐一开发        | Schema Registry 驱动的动态配置化前端             |
+| 数据到期后需要物理销毁                    | 自动化 DROP + VACUUM 物理回收                    |
 
 ---
 
@@ -21,13 +21,13 @@ RIMS Decommission 解决的核心问题：
 系统采用 **Databricks 读写一体 + 湖仓一体 (Iceberg / ADLS Gen2) + Unity Catalog 治理 + 配置化动态前端** 架构：
 
 ```
-                          ┌──────────────────────────────────────────┐
+                          ┌──────────────────────────────────────────────┐
                           │         Frontend (React 19 + Tailwind CSS)   │
-                          │                                           │
-                          │  ┌──────────┐ ┌──────────┐ ┌───────────┐ │
-                          │  │ RBAC 管理│ │ 系统配置 │ │ 动态查询  │ │
-                          │  │ (静态页) │ │ (向导式) │ │ (Schema   │ │
-                          │  │          │ │          │ │  驱动渲染)│ │
+                          │                                              │
+                          │  ┌──────────┐ ┌──────────┐ ┌───────────┐     │
+                          │  │ RBAC 管理│ │ 系统配置 │ │ 动态查询      │ │
+                          │  │ (静态页) │ │ (向导式) │ │ (Schema     │ │
+                          │  │          │ │          │ │  驱动渲染)  │ │
                           │  └──────────┘ └──────────┘ └───────────┘ │
                           └─────────────────┬────────────────────────┘
                                             │ REST API / JSON
@@ -62,16 +62,16 @@ RIMS Decommission 解决的核心问题：
 
 ### 架构核心决议
 
-| 层 | 技术选型 | 职责 |
-|----|----------|------|
-| **存储层** | Azure ADLS Gen2 + Apache Iceberg | 结构化数据归档，支持 ACID、Time Travel、Schema Evolution |
-| **附件存储** | Azure Blob Storage | 非结构化文件（PDF/图片/文档），通过 SAS 令牌安全访问 |
-| **计算引擎（写）** | Databricks Jobs | ETL 抽取、Compaction、数据销毁任务 |
-| **查询引擎（读）** | Databricks SQL (Statement Execution API) | 所有归档数据查询统一走 Databricks SQL，强制 UC 鉴权 |
-| **数据治理** | Unity Catalog (UC) | 表级权限管控、COLUMN MASK 字段脱敏、全局审计 |
-| **元数据库** | MySQL 8.0 | 仅存配置元数据（系统信息、Schema Registry、销毁策略、审计日志） |
-| **后端 API** | Java 17 + Spring Boot 3 | 元数据管理、初始化编排、SAS 签发、查询代理 |
-| **前端** | React 19 + Tailwind CSS + TypeScript | RBAC 管理页 + 动态查询页（Schema Registry 驱动） |
+| 层                 | 技术选型                                 | 职责                                                            |
+| ------------------ | ---------------------------------------- | --------------------------------------------------------------- |
+| **存储层**         | Azure ADLS Gen2 + Apache Iceberg         | 结构化数据归档，支持 ACID、Time Travel、Schema Evolution        |
+| **附件存储**       | Azure Blob Storage                       | 非结构化文件（PDF/图片/文档），通过 SAS 令牌安全访问            |
+| **计算引擎（写）** | Databricks Jobs                          | ETL 抽取、Compaction、数据销毁任务                              |
+| **查询引擎（读）** | Databricks SQL (Statement Execution API) | 所有归档数据查询统一走 Databricks SQL，强制 UC 鉴权             |
+| **数据治理**       | Unity Catalog (UC)                       | 表级权限管控、COLUMN MASK 字段脱敏、全局审计                    |
+| **元数据库**       | MySQL 8.0                                | 仅存配置元数据（系统信息、Schema Registry、销毁策略、审计日志） |
+| **后端 API**       | Java 17 + Spring Boot 3                  | 元数据管理、初始化编排、SAS 签发、查询代理                      |
+| **前端**           | React 19 + Tailwind CSS + TypeScript     | RBAC 管理页 + 动态查询页（Schema Registry 驱动）                |
 
 ---
 
@@ -190,69 +190,69 @@ RIMS Decommission 解决的核心问题：
 
 ### 权限管理模块
 
-| 表名 | 说明 |
-|------|------|
-| `sys_user` | 用户表 |
-| `sys_role` | 角色表 |
-| `sys_menu` | 菜单/页面表（树形结构） |
-| `sys_permission` | 权限表（按钮级） |
-| `sys_user_role` | 用户-角色关联 |
-| `sys_role_menu` | 角色-菜单关联 |
-| `sys_role_permission` | 角色-权限关联 |
+| 表名                  | 说明                    |
+| --------------------- | ----------------------- |
+| `sys_user`            | 用户表                  |
+| `sys_role`            | 角色表                  |
+| `sys_menu`            | 菜单/页面表（树形结构） |
+| `sys_permission`      | 权限表（按钮级）        |
+| `sys_user_role`       | 用户-角色关联           |
+| `sys_role_menu`       | 角色-菜单关联           |
+| `sys_role_permission` | 角色-权限关联           |
 
 ### 退役管理模块
 
-| 表名 | 说明 |
-|------|------|
-| `decomm_system` | 退役系统注册（状态：REGISTERED → CONFIGURED → SYNCING → ARCHIVED → EXPIRING → DESTROYED） |
-| `sys_role_system` | 角色-系统映射（不同角色管理不同退役系统） |
-| `decomm_db_config` | 源数据库配置（连接信息加密存储） |
-| `decomm_storage_config` | 目标存储配置（ADLS/Blob 连接加密） |
-| `decomm_schema_registry` | **Schema 描述符注册表**（JSON 格式的表结构元数据，驱动动态前端） |
-| `decomm_sync_job` | 数据同步任务记录 |
-| `decomm_sync_log` | 同步任务执行日志 |
-| `decomm_lifecycle_policy` | 数据生命周期策略（保留年限、销毁规则） |
-| `sys_audit_log` | 全局审计日志 |
+| 表名                      | 说明                                                                                      |
+| ------------------------- | ----------------------------------------------------------------------------------------- |
+| `decomm_system`           | 退役系统注册（状态：REGISTERED → CONFIGURED → SYNCING → ARCHIVED → EXPIRING → DESTROYED） |
+| `sys_role_system`         | 角色-系统映射（不同角色管理不同退役系统）                                                 |
+| `decomm_db_config`        | 源数据库配置（连接信息加密存储）                                                          |
+| `decomm_storage_config`   | 目标存储配置（ADLS/Blob 连接加密）                                                        |
+| `decomm_schema_registry`  | **Schema 描述符注册表**（JSON 格式的表结构元数据，驱动动态前端）                          |
+| `decomm_sync_job`         | 数据同步任务记录                                                                          |
+| `decomm_sync_log`         | 同步任务执行日志                                                                          |
+| `decomm_lifecycle_policy` | 数据生命周期策略（保留年限、销毁规则）                                                    |
+| `sys_audit_log`           | 全局审计日志                                                                              |
 
-### r_* 业务数据表（替代 Mock 数据，后端已接入）
+### r\_\* 业务数据表（替代 Mock 数据，后端已接入）
 
 > 原先后端 `MockStore` / `MockUserDetailsService` 返回的演示数据已全部迁移到真实 MySQL 表，表名统一以 `r_` 开头。
 > 完整 DDL 见 `scripts/sql/V3__create_r_tables.sql`，种子数据见 `scripts/sql/V4__seed_r_data.sql`（密码统一 `demo1234`，BCrypt）。
 > 默认数据库连接已配置为 `jdbc:mysql://cq-cdb-9bf4xslt.sql.tencentcdb.com:63819/AiCoder`（可用 `MYSQL_URL`/`MYSQL_USERNAME`/`MYSQL_PASSWORD` 覆盖）。
 
-| 表名 | 说明 | 替代的原 Mock |
-|------|------|---------------|
-| `r_user` | 用户（邮箱登录 + BCrypt 密码） | `MockStore.users()` / `MockUserDetailsService` |
-| `r_role` | 角色 | `MockStore.roles()` |
-| `r_permission` | 权限 | `MockStore.permissions()` |
-| `r_page` | 页面 | `MockStore.pages()` |
-| `r_system` | 退役系统（含 dbConfig/storageConfig/tags JSON） | `MockStore.systems()` |
-| `r_sync_job` | 同步任务 | `MockStore.syncJobs()` |
-| `r_schema` | Schema 注册 | `MockStore.schemas()` |
-| `r_physical_table` | 物理表元数据（列定义+示例行，驱动动态查询） | `MockStore.physicalTables()` |
-| `r_query_config` | 动态查询配置 | `MockStore.queryConfigs()` |
+| 表名               | 说明                                            | 替代的原 Mock                                  |
+| ------------------ | ----------------------------------------------- | ---------------------------------------------- |
+| `r_user`           | 用户（邮箱登录 + BCrypt 密码）                  | `MockStore.users()` / `MockUserDetailsService` |
+| `r_role`           | 角色                                            | `MockStore.roles()`                            |
+| `r_permission`     | 权限                                            | `MockStore.permissions()`                      |
+| `r_page`           | 页面                                            | `MockStore.pages()`                            |
+| `r_system`         | 退役系统（含 dbConfig/storageConfig/tags JSON） | `MockStore.systems()`                          |
+| `r_sync_job`       | 同步任务                                        | `MockStore.syncJobs()`                         |
+| `r_schema`         | Schema 注册                                     | `MockStore.schemas()`                          |
+| `r_physical_table` | 物理表元数据（列定义+示例行，驱动动态查询）     | `MockStore.physicalTables()`                   |
+| `r_query_config`   | 动态查询配置                                    | `MockStore.queryConfigs()`                     |
 
 #### 归档与保留扩展表（对应设计类图，`scripts/sql/V5__create_r_extended_tables.sql` / `V6__seed_r_extended_data.sql`）
 
-| 表名 | 对应类图 | 说明 |
-|------|----------|------|
-| `r_source_database` | SourceDatabase | 源数据库（一个系统可有多个库；凭据走密钥引用） |
-| `r_unstructured_source` | UnstructuredSource | 非结构化数据源（文件共享/Blob/S3/MinIO） |
-| `r_unstructured_item` | UnstructuredItem | 非结构化文件条目（路径/大小/哈希/推导日期） |
-| `r_archive_batch` | ArchiveBatch | 归档批次（一次 Job 运行，记录行数/字节/结果） |
-| `r_archive_file` | ArchiveFile | 结构化表归档产物（parquet/blob 地址/校验和） |
-| `r_archive_set` | ArchiveSet | 非结构化文件集归档产物（目录/条目数/总字节） |
-| `r_archive_set_item` | ArchiveSetItem | 归档集内的单文件条目 |
-| `r_retention_policy` | RetentionPolicy | 保留策略（保留天数 + 起算触发点） |
-| `r_retention_assignment` | RetentionAssignment | 保留指派（策略→对象，起止日期与法定保留状态） |
-| `r_legal_hold_event` | LegalHoldEvent | 法定保留事件（HOLD/RELEASE 审计） |
-| `r_tag` | Tag | 标签键值 |
-| `r_object_tag` | ObjectTag | 对象-标签关联（多对多） |
+| 表名                     | 对应类图            | 说明                                           |
+| ------------------------ | ------------------- | ---------------------------------------------- |
+| `r_source_database`      | SourceDatabase      | 源数据库（一个系统可有多个库；凭据走密钥引用） |
+| `r_unstructured_source`  | UnstructuredSource  | 非结构化数据源（文件共享/Blob/S3/MinIO）       |
+| `r_unstructured_item`    | UnstructuredItem    | 非结构化文件条目（路径/大小/哈希/推导日期）    |
+| `r_archive_batch`        | ArchiveBatch        | 归档批次（一次 Job 运行，记录行数/字节/结果）  |
+| `r_archive_file`         | ArchiveFile         | 结构化表归档产物（parquet/blob 地址/校验和）   |
+| `r_archive_set`          | ArchiveSet          | 非结构化文件集归档产物（目录/条目数/总字节）   |
+| `r_archive_set_item`     | ArchiveSetItem      | 归档集内的单文件条目                           |
+| `r_retention_policy`     | RetentionPolicy     | 保留策略（保留天数 + 起算触发点）              |
+| `r_retention_assignment` | RetentionAssignment | 保留指派（策略→对象，起止日期与法定保留状态）  |
+| `r_legal_hold_event`     | LegalHoldEvent      | 法定保留事件（HOLD/RELEASE 审计）              |
+| `r_tag`                  | Tag                 | 标签键值                                       |
+| `r_object_tag`           | ObjectTag           | 对象-标签关联（多对多）                        |
 
 #### 仪表盘聚合表（`scripts/sql/V7__create_dashboard_tables.sql` / `V8__seed_dashboard_data.sql`）
 
-| 表名 | 说明 |
-|------|------|
+| 表名              | 说明                                                                                   |
+| ----------------- | -------------------------------------------------------------------------------------- |
 | `r_sync_activity` | 按日聚合的同步活跃度（success/failed/partial/running），供 Dashboard「同步活跃度」图表 |
 
 > 关联约定：`r_source_database/r_unstructured_source/r_unstructured_item` 关联 `r_system`；`r_archive_batch` 关联 `r_sync_job`（ArchiveJob）；`r_archive_file`/`r_archive_set` 关联 `r_archive_batch`；`r_archive_set_item` 关联 `r_archive_set`；`r_retention_assignment` 关联 `r_retention_policy`；`r_legal_hold_event` 关联 `r_retention_assignment`；`r_object_tag` 关联 `r_tag`。
@@ -387,28 +387,28 @@ CREATE TABLE `decomm_lifecycle_policy` (
 
 ## 🛠️ 技术栈
 
-| 层级 | 技术 | 版本 | 说明 |
-|------|------|------|------|
-| **前端框架** | React | 19.2.8 | Hooks |
-| **UI 组件库** | Element Plus | 2.x | 企业级组件 |
-| **状态管理** | React Hooks + Context | 19 | 轻量 |
-| **路由** | React Router (App.tsx PageKey) | 手写 | 动态 |
-| **HTTP** | Axios | 1.x | 请求封装 |
-| **构建** | Vite | 5.x | 前端构建 |
-| **后端框架** | Java + Spring Boot | 17 / 3.2+ | 主力框架 |
-| **ORM** | MyBatis-Plus | 3.5+ | 元数据库操作 |
-| **安全** | Spring Security + JWT | — | 认证授权 |
-| **缓存** | Redis | 6+ | Token/Session 缓存 |
-| **元数据库** | MySQL | 8.0 | 配置元数据 |
-| **数据库迁移** | Flyway | — | Schema 版本管理 |
-| **大数据引擎** | Databricks Java SDK | — | ETL + SQL 查询 |
-| **数据格式** | Apache Iceberg | — | 湖仓一体归档格式 |
-| **数据治理** | Unity Catalog | — | 表权限 + Column Mask |
-| **对象存储** | Azure ADLS Gen2 | — | 结构化数据归档 |
-| **附件存储** | Azure Blob Storage | — | 非结构化文件 |
-| **密钥管理** | Azure Key Vault | — | 凭据加密 |
-| **API 文档** | SpringDoc OpenAPI | 2.x | Swagger UI |
-| **容器化** | Docker + Docker Compose | — | 部署 |
+| 层级           | 技术                           | 版本      | 说明                 |
+| -------------- | ------------------------------ | --------- | -------------------- |
+| **前端框架**   | React                          | 19.2.8    | Hooks                |
+| **UI 组件库**  | Element Plus                   | 2.x       | 企业级组件           |
+| **状态管理**   | React Hooks + Context          | 19        | 轻量                 |
+| **路由**       | React Router (App.tsx PageKey) | 手写      | 动态                 |
+| **HTTP**       | Axios                          | 1.x       | 请求封装             |
+| **构建**       | Vite                           | 5.x       | 前端构建             |
+| **后端框架**   | Java + Spring Boot             | 17 / 3.2+ | 主力框架             |
+| **ORM**        | MyBatis-Plus                   | 3.5+      | 元数据库操作         |
+| **安全**       | Spring Security + JWT          | —         | 认证授权             |
+| **缓存**       | Redis                          | 6+        | Token/Session 缓存   |
+| **元数据库**   | MySQL                          | 8.0       | 配置元数据           |
+| **数据库迁移** | Flyway                         | —         | Schema 版本管理      |
+| **大数据引擎** | Databricks Java SDK            | —         | ETL + SQL 查询       |
+| **数据格式**   | Apache Iceberg                 | —         | 湖仓一体归档格式     |
+| **数据治理**   | Unity Catalog                  | —         | 表权限 + Column Mask |
+| **对象存储**   | Azure ADLS Gen2                | —         | 结构化数据归档       |
+| **附件存储**   | Azure Blob Storage             | —         | 非结构化文件         |
+| **密钥管理**   | Azure Key Vault                | —         | 凭据加密             |
+| **API 文档**   | SpringDoc OpenAPI              | 2.x       | Swagger UI           |
+| **容器化**     | Docker + Docker Compose        | —         | 部署                 |
 
 ---
 

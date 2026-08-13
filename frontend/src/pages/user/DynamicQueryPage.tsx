@@ -76,12 +76,16 @@ export default function DynamicQueryPage() {
     getQueryConfigs(systemId).then((list: any) => { if (Array.isArray(list)) setQueryConfigs(list as any[]); }).catch(() => {});
   }, [systemId]);
 
-  const runQuery = async () => {
+  const runQuery = async (opts?: { page?: number; pageSize?: number }) => {
     if (!sql.trim()) { setError('请输入 SQL'); return; }
+    const usePage = opts?.page ?? page;
+    const usePageSize = opts?.pageSize ?? pageSize;
     setRunning(true);
     setError('');
     try {
-      const res = await sparkExecuteQuery({ systemId, database: selectedDb, sql, page, pageSize });
+      const res = await sparkExecuteQuery({ systemId, database: selectedDb, sql, page: usePage, pageSize: usePageSize });
+      if (opts?.page !== undefined) setPage(opts.page);
+      if (opts?.pageSize !== undefined) setPageSize(opts.pageSize);
       setResult({ columns: res?.columns ?? [], rows: res?.rows ?? [], total: res?.total ?? 0 });
     } catch (e: any) {
       setError(e?.message || '查询失败');
@@ -270,7 +274,7 @@ export default function DynamicQueryPage() {
             />
             <div className="flex items-center justify-between px-4 py-3 border-t border-neutral-100">
               <p className="text-xs text-neutral-400">提示：点击左侧表名可插入表；格式 &lt;库&gt;.archive.&lt;表名&gt;</p>
-              <Button icon={<Play size={16} />} onClick={runQuery} disabled={running || !systemId}>
+              <Button icon={<Play size={16} />} onClick={() => runQuery()} disabled={running || !systemId}>
                 {running ? '查询中…' : '执行查询'}
               </Button>
             </div>
@@ -329,14 +333,14 @@ export default function DynamicQueryPage() {
             <div className="flex items-center justify-between px-4 py-3 border-t border-neutral-100">
               <div className="flex items-center gap-2 text-xs text-neutral-500">
                 <span>每页</span>
-                <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }} className="border border-neutral-200 rounded px-1 py-0.5">
+                <select value={pageSize} onChange={(e) => runQuery({ page: 1, pageSize: Number(e.target.value) })} className="border border-neutral-200 rounded px-1 py-0.5">
                   {[5, 10, 20, 50].map((n) => <option key={n} value={n}>{n}</option>)}
                 </select>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" icon={<ChevronLeft size={14} />} disabled={page <= 1} onClick={() => setPage(page - 1)}>上一页</Button>
+                <Button variant="outline" size="sm" icon={<ChevronLeft size={14} />} disabled={page <= 1 || running} onClick={() => runQuery({ page: page - 1 })}>上一页</Button>
                 <span className="text-xs text-neutral-500">{page} / {totalPages}</span>
-                <Button variant="outline" size="sm" iconRight={<ChevronRight size={14} />} disabled={page >= totalPages} onClick={() => setPage(page + 1)}>下一页</Button>
+                <Button variant="outline" size="sm" iconRight={<ChevronRight size={14} />} disabled={page >= totalPages || running} onClick={() => runQuery({ page: page + 1 })}>下一页</Button>
               </div>
             </div>
           </Card>
