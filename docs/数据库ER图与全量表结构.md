@@ -15,6 +15,7 @@
 ```mermaid
 erDiagram
     %% ============ 权限与访问控制 ============
+    %% ============ 权限与访问控制 · user 用户表 ============
     USER {
         bigint id PK
         varchar username UK "登录名"
@@ -25,6 +26,7 @@ erDiagram
         tinyint status "0禁用 1启用"
         datetime last_login_at
     }
+    %% ============ 权限与访问控制 · role 角色表 ============
     ROLE {
         bigint id PK
         varchar role_code UK "SUPER_ADMIN/..."
@@ -32,6 +34,7 @@ erDiagram
         varchar description
         tinyint is_builtin
     }
+    %% ============ 权限与访问控制 · permission 权限表 ============
     PERMISSION {
         bigint id PK
         varchar permission_code UK "module:action"
@@ -39,6 +42,7 @@ erDiagram
         varchar module
         varchar resource_type "api/menu/button"
     }
+    %% ============ 权限与访问控制 · page 页面表 ============
     PAGE {
         bigint id PK
         varchar page_code UK
@@ -48,20 +52,24 @@ erDiagram
         int sort_order
         tinyint enabled
     }
+    %% ============ 权限与访问控制 · user_role 用户-角色关联 ============
     USER_ROLE {
         bigint user_id FK "USER.id"
         bigint role_id FK "ROLE.id"
     }
+    %% ============ 权限与访问控制 · role_permission 角色-权限关联 ============
     ROLE_PERMISSION {
         bigint role_id FK "ROLE.id"
         bigint permission_id FK "PERMISSION.id"
     }
+    %% ============ 权限与访问控制 · role_page 角色-页面关联 ============
     ROLE_PAGE {
         bigint role_id FK "ROLE.id"
         bigint page_id FK "PAGE.id"
     }
 
     %% ============ 退役系统管理 ============
+    %% ============ 退役系统管理 · decommission_system 退役系统 ============
     DECOMMISSION_SYSTEM {
         bigint id PK
         varchar system_code UK "如 CRM_V1"
@@ -77,12 +85,14 @@ erDiagram
         date destroy_after_date
         date actual_destroy_date
     }
+    %% ============ 退役系统管理 · system_user 系统-用户授权 ============
     SYSTEM_USER {
         bigint system_id FK "DECOMMISSION_SYSTEM.id"
         bigint user_id FK "USER.id"
     }
 
     %% ============ 源数据配置 ============
+    %% ============ 源数据配置 · source_database 源数据库 ============
     SOURCE_DATABASE {
         bigint id PK
         bigint system_id FK "DECOMMISSION_SYSTEM.id"
@@ -96,6 +106,7 @@ erDiagram
         varchar test_status
         datetime last_test_time
     }
+    %% ============ 源数据配置 · source_table 源表清单 ============
     SOURCE_TABLE {
         bigint id PK
         bigint source_database_id FK "SOURCE_DATABASE.id"
@@ -105,6 +116,7 @@ erDiagram
         bigint estimated_rows
         tinyint is_attachment "是否附件表"
     }
+    %% ============ 源数据配置 · unstructured_source 非结构化源 ============
     UNSTRUCTURED_SOURCE {
         bigint id PK
         bigint system_id FK "DECOMMISSION_SYSTEM.id"
@@ -115,6 +127,7 @@ erDiagram
         varchar date_extraction_rule
         varchar credential_ref
     }
+    %% ============ 源数据配置 · unstructured_item 非结构化条目 ============
     UNSTRUCTURED_ITEM {
         bigint id PK
         bigint unstructured_source_id FK "UNSTRUCTURED_SOURCE.id"
@@ -128,6 +141,7 @@ erDiagram
     }
 
     %% ============ 目标存储配置 ============
+    %% ============ 目标存储配置 · storage_config 目标存储 ============
     STORAGE_CONFIG {
         bigint id PK
         bigint system_id FK "DECOMMISSION_SYSTEM.id"
@@ -141,6 +155,7 @@ erDiagram
     }
 
     %% ============ 同步与归档 ============
+    %% ============ 同步与归档 · sync_job 同步任务 ============
     SYNC_JOB {
         bigint id PK
         bigint system_id FK "DECOMMISSION_SYSTEM.id"
@@ -154,6 +169,7 @@ erDiagram
         bigint total_rows
         bigint created_by
     }
+    %% ============ 同步与归档 · sync_job_config 定时任务配置 ============
     SYNC_JOB_CONFIG {
         bigint id PK
         bigint system_id FK "DECOMMISSION_SYSTEM.id"
@@ -162,6 +178,7 @@ erDiagram
         tinyint enabled
         datetime last_run_at
     }
+    %% ============ 同步与归档 · sync_table_config 同步表级配置 ============
     SYNC_TABLE_CONFIG {
         bigint id PK
         bigint system_id FK "DECOMMISSION_SYSTEM.id"
@@ -170,6 +187,7 @@ erDiagram
         varchar date_column
         int retain_years
     }
+    %% ============ 同步与归档 · sync_table_stat 同步表级统计 ============
     SYNC_TABLE_STAT {
         bigint id PK
         bigint sync_job_id FK "SYNC_JOB.id"
@@ -178,6 +196,7 @@ erDiagram
         bigint size_bytes
         varchar status
     }
+    %% ============ 同步与归档 · archive_batch 归档批次 ============
     ARCHIVE_BATCH {
         bigint id PK
         bigint sync_job_id FK "SYNC_JOB.id"
@@ -189,6 +208,7 @@ erDiagram
         varchar result
         varchar log_url
     }
+    %% ============ 同步与归档 · archive_file 归档文件 ============
     ARCHIVE_FILE {
         bigint id PK
         bigint archive_batch_id FK "ARCHIVE_BATCH.id"
@@ -198,6 +218,7 @@ erDiagram
         varchar checksum
         varchar etag
     }
+    %% ============ 同步与归档 · archive_set 归档集 ============
     ARCHIVE_SET {
         bigint id PK
         bigint archive_batch_id FK "ARCHIVE_BATCH.id"
@@ -206,6 +227,7 @@ erDiagram
         int items_count
         bigint bytes_total
     }
+    %% ============ 同步与归档 · archive_set_item 归档集条目 ============
     ARCHIVE_SET_ITEM {
         bigint id PK
         bigint archive_set_id FK "ARCHIVE_SET.id"
@@ -217,6 +239,7 @@ erDiagram
     }
 
     %% ============ 附件索引 ============
+    %% ============ 附件索引 · attachment_index 附件索引 ============
     ATTACHMENT_INDEX {
         bigint id PK
         bigint system_id FK "DECOMMISSION_SYSTEM.id"
@@ -230,6 +253,7 @@ erDiagram
     }
 
     %% ============ 动态查询 ============
+    %% ============ 动态查询 · query_config 查询配置 ============
     QUERY_CONFIG {
         bigint id PK
         bigint system_id FK "DECOMMISSION_SYSTEM.id"
@@ -239,6 +263,7 @@ erDiagram
         varchar status "active/draft"
         bigint created_by
     }
+    %% ============ 动态查询 · query_join 连接定义 ============
     QUERY_JOIN {
         bigint id PK
         bigint query_config_id FK "QUERY_CONFIG.id"
@@ -247,6 +272,7 @@ erDiagram
         varchar left_field
         varchar right_field
     }
+    %% ============ 动态查询 · query_field 字段定义 ============
     QUERY_FIELD {
         bigint id PK
         bigint query_config_id FK "QUERY_CONFIG.id"
@@ -258,6 +284,7 @@ erDiagram
         tinyint is_pii
         varchar mask_type "MASK_FULL/MASK_FIRST_N"
     }
+    %% ============ 源数据配置 · schema 归档 Schema ============
     SCHEMA {
         bigint id PK
         bigint system_id FK "DECOMMISSION_SYSTEM.id"
@@ -265,6 +292,7 @@ erDiagram
         varchar schema_name "如 CRM_V1"
         varchar description
     }
+    %% ============ 动态查询 · drill_config 下钻配置 ============
     DRILL_CONFIG {
         bigint id PK
         bigint query_config_id FK "QUERY_CONFIG.id"
@@ -277,6 +305,7 @@ erDiagram
     }
 
     %% ============ 生命周期与保留 ============
+    %% ============ 生命周期与保留 · retention_policy 保留策略 ============
     RETENTION_POLICY {
         bigint id PK
         varchar policy_code UK
@@ -284,6 +313,7 @@ erDiagram
         int period_days
         varchar start_trigger "SYNC_COMPLETED/..."
     }
+    %% ============ 生命周期与保留 · retention_assignment 保留指派 ============
     RETENTION_ASSIGNMENT {
         bigint id PK
         bigint policy_id FK "RETENTION_POLICY.id"
@@ -294,6 +324,7 @@ erDiagram
         varchar status "ACTIVE/EXPIRED/ON_HOLD"
         bigint assigned_by
     }
+    %% ============ 生命周期与保留 · legal_hold_event 法定保留事件 ============
     LEGAL_HOLD_EVENT {
         bigint id PK
         bigint assignment_id FK "RETENTION_ASSIGNMENT.id"
@@ -305,6 +336,7 @@ erDiagram
     }
 
     %% ============ 销毁审批 ============
+    %% ============ 销毁审批 · destroy_job 销毁任务 ============
     DESTROY_JOB {
         bigint id PK
         bigint assignment_id FK "RETENTION_ASSIGNMENT.id"
@@ -317,6 +349,7 @@ erDiagram
         datetime approved_at
         datetime executed_at
     }
+    %% ============ 销毁审批 · destroy_approval 销毁审批记录 ============
     DESTROY_APPROVAL {
         bigint id PK
         bigint destroy_job_id FK "DESTROY_JOB.id"
@@ -327,6 +360,7 @@ erDiagram
     }
 
     %% ============ 通知 ============
+    %% ============ 通知 · notification 通知 ============
     NOTIFICATION {
         bigint id PK
         varchar recipient
@@ -340,6 +374,7 @@ erDiagram
     }
 
     %% ============ 审计与监控 ============
+    %% ============ 审计与监控 · audit_log 审计日志 ============
     AUDIT_LOG {
         bigint id PK
         bigint user_id FK "USER.id"
@@ -354,6 +389,7 @@ erDiagram
         int duration_ms
         datetime created_at
     }
+    %% ============ 审计与监控 · sync_activity 同步活跃度 ============
     SYNC_ACTIVITY {
         bigint id PK
         varchar day_label
@@ -364,44 +400,45 @@ erDiagram
         int running_count
     }
 
-    %% ============ 关系 ============
-    USER ||--o{ USER_ROLE : "拥有角色"
-    ROLE ||--o{ USER_ROLE : "被授予"
-    ROLE ||--o{ ROLE_PERMISSION : "拥有权限"
-    PERMISSION ||--o{ ROLE_PERMISSION : "被授予"
-    ROLE ||--o{ ROLE_PAGE : "可见页面"
-    PAGE ||--o{ ROLE_PAGE : "被访问"
-    DECOMMISSION_SYSTEM ||--o{ SYSTEM_USER : "授权用户"
-    USER ||--o{ SYSTEM_USER : "可访问系统"
-    DECOMMISSION_SYSTEM ||--o{ SOURCE_DATABASE : "源库"
-    SOURCE_DATABASE ||--o{ SOURCE_TABLE : "源表"
-    DECOMMISSION_SYSTEM ||--o{ UNSTRUCTURED_SOURCE : "非结构化源"
-    UNSTRUCTURED_SOURCE ||--o{ UNSTRUCTURED_ITEM : "文件条目"
-    DECOMMISSION_SYSTEM ||--o{ STORAGE_CONFIG : "目标存储"
-    DECOMMISSION_SYSTEM ||--o{ SYNC_JOB : "同步任务"
-    DECOMMISSION_SYSTEM ||--o{ SYNC_JOB_CONFIG : "定时任务"
-    DECOMMISSION_SYSTEM ||--o{ SYNC_TABLE_CONFIG : "表级同步配置"
-    SOURCE_TABLE ||--o{ SYNC_TABLE_CONFIG : "被配置"
-    SYNC_JOB ||--o{ SYNC_TABLE_STAT : "表级统计"
-    SOURCE_TABLE ||--o{ SYNC_TABLE_STAT : "被统计"
-    SYNC_JOB ||--o{ ARCHIVE_BATCH : "归档批次"
-    ARCHIVE_BATCH ||--o{ ARCHIVE_FILE : "归档文件"
-    SOURCE_TABLE ||--o{ ARCHIVE_FILE : "来源表"
-    ARCHIVE_BATCH ||--o{ ARCHIVE_SET : "归档集"
-    ARCHIVE_SET ||--o{ ARCHIVE_SET_ITEM : "集条目"
-    DECOMMISSION_SYSTEM ||--o{ ATTACHMENT_INDEX : "附件索引"
-    DECOMMISSION_SYSTEM ||--o{ QUERY_CONFIG : "查询配置"
-    QUERY_CONFIG ||--o{ QUERY_JOIN : "连接定义"
-    QUERY_CONFIG ||--o{ QUERY_FIELD : "字段定义"
-    QUERY_CONFIG ||--o{ DRILL_CONFIG : "下钻配置"
-    SCHEMA ||--o{ DRILL_CONFIG : "下钻表归属 Schema"
-    DECOMMISSION_SYSTEM ||--o{ SCHEMA : "归档 Schema"
-    RETENTION_POLICY ||--o{ RETENTION_ASSIGNMENT : "指派"
-    RETENTION_ASSIGNMENT ||--o{ LEGAL_HOLD_EVENT : "法定保留事件"
-    RETENTION_ASSIGNMENT ||--o{ DESTROY_JOB : "触发销毁"
-    DESTROY_JOB ||--o{ DESTROY_APPROVAL : "审批记录"
-    USER ||--o{ DESTROY_APPROVAL : "审批人"
-    AUDIT_LOG }o--o{ USER : "操作人(可空)"
+    %% ============ 关联关系（明细） ============
+    USER ||--o{ USER_ROLE : "user.id → user_role.user_id"
+    ROLE ||--o{ USER_ROLE : "role.id → user_role.role_id"
+    ROLE ||--o{ ROLE_PERMISSION : "role.id → role_permission.role_id"
+    PERMISSION ||--o{ ROLE_PERMISSION : "permission.id → role_permission.permission_id"
+    ROLE ||--o{ ROLE_PAGE : "role.id → role_page.role_id"
+    PAGE ||--o{ ROLE_PAGE : "page.id → role_page.page_id"
+    DECOMMISSION_SYSTEM ||--o{ SYSTEM_USER : "decommission_system.id → system_user.system_id"
+    USER ||--o{ SYSTEM_USER : "user.id → system_user.user_id"
+    DECOMMISSION_SYSTEM ||--o{ SOURCE_DATABASE : "decommission_system.id → source_database.system_id"
+    SOURCE_DATABASE ||--o{ SOURCE_TABLE : "source_database.id → source_table.source_database_id"
+    DECOMMISSION_SYSTEM ||--o{ UNSTRUCTURED_SOURCE : "decommission_system.id → unstructured_source.system_id"
+    UNSTRUCTURED_SOURCE ||--o{ UNSTRUCTURED_ITEM : "unstructured_source.id → unstructured_item.unstructured_source_id"
+    DECOMMISSION_SYSTEM ||--o{ STORAGE_CONFIG : "decommission_system.id → storage_config.system_id"
+    DECOMMISSION_SYSTEM ||--o{ SYNC_JOB : "decommission_system.id → sync_job.system_id"
+    DECOMMISSION_SYSTEM ||--o{ SYNC_JOB_CONFIG : "decommission_system.id → sync_job_config.system_id"
+    DECOMMISSION_SYSTEM ||--o{ SYNC_TABLE_CONFIG : "decommission_system.id → sync_table_config.system_id"
+    SOURCE_TABLE ||--o{ SYNC_TABLE_CONFIG : "source_table.id → sync_table_config.source_table_id"
+    SYNC_JOB ||--o{ SYNC_TABLE_STAT : "sync_job.id → sync_table_stat.sync_job_id"
+    SOURCE_TABLE ||--o{ SYNC_TABLE_STAT : "source_table.id → sync_table_stat.source_table_id"
+    SYNC_JOB ||--o{ ARCHIVE_BATCH : "sync_job.id → archive_batch.sync_job_id"
+    ARCHIVE_BATCH ||--o{ ARCHIVE_FILE : "archive_batch.id → archive_file.archive_batch_id"
+    SOURCE_TABLE ||--o{ ARCHIVE_FILE : "source_table.id → archive_file.source_table_id"
+    ARCHIVE_BATCH ||--o{ ARCHIVE_SET : "archive_batch.id → archive_set.archive_batch_id"
+    ARCHIVE_SET ||--o{ ARCHIVE_SET_ITEM : "archive_set.id → archive_set_item.archive_set_id"
+    DECOMMISSION_SYSTEM ||--o{ ATTACHMENT_INDEX : "decommission_system.id → attachment_index.system_id"
+    DECOMMISSION_SYSTEM ||--o{ QUERY_CONFIG : "decommission_system.id → query_config.system_id"
+    QUERY_CONFIG ||--o{ QUERY_JOIN : "query_config.id → query_join.query_config_id"
+    QUERY_CONFIG ||--o{ QUERY_FIELD : "query_config.id → query_field.query_config_id"
+    QUERY_CONFIG ||--o{ DRILL_CONFIG : "query_config.id → drill_config.query_config_id"
+    SCHEMA ||--o{ DRILL_CONFIG : "schema.id → drill_config.schema_id"
+    DECOMMISSION_SYSTEM ||--o{ SCHEMA : "decommission_system.id → schema.system_id"
+    RETENTION_POLICY ||--o{ RETENTION_ASSIGNMENT : "retention_policy.id → retention_assignment.policy_id"
+    RETENTION_ASSIGNMENT ||--o{ LEGAL_HOLD_EVENT : "retention_assignment.id → legal_hold_event.assignment_id"
+    RETENTION_ASSIGNMENT ||--o{ DESTROY_JOB : "retention_assignment.id → destroy_job.assignment_id"
+    DESTROY_JOB ||--o{ DESTROY_APPROVAL : "destroy_job.id → destroy_approval.destroy_job_id"
+    USER ||--o{ DESTROY_APPROVAL : "user.id → destroy_approval.approver_id"
+    AUDIT_LOG }o--o{ USER : "audit_log.user_id → user.id（可空，系统操作为 NULL）"
+
 ```
 
 ---
