@@ -365,7 +365,7 @@ erDiagram
     R_DRILL_CONFIG {
         varchar id PK
         varchar query_config_id FK "R_QUERY_CONFIG.id"
-        varchar parent_id FK "R_DRILL_CONFIG.id" "多级下钻"
+        varchar parent_id FK "R_DRILL_CONFIG.id 多级下钻"
         varchar name
         varchar base_table "子表 db.table"
         varchar parent_field "上级外键字段"
