@@ -258,10 +258,17 @@ erDiagram
         tinyint is_pii
         varchar mask_type "MASK_FULL/MASK_FIRST_N"
     }
+    SCHEMA {
+        bigint id PK
+        bigint system_id FK "DECOMMISSION_SYSTEM.id"
+        varchar catalog_name "如 lake"
+        varchar schema_name "如 CRM_V1"
+        varchar description
+    }
     DRILL_CONFIG {
         bigint id PK
         bigint query_config_id FK "QUERY_CONFIG.id"
-        bigint parent_id FK "DRILL_CONFIG.id 多级下钻"
+        bigint schema_id FK "SCHEMA.id 下钻表所属 Schema"
         varchar name
         varchar base_table
         varchar parent_field
@@ -387,7 +394,8 @@ erDiagram
     QUERY_CONFIG ||--o{ QUERY_JOIN : "连接定义"
     QUERY_CONFIG ||--o{ QUERY_FIELD : "字段定义"
     QUERY_CONFIG ||--o{ DRILL_CONFIG : "下钻配置"
-    DRILL_CONFIG ||--o{ DRILL_CONFIG : "parent 多级下钻"
+    SCHEMA ||--o{ DRILL_CONFIG : "下钻表归属 Schema"
+    DECOMMISSION_SYSTEM ||--o{ SCHEMA : "归档 Schema"
     RETENTION_POLICY ||--o{ RETENTION_ASSIGNMENT : "指派"
     RETENTION_ASSIGNMENT ||--o{ LEGAL_HOLD_EVENT : "法定保留事件"
     RETENTION_ASSIGNMENT ||--o{ DESTROY_JOB : "触发销毁"
@@ -706,16 +714,28 @@ erDiagram
 
 > 把 `fields` JSON 拆成字段级定义表，支持列级脱敏标记与动态渲染。
 
+#### `schema` 归档 Schema 表（新增）
+| 列 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- |
+| `system_id` | BIGINT | FK `decommission_system.id`, 索引 | 所属系统 |
+| `catalog_name` | VARCHAR(64) | NOT NULL | Catalog 名（如 `lake`） |
+| `schema_name` | VARCHAR(128) | NOT NULL | Schema 名（如 `CRM_V1`） |
+| `description` | VARCHAR(256) | | 描述 |
+
+> 联合唯一：`(catalog_name, schema_name)`。代表湖仓里的 UC Schema，归档表都归属某个 Schema。
+
 #### `drill_config` 下钻配置表
 | 列 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- |
 | `query_config_id` | BIGINT | FK `query_config.id`, 索引 | 查询配置 |
-| `parent_id` | BIGINT | FK `drill_config.id` | 父级下钻（多级，顶层 NULL） |
+| `schema_id` | BIGINT | FK `schema.id`, 索引 | 下钻子表所属 Schema |
 | `name` | VARCHAR(128) | NOT NULL | 下钻名 |
 | `base_table` | VARCHAR(255) | NOT NULL | 子表 |
 | `parent_field` | VARCHAR(128) | NOT NULL | 上级外键字段 |
 | `child_field` | VARCHAR(128) | NOT NULL | 子表关联字段 |
 | `sort_order` | INT | DEFAULT 0 | 排序 |
+
+> `base_table` 是归档后的子表，通过 `schema_id` 关联到它所属的 Schema（即 `schema.catalog_name.schema_name` 下的表）。
 
 ---
 
@@ -848,7 +868,7 @@ erDiagram
 | --- | --- | --- |
 | 权限与访问控制 | user, role, permission, page, user_role, role_permission, role_page | 7 |
 | 退役系统管理 | decommission_system, system_user | 2 |
-| 源数据配置 | source_database, source_table, unstructured_source, unstructured_item | 4 |
+| 源数据配置 | source_database, source_table, unstructured_source, unstructured_item, schema | 5 |
 | 目标存储配置 | storage_config | 1 |
 | 同步与归档 | sync_job, sync_job_config, sync_table_config, sync_table_stat, archive_batch, archive_file, archive_set, archive_set_item | 8 |
 | 附件索引 | attachment_index | 1 |
@@ -857,6 +877,6 @@ erDiagram
 | 销毁审批 | destroy_job, destroy_approval | 2 |
 | 通知 | notification | 1 |
 | 审计与监控 | audit_log, sync_activity | 2 |
-| **合计** | | **35** |
+| **合计** | | **36** |
 
-> 相比现有 `r_*` 24 张表：新增 `attachment_index`、`storage_config`、`source_table`、`query_join`、`query_field`、`destroy_job`、`destroy_approval`、`notification`、`user_role`、`role_permission`、`role_page`、`system_user` 共 12 张核心表，并把 `r_user.system_ids`、`r_role.permissions`、`r_page.visible_to`、`r_query_config.joins/fields`、`r_system.storage_config` 等 JSON 内嵌全部规范化。
+> 相比现有 `r_*` 24 张表：新增 `attachment_index`、`storage_config`、`source_table`、`schema`、`query_join`、`query_field`、`destroy_job`、`destroy_approval`、`notification`、`user_role`、`role_permission`、`role_page`、`system_user` 共 13 张核心表，并把 `r_user.system_ids`、`r_role.permissions`、`r_page.visible_to`、`r_query_config.joins/fields`、`r_system.storage_config` 等 JSON 内嵌全部规范化。
