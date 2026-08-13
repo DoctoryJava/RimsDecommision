@@ -68,7 +68,19 @@
   .legend-impl span { display:flex; align-items:center; gap:6px; }
   .sec-title { font-size:22px; font-weight:800; margin-bottom:4px; }
   .sec-sub { color:#8aa0bb; font-size:13px; margin-bottom:14px; }
+
   .cat-cell { font-weight:700; color:#fff; white-space:nowrap; font-size:12px; line-height:1.5; }
+
+  /* ===== Demo 技术栈 slide ===== */
+  .grp td { padding:8px 14px; font-weight:700; color:#b9d2ff; background:rgba(52,120,246,.10); font-size:12px; letter-spacing:.03em; }
+  .tbl-name { font-weight:700; color:#fff; display:block; }
+  .tbl-sub { color:#8aa0bb; font-size:11px; font-weight:400; display:block; margin-top:1px; }
+  .role-pill { display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .role-self { background:rgba(255,255,255,.10); color:#d6e2f2; border:1px solid rgba(255,255,255,.18); }
+  .role-idle { background:rgba(245,158,11,.14); color:#fbbf24; border:1px solid rgba(245,158,11,.45); }
+  .role-ext { background:rgba(52,120,246,.14); color:#7db1ff; border:1px solid rgba(52,120,246,.4); }
+  .tsd-note { margin-top:16px; font-size:12.5px; color:#8aa0bb; line-height:1.7; border:1px solid rgba(245,158,11,.3); background:rgba(245,158,11,.07); border-radius:10px; padding:12px 16px; }
+  .tsd-note b { color:#fbbf24; }
 
   /* ===== PPT 分页 ===== */
   .deck { position:relative; }
@@ -252,6 +264,60 @@
   <div style="margin-top:16px; font-size:12.5px; color:#8aa0bb; line-height:1.7;">
     统计：<b style="color:#4ed6a8">已实现 8 项</b> · <b style="color:#fbbf24">部分实现 6 项</b> · <b style="color:#f87171">未实现 8 项</b>
     &nbsp;|&nbsp; 核心检索 / 导出 / 脱敏 / 审计 / 用户权限已可用，迁移治理、归档转换、存储安全与连接器等模块待完善。
+  </div>
+  </section>
+
+  <!-- 第3页：验证 Demo 实际技术栈 -->
+  <section class="slide" data-title="Demo 技术栈">
+  <div class="sec-title" style="margin-top:18px">🧪 验证 Demo 实际技术栈（AI Coding 产出）</div>
+  <p class="sec-sub">本方案基于一套<strong>真实可运行的 AI Coding 验证 Demo</strong> 产出。下表为 Demo <strong>当前代码层面实际调用</strong>的全部框架 / 库 / 依赖 —— 即"目标生产架构（A / B / B2）"在演示阶段的<strong>已落地形态</strong>。</p>
+  <div class="legend" style="margin-top:2px">
+    <span><span class="tag t-both">自建/自研</span> 演示阶段提前承担的自建运维组件</span>
+    <span><span class="tag t-human">⚠️ 声明未用</span> 历史遗留依赖，建议清理</span>
+  </div>
+  <div style="margin-top:14px"></div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th style="width:26%">框架 / 库</th><th style="width:12%">版本</th><th style="width:18%">角色</th><th style="width:44%">说明 / 备注</th></tr>
+      </thead>
+      <tbody>
+        <tr class="grp"><td colspan="4">① 后端 · Java 21 / Spring Boot 3.2.5（Maven 依赖）</td></tr>
+        <tr><td><span class="tbl-name">Java</span><span class="tbl-sub">pom.xml · java.version</span></td><td class="mono">21</td><td><span class="role-pill role-self">运行环境</span></td><td>LTS 长期支持版本</td></tr>
+        <tr><td><span class="tbl-name">Spring Boot</span><span class="tbl-sub">spring-boot-starter-parent</span></td><td class="mono">3.2.5</td><td><span class="role-pill role-self">主框架</span></td><td>含 Web / Validation / Security starter</td></tr>
+        <tr><td><span class="tbl-name">MyBatis-Plus</span><span class="tbl-sub">mybatis-plus-spring-boot3-starter</span></td><td class="mono">3.5.7</td><td><span class="role-pill role-self">ORM</span></td><td><strong>boot3 版</strong>；@TableName / 雪花 ID / 逻辑删除</td></tr>
+        <tr><td><span class="tbl-name">MySQL Connector/J</span><span class="tbl-sub">mysql-connector-j</span></td><td class="mono">8.0.33</td><td><span class="role-pill role-self">数据库驱动</span></td><td>元数据库（配置 / Schema / RBAC / 审计）</td></tr>
+        <tr><td><span class="tbl-name">Flyway</span><span class="tbl-sub">flyway-core + flyway-mysql</span></td><td class="mono">随 Boot</td><td><span class="role-pill role-self">数据库迁移</span></td><td>V1 – V16 版本化迁移，禁止手工 ALTER</td></tr>
+        <tr><td><span class="tbl-name">jjwt</span><span class="tbl-sub">jjwt-api / impl / jackson</span></td><td class="mono">0.12.5</td><td><span class="role-pill role-self">安全 / JWT</span></td><td>登录签发与接口鉴权</td></tr>
+        <tr><td><span class="tbl-name">springdoc-openapi</span><span class="tbl-sub">starter-webmvc-ui</span></td><td class="mono">2.6.0</td><td><span class="role-pill role-self">API 文档</span></td><td>Swagger UI 自动生成</td></tr>
+        <tr><td><span class="tbl-name">Lombok</span><span class="tbl-sub">@Data / @Slf4j 等</span></td><td class="mono">随 Boot</td><td><span class="role-pill role-self">代码简化</span></td><td>实体 / DTO 样板代码生成</td></tr>
+        <tr><td><span class="tbl-name">Apache Commons Lang3</span><span class="tbl-sub">字符串 / 对象工具</span></td><td class="mono">随 Boot</td><td><span class="role-pill role-self">工具库</span></td><td>通用工具方法</td></tr>
+        <tr><td><span class="tbl-name">H2 Database</span><span class="tbl-sub">test scope</span></td><td class="mono">随 Boot</td><td><span class="role-pill role-self">测试</span></td><td>内存库做单元测试（配合 Boot Test / Security Test）</td></tr>
+        <tr><td><span class="tbl-name">Spring Data Redis</span><span class="tbl-sub">starter-data-redis</span></td><td class="mono">随 Boot</td><td><span class="role-pill role-idle">⚠️ 声明未用</span></td><td><strong>配置已引入，代码未实际调用</strong>；Token 缓存目前走内存，建议清理或启用</td></tr>
+
+        <tr class="grp"><td colspan="4">· 外部组件（非 Maven 依赖，由后端进程调用）</td></tr>
+        <tr><td><span class="tbl-name">Apache SeaTunnel</span><span class="tbl-sub">app.seatunnel.* 配置</span></td><td class="mono"><strong>2.3.13</strong></td><td><span class="role-pill role-ext">数据同步引擎</span></td><td>源库 → 本地磁盘 Iceberg 1:1 抽取（替代生产方案的 Databricks Jobs）</td></tr>
+        <tr><td><span class="tbl-name">Apache Spark</span><span class="tbl-sub">app.spark.* 配置</span></td><td class="mono"><strong>3.3.4</strong></td><td><span class="role-pill role-ext">查询引擎</span></td><td>读落盘 Iceberg；spark-submit 调用，含 iceberg-spark-runtime-3.3_2.12-1.4.3</td></tr>
+        <tr><td><span class="tbl-name">rims-spark-query.jar</span><span class="tbl-sub">自研查询作业</span></td><td class="mono">—</td><td><span class="role-pill role-ext">自研组件</span></td><td>com.rims.spark.QueryJob，<strong>本地编译、未入 Maven 仓</strong>，stdout 协议回传结果</td></tr>
+
+        <tr class="grp"><td colspan="4">② 前端 · React 19 + Vite 8（pnpm 依赖）</td></tr>
+        <tr><td><span class="tbl-name">Vite</span><span class="tbl-sub">@vitejs/plugin-react</span></td><td class="mono"><strong>^8.2.0</strong></td><td><span class="role-pill role-self">构建工具</span></td><td>dev server / 生产打包；含 @tailwindcss/vite 插件</td></tr>
+        <tr><td><span class="tbl-name">React + ReactDOM</span><span class="tbl-sub">函数组件 + Hooks</span></td><td class="mono"><strong>^19.2.8</strong></td><td><span class="role-pill role-self">UI 框架</span></td><td>无 Element Plus；6 个自研 UI 组件（Button/Card/Modal/Badge/PageHeader/Sidebar）</td></tr>
+        <tr><td><span class="tbl-name">TypeScript</span><span class="tbl-sub">tsc -b</span></td><td class="mono"><strong>^6.0.3</strong></td><td><span class="role-pill role-self">开发语言</span></td><td>全量类型检查</td></tr>
+        <tr><td><span class="tbl-name">Tailwind CSS</span><span class="tbl-sub">+ @tailwindcss/vite</span></td><td class="mono">^4.3.3</td><td><span class="role-pill role-self">样式方案</span></td><td>原子化 CSS，无独立 UI 组件库</td></tr>
+        <tr><td><span class="tbl-name">Axios</span><span class="tbl-sub">lib/api.ts</span></td><td class="mono">^1.6.0</td><td><span class="role-pill role-self">HTTP 客户端</span></td><td>统一 Result 解包 / JWT 拦截注入</td></tr>
+        <tr><td><span class="tbl-name">lucide-react</span><span class="tbl-sub">图标</span></td><td class="mono">^1.28.0</td><td><span class="role-pill role-self">图标库</span></td><td>菜单 / 按钮图标</td></tr>
+        <tr><td><span class="tbl-name">Vitest + Testing Library + jsdom</span><span class="tbl-sub">单元测试</span></td><td class="mono">^1.4.0 / ^14.2 / ^24.0</td><td><span class="role-pill role-self">测试</span></td><td>脚本已配，用例较少</td></tr>
+        <tr><td><span class="tbl-name">@supabase/supabase-js</span><span class="tbl-sub">BaaS 客户端</span></td><td class="mono">^2.111.0</td><td><span class="role-pill role-idle">⚠️ 声明未用</span></td><td><strong>依赖已声明，代码未实际使用</strong>；Bolt 原型遗留，建议移除</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tsd-note">
+    <b>读这张表的两个要点：</b><br>
+    · <b>对照生产方案</b>：Demo 把"目标架构（A / B / B2：Databricks + Unity Catalog + ADLS Gen2）"降级为"本地可演示形态"——同步引擎用 SeaTunnel、查询引擎用 Spark，二者均属「自建运维」组件，即演示阶段已提前承担了这部分隐性人力成本。<br>
+    · <b>两处「声明未用」</b>：Spring Data Redis（后端）与 @supabase/supabase-js（前端）均为历史遗留依赖，建议在交付前清理或正式启用，避免增加供应链体积与认知误解。
   </div>
   </section>
 
