@@ -378,6 +378,7 @@ erDiagram
         datetime created_at
     }
     %% ============ 审计与监控 · sync_activity 同步活跃度 ============
+    %% 作用：对 sync_job 按天按结果状态预聚合，供 Dashboard「同步活跃度」图表（最近7天成功/失败/部分/运行中）直接读取，避免实时扫表
     SYNC_ACTIVITY {
         bigint id PK
         varchar day_label
@@ -855,6 +856,8 @@ erDiagram
 | `failed_count` | INT | NOT NULL DEFAULT 0 | 失败任务数 |
 | `partial_count` | INT | NOT NULL DEFAULT 0 | 部分成功数 |
 | `running_count` | INT | NOT NULL DEFAULT 0 | 运行中数 |
+
+> **作用说明**：本表是对 `sync_job`（每次同步一条记录）**按天、按结果状态预聚合**的读数表，按日生成一行，记录当天各类结果的任务数。它专供 Dashboard「同步活跃度」图表读取（`GET /sync/activity` 按 `activity_date` 排序取最近 7 天），避免每次出图都实时扫描 `sync_job` 做 GROUP BY 聚合，从而降低仪表盘查询成本。属**查询优化型聚合表**，真正记录每一次同步执行明细的是 `sync_job`。
 
 ---
 
