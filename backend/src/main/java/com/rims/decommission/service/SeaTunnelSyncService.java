@@ -1,10 +1,7 @@
 package com.rims.decommission.service;
 
 import com.rims.decommission.config.SeaTunnelProperties;
-import com.rims.decommission.entity.RSchema;
-import com.rims.decommission.entity.RSourceDatabase;
-import com.rims.decommission.entity.RSyncJob;
-import com.rims.decommission.entity.RSyncTableStat;
+import com.rims.decommission.entity.*;
 import com.rims.decommission.mapper.RSchemaMapper;
 import com.rims.decommission.mapper.RSourceDatabaseMapper;
 import com.rims.decommission.mapper.RSyncJobMapper;
@@ -157,7 +154,7 @@ public class SeaTunnelSyncService {
             String sql = "DELETE FROM " + fullTable + " WHERE " + c.getDateColumn() + " < '" + cutoffYear + "-01-01'";
             addLog(logs, "INFO", "生命周期策略: " + t + " 保留 " + c.getRetainYears() + " 年，删除 " + cutoffYear + " 年前数据（字段 " + c.getDateColumn() + "）");
             try {
-                sparkQueryService.executeQuery(src.getSystemId(), src.getDatabaseName(), sql, 1, 10);
+                sparkQueryService.executeQuery(src.getSourceSystemId(), src.getDatabaseName(), sql, 1, 10);
                 addLog(logs, "INFO", t + " 生命周期删除完成");
             } catch (Exception e) {
                 addLog(logs, "WARN", t + " 生命周期删除失败: " + safe(e.getMessage()));
