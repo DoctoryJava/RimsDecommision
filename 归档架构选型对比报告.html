@@ -1386,6 +1386,55 @@
                         <td>AKS 节点池按 VM 计费<br>+ 控制平面费用</td>
                         <td><strong>我方</strong>：集群运维、版本升级、应用发布</td>
                     </tr>
+                    <tr class="grp"><td colspan="7">④-1 .NET 后端子组件（参考 Demo 后端 Java 组件映射到 .NET 生产方案）</td></tr>
+                    <tr>
+                        <td><span class="ts-nm">ASP.NET Core</span><span class="ts-sub">Web API / 依赖注入 / 中间件</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>随 .NET 运行时<br>开源免费</td><td><strong>我方</strong>：与主服务同池发布</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">EF Core + Pomelo.MySql</span><span class="ts-sub">ORM 数据访问层</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费</td><td><strong>我方</strong>：与 Demo 的 MyBatis-Plus 对应</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">EF Core Migrations</span><span class="ts-sub">数据库版本化迁移</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费</td><td><strong>我方</strong>：对应 Demo 的 Flyway</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">JwtBearer 认证</span><span class="ts-sub">Microsoft.AspNetCore.Authentication.JwtBearer</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费</td><td><strong>我方</strong>：对应 Demo 的 jjwt</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">Swashbuckle</span><span class="ts-sub">Swagger API 文档</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费</td><td><strong>我方</strong>：对应 Demo 的 springdoc-openapi</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">Azure.Storage.Blobs SDK</span><span class="ts-sub">ADLS/Blob 附件读写</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费<br>走存储流量费</td><td><strong>我方</strong>：附件取流 / SAS 签发</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">Databricks .NET SDK</span><span class="ts-sub">Databricks.sdk</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-n">—</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费</td><td><strong>我方</strong>：写侧 Job / 查询调用（B2 全量用）</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">Microsoft.Extensions.Caching.StackExchangeRedis</span><span class="ts-sub">Redis 缓存</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费<br>Redis 另按实例计费</td><td><strong>我方</strong>：Token / 元数据缓存</td>
+                    </tr>
                     <tr>
                         <td><span class="ts-nm">Azure Application Insights</span><span class="ts-sub">审计日志、操作留痕、链路追踪</span></td>
                         <td class="c"><span class="ts-pill ts-paas">PaaS 托管</span></td>
@@ -1405,6 +1454,49 @@
                         <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
                         <td class="c"><span class="ts-n">—</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
                         <td>无许可费<br>一次性研发投入</td><td><strong>我方</strong>：全生命周期自维护</td>
+                    </tr>
+                    <tr class="grp"><td colspan="7">⑤-1 前端组件（参考 Demo 前端 React 技术栈，生产方案沿用）</td></tr>
+                    <tr>
+                        <td><span class="ts-nm">Vite</span><span class="ts-sub">构建工具</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-n">—</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费</td><td><strong>我方</strong>：dev / 打包（对应 Demo ^8.2）</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">React + ReactDOM</span><span class="ts-sub">函数组件 + Hooks</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-n">—</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费</td><td><strong>我方</strong>：自研 Button/Card/Modal 等 UI 组件</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">TypeScript</span><span class="ts-sub">tsc -b 类型检查</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-n">—</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费</td><td><strong>我方</strong>：对应 Demo ^6.0</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">Tailwind CSS</span><span class="ts-sub">原子化样式</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-n">—</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费</td><td><strong>我方</strong>：对应 Demo ^4.3</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">Axios</span><span class="ts-sub">HTTP 客户端</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-n">—</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费</td><td><strong>我方</strong>：Result 解包 / JWT 拦截注入</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">lucide-react</span><span class="ts-sub">图标库</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-n">—</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费</td><td><strong>我方</strong>：菜单 / 按钮图标</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ts-nm">Vitest + Testing Library</span><span class="ts-sub">前端单元测试</span></td>
+                        <td class="c"><span class="ts-pill ts-self">自建运维</span></td>
+                        <td class="c"><span class="ts-n">—</span></td><td class="c"><span class="ts-y">●</span></td><td class="c"><span class="ts-y">●</span></td>
+                        <td>开源免费</td><td><strong>我方</strong>：对应 Demo 测试栈</td>
                     </tr>
                     <tr class="grp"><td colspan="7">⑥ 安全与治理层</td></tr>
                     <tr>
