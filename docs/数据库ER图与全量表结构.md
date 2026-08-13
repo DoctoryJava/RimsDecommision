@@ -159,7 +159,8 @@ erDiagram
     SYNC_JOB {
         bigint id PK
         bigint system_id FK "DECOMMISSION_SYSTEM.id"
-        varchar job_type "FULL/INCREMENTAL/COMPACT"
+        bigint assignment_id FK "RETENTION_ASSIGNMENT.id 仅 DESTROY 类型"
+        varchar job_type "FULL/INCREMENTAL/COMPACT/DESTROY"
         varchar trigger_type "MANUAL/SCHEDULED"
         varchar status "PENDING/RUNNING/SUCCESS/FAILED"
         datetime started_at
@@ -336,23 +337,10 @@ erDiagram
     }
 
     %% ============ 销毁审批 ============
-    %% ============ 销毁审批 · destroy_job 销毁任务 ============
-    DESTROY_JOB {
-        bigint id PK
-        bigint assignment_id FK "RETENTION_ASSIGNMENT.id"
-        varchar scope_type "SYSTEM/TABLE"
-        varchar scope_id
-        varchar status "SUBMITTED/APPROVED/EXECUTING/COMPLETED/FAILED"
-        bigint submitted_by
-        bigint approved_by
-        datetime submitted_at
-        datetime approved_at
-        datetime executed_at
-    }
     %% ============ 销毁审批 · destroy_approval 销毁审批记录 ============
     DESTROY_APPROVAL {
         bigint id PK
-        bigint destroy_job_id FK "DESTROY_JOB.id"
+        bigint sync_job_id FK "SYNC_JOB.id"
         bigint approver_id FK "USER.id"
         varchar decision "APPROVE/REJECT"
         varchar comment
@@ -436,8 +424,8 @@ erDiagram
     DECOMMISSION_SYSTEM ||--o{ SCHEMA : "一个退役系统在湖仓中可对应一个或多个归档 Schema（UC 命名空间）"
     RETENTION_POLICY ||--o{ RETENTION_ASSIGNMENT : "一套保留策略可被指派给多个对象（系统/表/文件集）"
     RETENTION_ASSIGNMENT ||--o{ LEGAL_HOLD_EVENT : "一个保留指派在法定保留期间可产生多条 HOLD/RELEASE 事件留痕"
-    RETENTION_ASSIGNMENT ||--o{ DESTROY_JOB : "保留指派到期后可触发一个或多个销毁任务"
-    DESTROY_JOB ||--o{ DESTROY_APPROVAL : "一个销毁任务在执行前需记录审批流水（通过/驳回）"
+    RETENTION_ASSIGNMENT ||--o{ SYNC_JOB : "保留指派到期后可触发一个或多个 DESTROY 类型的同步任务执行销毁"
+    SYNC_JOB ||--o{ DESTROY_APPROVAL : "一个 DESTROY 类型的同步任务在执行前需记录审批流水（通过/驳回）"
     USER ||--o{ DESTROY_APPROVAL : "销毁审批由用户完成，记录审批人（approver_id）"
     AUDIT_LOG }o--o{ USER : "审计日志记录操作人；系统自动操作时 user_id 为空（弱关联）"
 ```
@@ -616,7 +604,8 @@ erDiagram
 | 列 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- |
 | `system_id` | BIGINT | FK `decommission_system.id`, 索引 | 系统 |
-| `job_type` | VARCHAR(16) | NOT NULL DEFAULT 'FULL' | FULL/INCREMENTAL/COMPACT |
+| `assignment_id` | BIGINT | FK `retention_assignment.id`（仅 DESTROY 类型） | 关联的保留指派，DESTROY 任务由此触发 |
+| `job_type` | VARCHAR(16) | NOT NULL DEFAULT 'FULL' | FULL/INCREMENTAL/COMPACT/**DESTROY**（DESTROY=销毁执行） |
 | `trigger_type` | VARCHAR(16) | NOT NULL | MANUAL/SCHEDULED |
 | `status` | VARCHAR(16) | NOT NULL DEFAULT 'PENDING' | PENDING/RUNNING/SUCCESS/FAILED |
 | `started_at` | DATETIME | | 开始时间 |
@@ -810,25 +799,14 @@ erDiagram
 
 ---
 
-### 模块 9 · 销毁审批（新增）
+### 模块 9 · 销毁审批（并入同步任务体系）
 
-#### `destroy_job` 销毁任务表
-| 列 | 类型 | 约束 | 说明 |
-| --- | --- | --- | --- |
-| `assignment_id` | BIGINT | FK `retention_assignment.id`, 索引 | 关联保留指派 |
-| `scope_type` | VARCHAR(16) | NOT NULL | SYSTEM/TABLE |
-| `scope_id` | VARCHAR(64) | NOT NULL | 销毁范围对象 |
-| `status` | VARCHAR(16) | DEFAULT 'SUBMITTED' | SUBMITTED/APPROVED/EXECUTING/COMPLETED/FAILED |
-| `submitted_by` | BIGINT | FK `user.id` | 提交人 |
-| `approved_by` | BIGINT | FK `user.id` | 审批人 |
-| `submitted_at` | DATETIME | | 提交时间 |
-| `approved_at` | DATETIME | | 审批时间 |
-| `executed_at` | DATETIME | | 执行时间 |
+> **设计说明**：销毁不再单设 `destroy_job`，而是复用同步任务体系——由 `job_type = 'DESTROY'` 的 `sync_job` 承担销毁执行；`retention_assignment` 到期触发一个 DESTROY 类型的 `sync_job`（经 `sync_job.assignment_id` 关联），销毁前需在 `destroy_approval` 中完成审批留痕。
 
 #### `destroy_approval` 销毁审批记录表
 | 列 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- |
-| `destroy_job_id` | BIGINT | FK `destroy_job.id`, 索引 | 销毁任务 |
+| `sync_job_id` | BIGINT | FK `sync_job.id`, 索引 | 关联的 DESTROY 类型同步任务 |
 | `approver_id` | BIGINT | FK `user.id` | 审批人 |
 | `decision` | VARCHAR(16) | NOT NULL | APPROVE/REJECT |
 | `comment` | VARCHAR(512) | | 意见 |
@@ -893,7 +871,7 @@ erDiagram
 | 源表 | 独立 `source_table` 表 | 结构化列出源库所有表，供勾选/同步 |
 | 附件 | 独立 `attachment_index` 表 | 打通「业务记录 ↔ 附件」，支撑按主键取附件 |
 | 查询 | `query_join`/`query_field` 拆表 | 替代 JSON，支持列级脱敏、可约束 |
-| 销毁 | `destroy_job`+`destroy_approval` | 独立销毁审计与审批链 |
+| 销毁 | 复用 `sync_job`(job_type=DESTROY) + `destroy_approval` | 不单设销毁任务表，销毁执行与审批挂靠同步任务体系 |
 | 通知 | 独立 `notification` 表 | 到期提醒/审批通知留痕 |
 | 审计 | 独立 `audit_log` | 全局操作留痕，可溯源 |
 | 业务数据 | 不进元数据库 | 一律走湖仓 Databricks SQL，MySQL 只存元数据 |
@@ -912,9 +890,9 @@ erDiagram
 | 附件索引 | attachment_index | 1 |
 | 动态查询 | query_config, query_join, query_field, drill_config | 4 |
 | 生命周期与保留 | retention_policy, retention_assignment, legal_hold_event | 3 |
-| 销毁审批 | destroy_job, destroy_approval | 2 |
+| 销毁审批 | destroy_approval（销毁执行复用 sync_job） | 1 |
 | 通知 | notification | 1 |
 | 审计与监控 | audit_log, sync_activity | 2 |
-| **合计** | | **36** |
+| **合计** | | **35** |
 
-> 相比现有 `r_*` 24 张表：新增 `attachment_index`、`storage_config`、`source_table`、`schema`、`query_join`、`query_field`、`destroy_job`、`destroy_approval`、`notification`、`user_role`、`role_permission`、`role_page`、`system_user` 共 13 张核心表，并把 `r_user.system_ids`、`r_role.permissions`、`r_page.visible_to`、`r_query_config.joins/fields`、`r_system.storage_config` 等 JSON 内嵌全部规范化。
+> 相比现有 `r_*` 24 张表：新增 `attachment_index`、`storage_config`、`source_table`、`schema`、`query_join`、`query_field`、`destroy_approval`、`notification`、`user_role`、`role_permission`、`role_page`、`system_user` 共 12 张核心表，并把 `r_user.system_ids`、`r_role.permissions`、`r_page.visible_to`、`r_query_config.joins/fields`、`r_system.storage_config` 等 JSON 内嵌全部规范化。销毁执行复用 `sync_job(job_type=DESTROY)`，不再单设销毁任务表。
