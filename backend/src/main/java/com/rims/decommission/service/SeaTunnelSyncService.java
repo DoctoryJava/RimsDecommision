@@ -89,11 +89,21 @@ public class SeaTunnelSyncService {
         int port = src.getPort() != null ? src.getPort() : defaultPort(engine);
         List<String> allTables = listTables(engine, src.getServer(), port, src.getDatabaseName(),
                 src.getUsername(), src.getPassword());
+        // 检查该源库是否已配置表同步策略（完全未配置则报错，提示先配置）
+        long cfgCount = 0;
+        if (src.getId() != null) {
+            cfgCount = tableConfigMapper.selectCount(
+                    new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RSyncTableConfig>()
+                            .eq(RSyncTableConfig::getSourceDatabaseId, src.getId()));
+        }
+        if (cfgCount == 0) {
+            throw new IllegalStateException("源库 " + src.getDatabaseName() + " 未配置表同步策略，请先在数据源的表配置里勾选要同步的表");
+        }
         // 按同步前配置过滤：只同步 enabled=1 的表
         List<String> tables = filterEnabledTables(src, allTables);
         if (tables.isEmpty()) {
-            addLog(logs, "WARN", "源库 " + src.getDatabaseName() + " 无表可同步（或全部被禁用）");
-            return 0;
+            addLog(logs, "WARN", "源库 " + src.getDatabaseName() + " 无表可同步（勾选的表均为空）");
+            throw new IllegalStateException("源库 " + src.getDatabaseName() + " 没有勾选任何要同步的表，请先在表配置里勾选");
         }
         addLog(logs, "INFO", "待同步表: " + String.join(", ", tables));
 

@@ -155,6 +155,19 @@ export default function DataSourcesPage({ onNavigate }: { onNavigate?: (p: PageK
   const triggerSync = async () => {
     const sys = systems.find((s) => s.id === systemId);
     if (!sys || syncing) return;
+    // 前置检查：必须先配置表同步策略（勾选要同步的表）
+    try {
+      const srcDbs = await getSourceDatabases({ systemId });
+      let hasConfig = false;
+      for (const db of (srcDbs || [])) {
+        const cfg = await getSyncTableConfigs(db.id);
+        if ((cfg || []).length > 0) { hasConfig = true; break; }
+      }
+      if (!hasConfig) {
+        window.alert('尚未配置表同步策略，请先到「源数据库」的 ⚙️ 表配置里勾选要同步的表后再同步。');
+        return;
+      }
+    } catch (e) { /* 检查失败则继续（后端会兜底校验） */ }
     // 先判断是否已同步过（源库数据未变）
     try {
       const check = await checkAlreadySynced(systemId);
