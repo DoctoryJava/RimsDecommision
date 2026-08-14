@@ -321,6 +321,79 @@
   </div>
   </section>
 
+  <!-- 第4页：AI 时代前端框架选型 -->
+  <section class="slide" data-title="前端框架选型">
+  <div class="sec-title" style="margin-top:18px">🧠 AI 时代 · 前端框架选型（React vs Vue）</div>
+  <p class="sec-sub">在 LLM AI 辅助编程（Copilot / Claude / ChatGPT 等）成为主流的当下，React 相比 Vue 在「与 AI 结合」的场景下展现出显著优势 —— 关键在于 <strong>JSX 即纯 JS 的表达方式</strong> 与 <strong>海量的开源训练数据</strong>。</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3><span class="ic" style="background:rgba(52,120,246,.2)">①</span>JSX = 纯粹的 JS/TS，对 AI 更友好</h3>
+      <ul>
+        <li><b>React (JSX/TSX)</b>：JSX 本质是 JS 语法扩展，UI 与逻辑统一在 JS 函数中；LLM 擅长连贯逻辑 + 强类型 JS/TS</li>
+        <li><b>Vue (SFC Template)</b>：默认单文件组件（.vue），模板指令 / 插值 / 修饰符是「另一套 DSL」，AI 容易误用</li>
+        <li>结论：<b style="color:#7db1ff">“Everything is JavaScript”</b> 让 AI 推理 / 重构 / 生成 React 代码的<b>准确率与成功率显著更高</b></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="ic" style="background:rgba(16,185,129,.2)">②</span>训练数据量的绝对优势</h3>
+      <ul>
+        <li>LLM 能力高度依赖训练数据规模</li>
+        <li>React 全球市占率更大，GitHub / Stack Overflow / 开源库中<b>代码总量远超 Vue</b></li>
+        <li>AI 对 React 的模式、Hooks 边界情况（Edge Cases）、报错问题的<b>「记忆」更深刻</b></li>
+        <li>结果：AI 生成 React 代码质量更高、Bug 更少</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="ic" style="background:rgba(52,120,246,.2)">③</span>AI 原生生态 & 组件库几乎全在 React 领跑</h3>
+      <ul>
+        <li><b>AI SDK 首选支持</b>：Vercel AI SDK、LangChain 前端库等大多 React First</li>
+        <li><b>热门 AI UI 库</b>：shadcn/ui、Magic UI 等均为 React 原生构建</li>
+        <li>Vue 生态多为社区移植版（如 shadcn-vue），<b>更新维护往往落后一步</b></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="ic" style="background:rgba(16,185,129,.2)">④</span>逻辑复用：Hooks vs Composition API</h3>
+      <ul>
+        <li><b>React Hooks</b>：将逻辑解耦为纯函数（如 <span class="mono">useChat</span> / <span class="mono">useCompletion</span>），AI 生成/组合自定义 Hook 非常精准</li>
+        <li><b>Vue 3 Composition API</b>：响应式追踪存在隐式陷阱 —— <span class="mono">ref.value</span> 拆包、<span class="mono">reactive</span> 解构丢失响应性</li>
+        <li>AI 极易在此类细节上犯错：<b style="color:#f87171">忘记 .value、不当解构</b></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="ic" style="background:rgba(52,120,246,.2)">⑤</span>跨端 & 全栈 AI 应用的统一性</h3>
+      <ul>
+        <li>很多 AI 产品（Copilot 助手、Agent 平台）需全栈能力，如<b>流式传输 SSE</b></li>
+        <li>React 生态的 <b>Next.js + React Server Components (RSC)</b> 可无缝生成「服务端 Stream → 客户端渲染」全链路代码</li>
+        <li>同一套逻辑可更容易迁移到 <b>React Native 移动端</b></li>
+      </ul>
+    </div>
+    <div class="card" style="background:rgba(245,158,11,.08); border-color:rgba(245,158,11,.35);">
+      <h3><span class="ic" style="background:rgba(245,158,11,.2)">💡</span>一句话结论</h3>
+      <p style="font-size:13px; color:#c8d6ea; line-height:1.7">
+        并不是 Vue 本身不够优秀，而是<b style="color:#7db1ff">在 AI 辅助编程的新时代，React 的纯 JS 表达方式（JSX）与巨大的开源数据积淀，天然成为最契合 AI（LLM）的“编程语言”</b>。<br><br>
+        本项目前端即采用 <b style="color:#4ed6a8">React 19 + Vite 8 + TypeScript + Tailwind</b> —— 正是基于此选型考量。
+      </p>
+    </div>
+  </div>
+
+  <div class="divider" style="margin:22px 0"></div>
+  <div class="sec-title" style="margin-top:12px">📊 维度对比一览</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th style="width:22%">维度</th><th style="width:39%">React（AI 视角）</th><th style="width:39%">Vue（AI 视角）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><b style="color:#fff">AI 生成代码准确度</b></td><td>⭐⭐⭐⭐⭐ JSX 即 JS，AI 理解力极佳</td><td>⭐⭐⭐☆ 模板指令有时被 AI 误用</td></tr>
+        <tr><td><b style="color:#fff">LLM 训练数据量</b></td><td>⭐⭐⭐⭐⭐ 极其庞大，涵盖各种场景</td><td>⭐⭐⭐⭐ 较充足但弱于 React</td></tr>
+        <tr><td><b style="color:#fff">AI 相关 SDK & UI 生态</b></td><td>⭐⭐⭐⭐⭐ Vercel AI SDK / shadcn 原生支持</td><td>⭐⭐⭐☆ 多为社区移植版</td></tr>
+        <tr><td><b style="color:#fff">AI 犯错率（响应性陷阱）</b></td><td>较少（主要是 <span class="mono">useEffect</span> 依赖项问题）</td><td>较多（AI 易忘记 <span class="mono">.value</span> 或破坏响应性）</td></tr>
+      </tbody>
+    </table>
+  </div>
+  </section>
+
   </div><!-- /deck -->
 
   <!-- PPT 导航 -->
