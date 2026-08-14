@@ -442,6 +442,8 @@
         .inf-diagram { background:#fbfcfe; border-radius:1rem; border:1px solid var(--border-color);
                        padding:1.4rem; overflow-x:auto; }
         .inf-diagram svg { width:100%; min-width:900px; display:block; }
+        .legacy-azure-infra { display:none !important; }
+        .legacy-app-arch { display:none !important; }
         .inf-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-top:1.1rem; }
         @media (max-width:1000px){ .inf-cards{ grid-template-columns:1fr; } }
         .inf-card { border:1px solid var(--border-color); border-radius:.75rem; padding:14px 16px; background:#fff; }
@@ -3768,6 +3770,150 @@
         </div>
 
         <div class="inf-diagram">
+<svg class="legacy-azure-infra" viewBox="0 0 1280 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Azure cloud 风格的方案 B2 基础设施部署架构：源系统、Azure Cloud、Resource Group、VNet、Databricks Serverless、NCC、私有端点和 PaaS 服务">
+<defs>
+  <marker id="b2AzArrowBlue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+    <path d="M0,0 L10,4 L0,8 Z" fill="#0078d4"/>
+  </marker>
+  <marker id="b2AzArrowGreen" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+    <path d="M0,0 L10,4 L0,8 Z" fill="#059669"/>
+  </marker>
+  <marker id="b2AzArrowPurple" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+    <path d="M0,0 L10,4 L0,8 Z" fill="#7c3aed"/>
+  </marker>
+  <marker id="b2AzArrowOrange" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+    <path d="M0,0 L10,4 L0,8 Z" fill="#d97706"/>
+  </marker>
+  <filter id="b2AzShadow" x="-8%" y="-12%" width="116%" height="132%">
+    <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#1f2937" flood-opacity=".12"/>
+  </filter>
+  <style>
+    .az-bg{fill:#ffffff}
+    .az-title{font:700 24px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;fill:#1f2937}
+    .az-sub{font:400 12px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;fill:#5e6a7d}
+    .az-label{font:700 12px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;fill:#334155}
+    .az-band{font:700 13px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif}
+    .az-card-title{font:700 13px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;fill:#1f2937}
+    .az-card-text{font:400 10.5px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;fill:#64748b}
+    .az-chip{font:700 9.5px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;letter-spacing:.05em}
+    .az-line{font:700 10px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif}
+  </style>
+</defs>
+
+<rect width="1280" height="900" rx="18" fill="#f4f8fb"/>
+<text x="640" y="40" class="az-title" text-anchor="middle">Azure 基础设施部署架构 · 方案 B2</text>
+<text x="640" y="64" class="az-sub" text-anchor="middle">外部系统接入 · Azure Resource Group / VNet · Databricks Serverless · NCC 私有访问 ADLS</text>
+
+<!-- Column backgrounds -->
+<rect x="56" y="104" width="214" height="668" rx="14" fill="#ffffff" stroke="#d7dee8"/>
+<rect x="306" y="104" width="594" height="668" rx="14" fill="#ffffff" stroke="#7ab8ff" stroke-width="1.6"/>
+<rect x="936" y="104" width="288" height="668" rx="14" fill="#ffffff" stroke="#c4b5fd" stroke-width="1.6"/>
+<text x="80" y="134" class="az-band" fill="#475569">External</text>
+<text x="330" y="134" class="az-band" fill="#0078d4">Azure Cloud · rg-rims-archive-prod</text>
+<text x="960" y="134" class="az-band" fill="#6d28d9">Databricks managed account</text>
+
+<!-- External sources and users -->
+<rect x="82" y="166" width="162" height="180" rx="10" fill="#fff8ed" stroke="#f59e0b"/>
+<text x="104" y="196" class="az-band" fill="#b45309">01 源系统</text>
+<rect x="108" y="222" width="42" height="42" rx="6" fill="#ffffff" stroke="#fbbf24"/>
+<rect x="121" y="235" width="16" height="16" rx="3" fill="#f59e0b"/>
+<rect x="176" y="222" width="42" height="42" rx="6" fill="#ffffff" stroke="#fbbf24"/>
+<rect x="189" y="235" width="16" height="16" rx="3" fill="#f59e0b"/>
+<text x="129" y="288" class="az-card-title" text-anchor="middle">Oracle</text>
+<text x="197" y="288" class="az-card-title" text-anchor="middle">MySQL</text>
+<text x="163" y="314" class="az-card-text" text-anchor="middle">DB2 / 其他退役系统</text>
+<text x="163" y="334" class="az-line" fill="#b45309" text-anchor="middle">ExpressRoute / VPN</text>
+
+<rect x="82" y="424" width="162" height="156" rx="10" fill="#eefdf7" stroke="#6ee7b7"/>
+<text x="104" y="454" class="az-band" fill="#047857">02 用户</text>
+<rect x="108" y="482" width="110" height="42" rx="6" fill="#ffffff" stroke="#86efac"/>
+<text x="163" y="502" class="az-card-title" text-anchor="middle">业务 / 审计</text>
+<text x="163" y="518" class="az-card-text" text-anchor="middle">运维用户</text>
+<text x="163" y="552" class="az-line" fill="#047857" text-anchor="middle">HTTPS 443 · SSO</text>
+
+<!-- Azure ingress -->
+<rect x="338" y="166" width="530" height="120" rx="10" fill="#f8fbff" stroke="#a5d8ff"/>
+<text x="362" y="196" class="az-band" fill="#005a9e">Identity and ingress</text>
+<g filter="url(#b2AzShadow)">
+  <rect x="382" y="218" width="126" height="42" rx="6" fill="#0078d4"/>
+  <text x="445" y="244" class="az-line" fill="#ffffff" text-anchor="middle">Microsoft Entra ID</text>
+  <rect x="548" y="218" width="92" height="42" rx="6" fill="#0078d4"/>
+  <text x="594" y="244" class="az-line" fill="#ffffff" text-anchor="middle">WAF</text>
+  <rect x="680" y="218" width="148" height="42" rx="6" fill="#0078d4"/>
+  <text x="754" y="244" class="az-line" fill="#ffffff" text-anchor="middle">App Gateway</text>
+</g>
+
+<!-- VNet -->
+<rect x="338" y="326" width="530" height="282" rx="10" fill="#eef6ff" stroke="#0078d4" stroke-width="1.6"/>
+<text x="362" y="356" class="az-band" fill="#005a9e">Virtual Network · 10.0.0.0/16</text>
+<text x="826" y="356" class="az-chip" fill="#64748b" text-anchor="end">NSG · private routing</text>
+
+<rect x="368" y="388" width="228" height="86" rx="8" fill="#ffffff" stroke="#8ec7ff"/>
+<text x="390" y="416" class="az-chip" fill="#005a9e">AKS SUBNET · 10.0.1.0/24</text>
+<rect x="394" y="434" width="176" height="28" rx="5" fill="#e8f3ff" stroke="#a5d8ff"/>
+<text x="482" y="453" class="az-line" fill="#1f2937" text-anchor="middle">Vue 3 + .NET services</text>
+
+<rect x="628" y="388" width="210" height="86" rx="8" fill="#ffffff" stroke="#8ec7ff"/>
+<text x="650" y="416" class="az-chip" fill="#005a9e">PE SUBNET · 10.0.2.0/24</text>
+<rect x="680" y="434" width="106" height="28" rx="5" fill="#0078d4"/>
+<text x="733" y="453" class="az-line" fill="#ffffff" text-anchor="middle">Private endpoints</text>
+
+<rect x="628" y="500" width="210" height="72" rx="8" fill="#fff8ed" stroke="#f59e0b"/>
+<text x="650" y="530" class="az-chip" fill="#b45309">EGRESS</text>
+<rect x="680" y="540" width="106" height="24" rx="5" fill="#f59e0b"/>
+<text x="733" y="557" class="az-line" fill="#ffffff" text-anchor="middle">NAT Gateway</text>
+
+<!-- Azure PaaS -->
+<rect x="338" y="646" width="530" height="98" rx="10" fill="#f8fbff" stroke="#a5d8ff"/>
+<text x="362" y="674" class="az-band" fill="#005a9e">PaaS data and governance</text>
+<rect x="368" y="696" width="80" height="28" rx="5" fill="#0078d4"/>
+<text x="408" y="715" class="az-line" fill="#ffffff" text-anchor="middle">SQL DB</text>
+<rect x="470" y="696" width="90" height="28" rx="5" fill="#0078d4"/>
+<text x="515" y="715" class="az-line" fill="#ffffff" text-anchor="middle">Key Vault</text>
+<rect x="582" y="696" width="104" height="28" rx="5" fill="#0078d4"/>
+<text x="634" y="715" class="az-line" fill="#ffffff" text-anchor="middle">App Insights</text>
+<rect x="708" y="696" width="112" height="28" rx="5" fill="#10b981"/>
+<text x="764" y="715" class="az-line" fill="#ffffff" text-anchor="middle">ADLS + Blob</text>
+
+<!-- Databricks column -->
+<rect x="966" y="166" width="228" height="280" rx="10" fill="#fbf8ff" stroke="#8b5cf6" stroke-dasharray="8,5"/>
+<text x="990" y="196" class="az-band" fill="#6d28d9">Serverless compute</text>
+<text x="990" y="218" class="az-line" fill="#dc2626">not in customer VNet</text>
+<rect x="1000" y="246" width="160" height="44" rx="6" fill="#7c3aed"/>
+<text x="1080" y="266" class="az-line" fill="#ffffff" text-anchor="middle">SQL Serverless</text>
+<text x="1080" y="282" class="az-card-text" fill="#ede9fe" text-anchor="middle">read · scale to zero</text>
+<rect x="1000" y="314" width="160" height="44" rx="6" fill="#7c3aed"/>
+<text x="1080" y="334" class="az-line" fill="#ffffff" text-anchor="middle">Serverless Jobs</text>
+<text x="1080" y="350" class="az-card-text" fill="#ede9fe" text-anchor="middle">ETL · destroy</text>
+<rect x="1000" y="382" width="160" height="36" rx="6" fill="#ffffff" stroke="#c4b5fd"/>
+<text x="1080" y="405" class="az-line" fill="#6d28d9" text-anchor="middle">Unity Catalog</text>
+
+<rect x="966" y="500" width="228" height="108" rx="10" fill="#ecfdf5" stroke="#10b981"/>
+<text x="990" y="530" class="az-band" fill="#047857">NCC</text>
+<text x="990" y="554" class="az-card-text">Network Connectivity Config</text>
+<text x="990" y="574" class="az-card-text">Managed private endpoint to ADLS</text>
+
+<!-- Connections -->
+<path d="M244 514 H338" stroke="#059669" stroke-width="2.6" marker-end="url(#b2AzArrowGreen)" fill="none"/>
+<text x="291" y="504" class="az-line" fill="#047857" text-anchor="middle">HTTPS 443</text>
+<path d="M828 239 H966" stroke="#7c3aed" stroke-width="2.4" stroke-dasharray="7,5" marker-end="url(#b2AzArrowPurple)" fill="none"/>
+<text x="897" y="229" class="az-line" fill="#6d28d9" text-anchor="middle">Private Link / 443</text>
+<path d="M244 254 H306 V536 H628" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7,5" marker-end="url(#b2AzArrowOrange)" fill="none"/>
+<text x="330" y="526" class="az-line" fill="#b45309">source extraction via NAT allowlist</text>
+<path d="M508 260 V388" stroke="#0078d4" stroke-width="2.4" marker-end="url(#b2AzArrowBlue)" fill="none"/>
+<path d="M596 431 H628" stroke="#0078d4" stroke-width="2.4" marker-end="url(#b2AzArrowBlue)" fill="none"/>
+<path d="M733 474 V646" stroke="#0078d4" stroke-width="2.4" marker-end="url(#b2AzArrowBlue)" fill="none"/>
+<text x="754" y="610" class="az-line" fill="#005a9e">Private Endpoint</text>
+<path d="M1080 446 V500" stroke="#7c3aed" stroke-width="2.4" marker-end="url(#b2AzArrowPurple)" fill="none"/>
+<path d="M1080 608 V710 H820" stroke="#059669" stroke-width="3" marker-end="url(#b2AzArrowGreen)" fill="none"/>
+<text x="1038" y="700" class="az-line" fill="#047857" text-anchor="middle">NCC private path</text>
+
+<!-- Notes -->
+<rect x="56" y="812" width="570" height="34" rx="8" fill="#eef6ff" stroke="#a5d8ff"/>
+<text x="341" y="834" class="az-line" fill="#005a9e" text-anchor="middle">B2 无 Trino 集群，也不需要 Databricks VNet 注入 host/container 子网</text>
+<rect x="654" y="812" width="570" height="34" rx="8" fill="#fff8ed" stroke="#fbbf24"/>
+<text x="939" y="834" class="az-line" fill="#b45309" text-anchor="middle">前置条件：Premium 层 · NCC 需 Account Admin · 区域能力需实测</text>
+</svg>
 <svg viewBox="0 0 1620 1014" xmlns="http://www.w3.org/2000/svg">
 <defs>
 <marker id="m1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#64748b"/></marker>
@@ -3804,7 +3950,7 @@
 <text x="170" y="390.0" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="7" font-weight="400" fill="#64748b" text-anchor="middle">监控 · 销毁作业值守</text>
 <text x="158" y="396.0" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="7.2" font-weight="700" fill="#059669" text-anchor="middle">浏览器 HTTPS 443 · Entra ID 单点登录</text>
 <rect x="326" y="60" width="430" height="188" rx="6" fill="rgba(71,85,105,0.04)" stroke="#94a3b8" stroke-dasharray="5,3"/>
-<text x="342" y="78" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="9" font-weight="700" fill="#475569" text-anchor="start">源系统机房 · 15 套待退役业务系统</text>
+<text x="342" y="78" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="9" font-weight="700" fill="#475569" text-anchor="start">源系统 · 15 套待退役业务系统</text>
 <rect x="342" y="88" width="130" height="50" rx="4" fill="#fff" stroke="#cbd5e1" />
 <ellipse cx="360" cy="107" rx="9" ry="3.4" fill="#475569"/><rect x="351" y="107" width="18" height="11" fill="#475569"/><ellipse cx="360" cy="118" rx="9" ry="3.4" fill="#475569"/>
 <text x="424" y="109" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="8.2" font-weight="700" fill="#0f172a" text-anchor="middle">Oracle</text>
@@ -4074,7 +4220,166 @@
         </div>
 
         <div class="inf-diagram">
-<svg viewBox="0 0 1600 1080" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 1280 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="方案 B 应用架构图：自研应用、写侧 Databricks、读侧 Trino、ADLS Iceberg、Blob 附件与安全审计">
+<defs>
+  <marker id="appBArrowWrite" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+    <path d="M0,0 L10,4 L0,8 Z" fill="#059669"/>
+  </marker>
+  <marker id="appBArrowRead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+    <path d="M0,0 L10,4 L0,8 Z" fill="#7c3aed"/>
+  </marker>
+  <marker id="appBArrowApp" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+    <path d="M0,0 L10,4 L0,8 Z" fill="#0891b2"/>
+  </marker>
+  <marker id="appBArrowOps" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+    <path d="M0,0 L10,4 L0,8 Z" fill="#d97706"/>
+  </marker>
+  <filter id="appBShadow" x="-8%" y="-12%" width="116%" height="130%">
+    <feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#0f172a" flood-opacity=".10"/>
+  </filter>
+  <style>
+    .appb-bg{fill:#f8fafc}
+    .appb-title{font:700 24px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;fill:#0f172a}
+    .appb-sub{font:400 12px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;fill:#64748b}
+    .appb-band-title{font:700 13px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif}
+    .appb-card-title{font:700 14px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;fill:#0f172a}
+    .appb-card-text{font:400 11px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;fill:#64748b}
+    .appb-small{font:700 10px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif}
+    .appb-chip{font:700 10px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;letter-spacing:.04em}
+    .appb-line-label{font:700 11px 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif}
+  </style>
+</defs>
+
+<rect width="1280" height="900" rx="18" class="appb-bg"/>
+<text x="640" y="40" class="appb-title" text-anchor="middle">方案 B 应用架构 · 湖仓一体 / Trino 读侧</text>
+<text x="640" y="63" class="appb-sub" text-anchor="middle">一张图拆清楚：应用只管交互与治理入口；Databricks 负责写入和销毁；Trino 负责在线查询；ADLS / Blob 承载归档资产</text>
+
+<!-- Users and entry -->
+<rect x="44" y="92" width="1192" height="104" rx="14" fill="#ecfdf5" stroke="#86efac"/>
+<text x="68" y="120" class="appb-band-title" fill="#047857">01 访问入口</text>
+<g filter="url(#appBShadow)">
+  <rect x="86" y="136" width="210" height="42" rx="8" fill="#fff" stroke="#bbf7d0"/>
+  <text x="191" y="156" class="appb-card-title" text-anchor="middle">业务查询员</text>
+  <text x="191" y="171" class="appb-card-text" text-anchor="middle">查本系统归档数据</text>
+  <rect x="330" y="136" width="210" height="42" rx="8" fill="#fff" stroke="#bbf7d0"/>
+  <text x="435" y="156" class="appb-card-title" text-anchor="middle">审计 / 合规岗</text>
+  <text x="435" y="171" class="appb-card-text" text-anchor="middle">跨系统检索与举证</text>
+  <rect x="574" y="136" width="210" height="42" rx="8" fill="#fff" stroke="#bbf7d0"/>
+  <text x="679" y="156" class="appb-card-title" text-anchor="middle">平台运维</text>
+  <text x="679" y="171" class="appb-card-text" text-anchor="middle">监控作业与销毁</text>
+  <rect x="922" y="128" width="260" height="58" rx="10" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="1052" y="151" class="appb-card-title" fill="#1d4ed8" text-anchor="middle">Microsoft Entra ID</text>
+  <text x="1052" y="168" class="appb-card-text" fill="#1e40af" text-anchor="middle">SSO / OIDC / 托管标识</text>
+</g>
+
+<!-- Application plane -->
+<rect x="44" y="226" width="1192" height="168" rx="14" fill="#ecfeff" stroke="#67e8f9"/>
+<text x="68" y="254" class="appb-band-title" fill="#0e7490">02 自研应用层（AKS）</text>
+<path d="M435 196 V226" stroke="#0891b2" stroke-width="2" marker-end="url(#appBArrowApp)" fill="none"/>
+<g filter="url(#appBShadow)">
+  <rect x="86" y="280" width="250" height="82" rx="10" fill="#fff" stroke="#0891b2" stroke-width="1.4"/>
+  <rect x="86" y="280" width="6" height="82" rx="3" fill="#0891b2"/>
+  <text x="211" y="304" class="appb-card-title" text-anchor="middle">Vue 3 配置化查询平台</text>
+  <text x="211" y="324" class="appb-card-text" text-anchor="middle">JSON Schema 渲染查询表单</text>
+  <text x="211" y="341" class="appb-card-text" text-anchor="middle">表格 / 明细 / 附件预览 / 导出</text>
+
+  <rect x="388" y="280" width="480" height="82" rx="10" fill="#fff" stroke="#0891b2" stroke-width="1.4"/>
+  <rect x="388" y="280" width="6" height="82" rx="3" fill="#0891b2"/>
+  <text x="628" y="304" class="appb-card-title" text-anchor="middle">.NET 10 后端服务组</text>
+  <text x="628" y="324" class="appb-card-text" text-anchor="middle">元数据 · 查询代理 · 权限校验 · 附件代理 · 审计上报 · 销毁调度</text>
+  <text x="628" y="341" class="appb-card-text" text-anchor="middle">后端二次鉴权 · 参数化 SQL · 私有端点访问下游</text>
+
+  <rect x="920" y="280" width="262" height="82" rx="10" fill="#fff" stroke="#0891b2" stroke-width="1.4"/>
+  <rect x="920" y="280" width="6" height="82" rx="3" fill="#0891b2"/>
+  <text x="1051" y="304" class="appb-card-title" text-anchor="middle">Azure SQL 元数据库</text>
+  <text x="1051" y="324" class="appb-card-text" text-anchor="middle">系统台账 / 表清单 / 保留期</text>
+  <text x="1051" y="341" class="appb-card-text" text-anchor="middle">销毁策略 / 操作审计索引</text>
+</g>
+<path d="M868 322 H920" stroke="#0891b2" stroke-width="2" marker-end="url(#appBArrowApp)" fill="none"/>
+<text x="894" y="312" class="appb-line-label" fill="#0891b2" text-anchor="middle">读写配置</text>
+
+<!-- Three flows -->
+<rect x="44" y="424" width="1192" height="294" rx="14" fill="#fff" stroke="#e2e8f0"/>
+<text x="68" y="452" class="appb-band-title" fill="#334155">03 核心链路：写入、查询、附件分开治理</text>
+
+<!-- Write lane -->
+<rect x="78" y="482" width="338" height="190" rx="12" fill="#f0fdf4" stroke="#86efac"/>
+<text x="102" y="511" class="appb-chip" fill="#047857">WRITE PATH</text>
+<text x="102" y="535" class="appb-card-title">归档写入 / 到期销毁</text>
+<rect x="108" y="560" width="126" height="50" rx="8" fill="#fff" stroke="#fdba74"/>
+<text x="171" y="581" class="appb-card-title" font-size="13" text-anchor="middle">Airflow / ADF</text>
+<text x="171" y="598" class="appb-card-text" text-anchor="middle">编排调度</text>
+<rect x="260" y="560" width="126" height="50" rx="8" fill="#fff" stroke="#fdba74"/>
+<text x="323" y="581" class="appb-card-title" font-size="13" text-anchor="middle">SeaTunnel</text>
+<text x="323" y="598" class="appb-card-text" text-anchor="middle">结构化抽取</text>
+<path d="M234 585 H260" stroke="#d97706" stroke-width="2" marker-end="url(#appBArrowOps)" fill="none"/>
+<rect x="108" y="630" width="278" height="28" rx="7" fill="#dcfce7" stroke="#86efac"/>
+<text x="247" y="649" class="appb-small" fill="#047857" text-anchor="middle">Databricks Jobs：ETL / Compaction / DROP PARTITION + VACUUM</text>
+
+<!-- Read lane -->
+<rect x="472" y="482" width="338" height="190" rx="12" fill="#f5f3ff" stroke="#c4b5fd"/>
+<text x="496" y="511" class="appb-chip" fill="#6d28d9">READ PATH</text>
+<text x="496" y="535" class="appb-card-title">在线查询 / 跨系统检索</text>
+<rect x="506" y="560" width="128" height="50" rx="8" fill="#fff" stroke="#c4b5fd"/>
+<text x="570" y="581" class="appb-card-title" font-size="13" text-anchor="middle">查询代理</text>
+<text x="570" y="598" class="appb-card-text" text-anchor="middle">限流 / 超时 / 审计</text>
+<rect x="660" y="560" width="120" height="50" rx="8" fill="#fff" stroke="#a78bfa"/>
+<text x="720" y="581" class="appb-card-title" font-size="13" text-anchor="middle">Trino</text>
+<text x="720" y="598" class="appb-card-text" text-anchor="middle">MPP 查询引擎</text>
+<path d="M634 585 H660" stroke="#7c3aed" stroke-width="2.4" marker-end="url(#appBArrowRead)" fill="none"/>
+<rect x="506" y="630" width="274" height="28" rx="7" fill="#ede9fe" stroke="#c4b5fd"/>
+<text x="643" y="649" class="appb-small" fill="#6d28d9" text-anchor="middle">rules.json 表级授权 · SERVE 层首屏 2-5s</text>
+
+<!-- Attachment lane -->
+<rect x="866" y="482" width="338" height="190" rx="12" fill="#fffbeb" stroke="#fde68a"/>
+<text x="890" y="511" class="appb-chip" fill="#b45309">ATTACHMENT PATH</text>
+<text x="890" y="535" class="appb-card-title">非结构化附件 / 预览下载</text>
+<rect x="896" y="560" width="132" height="50" rx="8" fill="#fff" stroke="#fcd34d"/>
+<text x="962" y="581" class="appb-card-title" font-size="13" text-anchor="middle">Storage Mover</text>
+<text x="962" y="598" class="appb-card-text" text-anchor="middle">迁移附件</text>
+<rect x="1054" y="560" width="120" height="50" rx="8" fill="#fff" stroke="#fcd34d"/>
+<text x="1114" y="581" class="appb-card-title" font-size="13" text-anchor="middle">附件代理</text>
+<text x="1114" y="598" class="appb-card-text" text-anchor="middle">鉴权 / 流式回吐</text>
+<path d="M1028 585 H1054" stroke="#d97706" stroke-width="2" marker-end="url(#appBArrowOps)" fill="none"/>
+<rect x="896" y="630" width="278" height="28" rx="7" fill="#fef3c7" stroke="#fde68a"/>
+<text x="1035" y="649" class="appb-small" fill="#92400e" text-anchor="middle">SHA-256 台账 · 附件索引表 · 后端审计</text>
+
+<!-- App to lanes -->
+<path d="M628 362 V405 H247 V482" stroke="#059669" stroke-width="2.4" marker-end="url(#appBArrowWrite)" fill="none"/>
+<text x="366" y="398" class="appb-line-label" fill="#059669">接入配置 / 销毁调度</text>
+<path d="M628 362 V482" stroke="#7c3aed" stroke-width="2.4" marker-end="url(#appBArrowRead)" fill="none"/>
+<text x="646" y="423" class="appb-line-label" fill="#7c3aed">查询请求</text>
+<path d="M725 362 V405 H1035 V482" stroke="#d97706" stroke-width="2.2" marker-end="url(#appBArrowOps)" fill="none"/>
+<text x="900" y="398" class="appb-line-label" fill="#d97706">附件预览 / 下载</text>
+
+<!-- Data estate -->
+<rect x="44" y="748" width="1192" height="104" rx="14" fill="#eff6ff" stroke="#bfdbfe"/>
+<text x="68" y="776" class="appb-band-title" fill="#1d4ed8">04 数据底座与统一治理</text>
+<g filter="url(#appBShadow)">
+  <rect x="94" y="796" width="364" height="42" rx="8" fill="#fff" stroke="#60a5fa"/>
+  <text x="276" y="816" class="appb-card-title" text-anchor="middle">ADLS Gen2 · Iceberg 湖表</text>
+  <text x="276" y="831" class="appb-card-text" text-anchor="middle">RAW / CURATED / LAKE / SERVE · 1:1 原样归档</text>
+  <rect x="492" y="796" width="286" height="42" rx="8" fill="#fff" stroke="#60a5fa"/>
+  <text x="635" y="816" class="appb-card-title" text-anchor="middle">Unity Catalog</text>
+  <text x="635" y="831" class="appb-card-text" text-anchor="middle">表级权限 / 血缘 / 快照回溯</text>
+  <rect x="812" y="796" width="374" height="42" rx="8" fill="#fff" stroke="#f59e0b"/>
+  <text x="999" y="816" class="appb-card-title" text-anchor="middle">Azure Blob · 附件账户</text>
+  <text x="999" y="831" class="appb-card-text" text-anchor="middle">Cool / Cold 分层 · WORM 可选 · 与业务表分账户</text>
+</g>
+<path d="M247 672 V796" stroke="#059669" stroke-width="2.4" marker-end="url(#appBArrowWrite)" fill="none"/>
+<text x="258" y="727" class="appb-line-label" fill="#059669">写入 Iceberg</text>
+<path d="M720 672 V724 H374 V796" stroke="#7c3aed" stroke-width="2.4" marker-end="url(#appBArrowRead)" fill="none"/>
+<text x="536" y="716" class="appb-line-label" fill="#7c3aed">读 Iceberg / ABFS</text>
+<path d="M1035 672 V796" stroke="#d97706" stroke-width="2.2" marker-end="url(#appBArrowOps)" fill="none"/>
+<text x="1048" y="727" class="appb-line-label" fill="#d97706">附件取流</text>
+
+<!-- Footer notes -->
+<rect x="44" y="862" width="814" height="24" rx="7" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="451" y="878" class="appb-small" fill="#334155" text-anchor="middle">安全底座：Key Vault / Application Insights / Azure Monitor / Trino Query History · 全部 PaaS 私有端点 · 入口 WAF</text>
+<rect x="884" y="862" width="352" height="24" rx="7" fill="#fff7ed" stroke="#fdba74"/>
+<text x="1060" y="878" class="appb-small" fill="#b45309" text-anchor="middle">B 的取舍：引擎中立，但需自运维 Trino，列级脱敏不能直接用 UC</text>
+</svg>
+<svg class="legacy-app-arch" viewBox="0 0 1600 1080" xmlns="http://www.w3.org/2000/svg">
 <defs>
 <marker id="a1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#64748b"/></marker>
 <marker id="a2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0891b2"/></marker>
