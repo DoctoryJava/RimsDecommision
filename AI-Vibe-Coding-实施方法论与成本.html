@@ -201,7 +201,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         <a class="toc-item" href="#s5"><span class="toc-no" style="background:#b45309;">05</span>
             <span><span class="toc-t">成本测算与路线图</span><span class="toc-d">290 → 159 人天 · 13~16 周四阶段</span></span></a>
         <a class="toc-item" href="#s6"><span class="toc-no" style="background:#0891b2;">06</span>
-            <span><span class="toc-t">AI 工具成本 + 云资源成本<span class="toc-badge" style="background:#ecfeff;color:#0e7490;">分开列示</span></span><span class="toc-d">订阅与 API 账单 · 演示/生产两套云环境月费</span></span></a>
+            <span><span class="toc-t">AI 工具成本 + 云资源成本<span class="toc-badge" style="background:#ecfeff;color:#0e7490;">分开列示</span></span><span class="toc-d">订阅与 API 账单 · 演示/生产云环境 · 年运维费 · 每加一系统费用</span></span></a>
     </div>
     <div class="toc-ft"><strong>快速路径：</strong>想直接看"AI 时代步骤是什么" → 读 <strong>03</strong>；想看每个阶段和传统差在哪 → 读 <strong>02</strong>；决策层看 <strong>05 + 06</strong>（人力 + AI 订阅 + 云资源三笔账）。</div>
 </nav>
@@ -620,6 +620,38 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
     </table>
     </div></div>
     <div class="note blue"><b>口径统一说明（两张表可互相验算）：</b>测试环境与生产环境同样 7×24 常驻、同样按 36 个月满计费，唯一的差别是<strong>配置高低</strong>。因此：月费视角 ≈¥0.23~0.44 万 vs ¥1.47~1.98 万（约 4.5~6 倍）；3 年视角 ≈¥8.3~15.8 万 vs ¥53~71 万（同样 4.5~6 倍）——<b>两个视角倍数一致，差距全部来自配置降级，与运行时长无关</b>。建设期（5 个月）两环境均按满月计。</div>
+
+    <h3 class="sub">6.4 每年运维费用（稳定运行期 · 按月推年）</h3>
+    <p style="font-size:.88rem;color:#334155;">上线稳定后，每年固定支出主要由三块组成：<strong>云资源（生产+测试） + AI 工具运行期席位 + 人力运维</strong>。以下为 15 系统 / 20 TB 口径的年度估算，可随系统数线性累加（见 6.5）。</p>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:24%;">年度成本项</th><th style="width:20%;" class="c">每年估算</th><th style="width:56%;">说明</th></tr></thead>
+        <tbody>
+            <tr><td><span class="nm">云资源 · 生产环境</span></td><td class="c mono">≈¥17.6~23.8 万</td><td>¥1.47~1.98 万/月 × 12；含前端/后端/Redis/元数据库/存储/引擎/监控（6.2 口径）</td></tr>
+            <tr><td><span class="nm">云资源 · 测试环境</span></td><td class="c mono">≈¥2.8~5.3 万</td><td>¥0.23~0.44 万/月 × 12；同构低配常驻，用于回归 / 变更验证 / 演练</td></tr>
+            <tr><td><span class="nm">AI 工具 · 运行期席位</span></td><td class="c mono">≈¥0.4~0.8 万</td><td>保留 1~2 个席位做日常运维迭代与小型变更（6.1 口径）</td></tr>
+            <tr><td><span class="nm">人力运维</span><span class="nm-sub">对照项 · 已含人力</span></td><td class="c mono">≈¥3~5 万</td><td>约 0.25~0.5 人年，负责监控值守 / 故障响应 / 新系统接入协调</td></tr>
+            <tr class="grp"><td>每年运维合计</td><td class="c mono" style="text-align:center;color:#6d28d9;">≈¥20~29 万</td><td>云资源是大头（≈80%+）；AI 席位占比极小。随系统数线性累加（6.5）</td></tr>
+        </tbody>
+    </table>
+    </div></div>
+    <div class="note amber"><b>年运维费怎么用：</b>① 预算口径直接取 <b>≈¥20~29 万/年</b>（15 系统 / 20 TB）；② 若企业已有 Azure EA 折扣，云侧可再降 15~30%；③ 测试环境可在非回归期停机再省 30~50%。<b>年度成本的重心在云侧用量，不在 AI 订阅与人力。</b></div>
+
+    <h3 class="sub">6.5 每加一个系统的费用（一次性接入 + 年度增量）</h3>
+    <p style="font-size:.88rem;color:#334155;">新系统接入采用<strong>元数据驱动、零代码</strong>（见 02/03 章），无需重新开发页面。增量费用分两块：<strong>一次性接入成本</strong>（人天 + 配置，随接入发生）与 <strong>年度持续增量</strong>（新增存储 + 少量 ETL，随数据量持续）。</p>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:26%;">增量项</th><th style="width:20%;" class="c">一次性接入</th><th style="width:20%;" class="c">年度持续</th><th style="width:34%;">说明</th></tr></thead>
+        <tbody>
+            <tr><td><span class="nm">配置接入人天</span></td><td class="c mono">3~6 人天</td><td class="c mono">—</td><td>源库连接 + 表清单勾选 + Schema 配置 + 保留策略，零代码（对应 02 章 5.1 边际）</td></tr>
+            <tr><td><span class="nm">一次性接入成本</span><span class="nm-sub">¥3,000/人天</span></td><td class="c mono" style="color:#6d28d9;font-weight:700;">≈¥0.9~1.8 万</td><td class="c mono">—</td><td>一次性投入，配置即上线；后续系统复用同一套配置流程</td></tr>
+            <tr><td><span class="nm">新增存储</span><span class="nm-sub">≈+1.3 TB/系统</span></td><td class="c mono">—</td><td class="c mono">≈¥1,400~2,000/月</td><td>湖存 Hot/Cool 混合 ¥90~150/TB + 附件 Cool→Cold，按 20TB/15 系统均值推算</td></tr>
+            <tr><td><span class="nm">新增 ETL 计算</span><span class="nm-sub">同步 + 周期加工</span></td><td class="c mono">—</td><td class="c mono">≈¥300~800/月</td><td>新增同步 / compaction 作业按时长计费</td></tr>
+            <tr class="grp"><td>每系统合计</td><td class="c mono" style="text-align:center;">≈¥0.9~1.8 万（一次性）</td><td class="c mono" style="text-align:center;color:#6d28d9;">≈¥1,700~2,800/月<br>≈¥2.0~3.4 万/年</td><td>与 6.2「月费增幅 ≈¥300~800/系统」口径一致并展开明细</td></tr>
+        </tbody>
+    </table>
+    </div></div>
+    <div class="note green"><b>增量规律：</b>① <strong>一次性接入 ≈¥1 万级</strong>，越到后面越省（流程/模板复用）；② <strong>年度增量 ≈¥2~3.4 万/系统</strong>，主要是存储 + 少量 ETL，占比低于整体云费的平均值；③ <strong>零代码接入是成本拐点</strong>——相比传统逐系统开发（3~21 人天/系统），AI + 元数据驱动把边际成本压到配置级。<b>规模越大，均摊越划算。</b></div>
 </section>
 
 <footer>
