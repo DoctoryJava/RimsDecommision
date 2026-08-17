@@ -201,7 +201,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         <a class="toc-item" href="#s5"><span class="toc-no" style="background:#b45309;">05</span>
             <span><span class="toc-t">成本测算与路线图</span><span class="toc-d">290 → 159 人天 · 13~16 周四阶段</span></span></a>
         <a class="toc-item" href="#s6"><span class="toc-no" style="background:#0891b2;">06</span>
-            <span><span class="toc-t">AI 工具成本 + 云资源成本<span class="toc-badge" style="background:#ecfeff;color:#0e7490;">分开列示</span></span><span class="toc-d">订阅与 API 账单 · 演示/生产云环境 · 年运维费 · 每加一系统费用</span></span></a>
+            <span><span class="toc-t">AI 工具成本 + 云资源成本<span class="toc-badge" style="background:#ecfeff;color:#0e7490;">分开列示</span></span><span class="toc-d">订阅与 API 账单 · 演示/生产云环境 · 每加一系统费用</span></span></a>
     </div>
     <div class="toc-ft"><strong>快速路径：</strong>想直接看"AI 时代步骤是什么" → 读 <strong>03</strong>；想看每个阶段和传统差在哪 → 读 <strong>02</strong>；决策层看 <strong>05 + 06</strong>（人力 + AI 订阅 + 云资源三笔账）。</div>
 </nav>
@@ -475,18 +475,19 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
     <h3 class="sub">5.1 分阶段人天对比（按第 03 章六步映射）</h3>
     <div class="tbl-wrap"><div class="tbl-scroll">
     <table class="t">
-        <thead><tr><th style="width:26%;">阶段（六步映射）</th><th style="width:11%;" class="c">传统</th><th style="width:11%;" class="c">AI Vibe</th><th style="width:10%;" class="c">Δ</th><th style="width:42%;">归因</th></tr></thead>
+        <thead><tr><th style="width:22%;">阶段（六步映射）</th><th style="width:8%;" class="c">传统</th><th style="width:8%;" class="c">AI Vibe</th><th style="width:8%;" class="c">Δ</th><th style="width:13%;" class="c">传统金额</th><th style="width:13%;" class="c">AI Vibe 金额</th><th style="width:28%;">归因</th></tr></thead>
         <tbody>
-            <tr><td><span class="nm">需求 + 验收语句</span><span class="nm-sub">STEP 1</span></td><td class="c mono">20</td><td class="c mono" style="color:#b45309;font-weight:700;">30</td><td class="c w">+10</td><td>GWT 逐条量化 + NFR 表——<strong>故意加重</strong>，是下游 -60% 的前提</td></tr>
-            <tr><td><span class="nm">架构 + 宪法 + ADR</span><span class="nm-sub">STEP 2</span></td><td class="c mono">25</td><td class="c mono">12</td><td class="c g">-13</td><td>POC 已验证选型（12 天实证），仅补宪法固化与 ADR</td></tr>
-            <tr><td><span class="nm">任务拆解 + 编码</span><span class="nm-sub">STEP 3 + 4</span></td><td class="c mono">150</td><td class="c mono">60</td><td class="c g">-90</td><td>会话生成循环 + 人审合并；数据模型 V1–V18 与动态查询内核直接平移</td></tr>
-            <tr><td><span class="nm">测试（嵌进循环）</span><span class="nm-sub">STEP 4 内嵌</span></td><td class="c mono">50</td><td class="c mono">30</td><td class="c g">-20</td><td>BDD 靶子先行，AI 生成常规用例；人聚焦安全/不可逆用例</td></tr>
-            <tr><td><span class="nm">审查 + 验收回放</span><span class="nm-sub">STEP 5 + 6</span></td><td class="c mono">20</td><td class="c mono">12</td><td class="c g">-8</td><td>BDD 机械回放替代人工 UAT；审计演练脚本化</td></tr>
-            <tr><td><span class="nm">PM 与协调</span></td><td class="c mono">25</td><td class="c mono">15</td><td class="c g">-10</td><td>评审异步化（diff 审查替代会议）；会话档案自动留痕</td></tr>
-            <tr class="grp"><td>合计</td><td class="c mono" style="text-align:center;">290</td><td class="c mono" style="text-align:center;color:#6d28d9;">159</td><td class="c" style="text-align:center;"><span class="pill p-ok">-45%</span></td><td>AI 订阅 5 个月 ≈¥1.5 万，不足节省额（¥39.3 万）的 4%</td></tr>
+            <tr><td><span class="nm">需求 + 验收语句</span><span class="nm-sub">STEP 1</span></td><td class="c mono">20</td><td class="c mono" style="color:#b45309;font-weight:700;">30</td><td class="c w">+10</td><td class="c mono">¥6.0 万</td><td class="c mono" style="color:#b45309;font-weight:700;">¥9.0 万</td><td>GWT 逐条量化 + NFR 表——<strong>故意加重</strong>，是下游 -60% 的前提</td></tr>
+            <tr><td><span class="nm">架构 + 宪法 + ADR</span><span class="nm-sub">STEP 2</span></td><td class="c mono">25</td><td class="c mono">12</td><td class="c g">-13</td><td class="c mono">¥7.5 万</td><td class="c mono">¥3.6 万</td><td>POC 已验证选型（12 天实证），仅补宪法固化与 ADR</td></tr>
+            <tr><td><span class="nm">任务拆解 + 编码</span><span class="nm-sub">STEP 3 + 4</span></td><td class="c mono">150</td><td class="c mono">60</td><td class="c g">-90</td><td class="c mono">¥45.0 万</td><td class="c mono">¥18.0 万</td><td>会话生成循环 + 人审合并；数据模型 V1–V18 与动态查询内核直接平移</td></tr>
+            <tr><td><span class="nm">测试（嵌进循环）</span><span class="nm-sub">STEP 4 内嵌</span></td><td class="c mono">50</td><td class="c mono">30</td><td class="c g">-20</td><td class="c mono">¥15.0 万</td><td class="c mono">¥9.0 万</td><td>BDD 靶子先行，AI 生成常规用例；人聚焦安全/不可逆用例</td></tr>
+            <tr><td><span class="nm">审查 + 验收回放</span><span class="nm-sub">STEP 5 + 6</span></td><td class="c mono">20</td><td class="c mono">12</td><td class="c g">-8</td><td class="c mono">¥6.0 万</td><td class="c mono">¥3.6 万</td><td>BDD 机械回放替代人工 UAT；审计演练脚本化</td></tr>
+            <tr><td><span class="nm">PM 与协调</span></td><td class="c mono">25</td><td class="c mono">15</td><td class="c g">-10</td><td class="c mono">¥7.5 万</td><td class="c mono">¥4.5 万</td><td>评审异步化（diff 审查替代会议）；会话档案自动留痕</td></tr>
+            <tr class="grp"><td>合计</td><td class="c mono" style="text-align:center;">290</td><td class="c mono" style="text-align:center;color:#6d28d9;">159</td><td class="c" style="text-align:center;"><span class="pill p-ok">-45%</span></td><td class="c mono" style="text-align:center;">¥87.0 万</td><td class="c mono" style="text-align:center;color:#6d28d9;">¥47.7 万</td><td>净省 131 人天 ≈¥39.3 万；AI 订阅 5 个月 ≈¥1.5 万，不足节省额 4%</td></tr>
         </tbody>
     </table>
     </div></div>
+    <div class="note blue"><b>金额口径：</b>¥3,000/人天（文档统一费率，可替换）。<strong>净省 131 人天 ≈¥39.3 万</strong>，其中约 ¥27 万来自编码阶段（150→60 人天）——这是 AI 会话生成 + POC 资产平移的直接结果；而需求阶段金额不降反升（¥6→9 万），是有意"买保险"，换来下游 -60%。</div>
 
     <h3 class="sub">5.2 价值链重心迁移</h3>
     <div class="legend-bar">
@@ -606,25 +607,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
 
     <div class="note green"><b>云成本四个特征：</b>① <b>测试同构原则</b>：测试环境组件一个不少（前端/后端/Redis/元数据库/存储/引擎全齐），只降配置——否则 Redis 行为、连接池、独立库隔离这些生产问题在测试期根本暴露不出来；② <b>存算分离结构</b>：生产存储仅 ¥0.28~0.50 万，算力另付——Serverless 空闲归零是读侧省钱关键；③ <b>弹性可调</b>：Phase A/B 期间用测试环境即可完成绝大部分开发验证，生产环境 Phase C（UAT）前再启用，建设期云支出大幅后置；④ <b>随规模线性</b>：新系统接入 ≈+1.3TB 存储 + 少量 ETL，月费增幅 ≈¥300~800/系统。标 ¥400~600 的低配项为估算区间，可按实际选型微调。</div>
 
-    <h3 class="sub">6.4 每年运维费用（稳定运行期 · 按月推年）</h3>
-    <p style="font-size:.88rem;color:#334155;">上线稳定后，每年固定支出主要由三块组成：<strong>云资源（生产+测试） + AI 工具运行期席位 + 人力运维</strong>。以下为 15 系统 / 20 TB 口径的年度估算，可随系统数线性累加（见 6.5）。</p>
-    <div class="tbl-wrap"><div class="tbl-scroll">
-    <table class="t">
-        <thead><tr><th style="width:24%;">年度成本项</th><th style="width:20%;" class="c">每年估算</th><th style="width:56%;">说明</th></tr></thead>
-        <tbody>
-            <tr><td><span class="nm">云资源 · 生产环境</span></td><td class="c mono">≈¥17.6~23.8 万</td><td>¥1.47~1.98 万/月 × 12；含前端/后端/Redis/元数据库/存储/引擎/监控（6.2 口径）</td></tr>
-            <tr><td><span class="nm">云资源 · 测试环境</span></td><td class="c mono">≈¥2.8~5.3 万</td><td>¥0.23~0.44 万/月 × 12；同构低配常驻，用于回归 / 变更验证 / 演练</td></tr>
-            <tr><td><span class="nm">AI 工具 · 运行期席位</span></td><td class="c mono">≈¥0.4~0.8 万</td><td>保留 1~2 个席位做日常运维迭代与小型变更（6.1 口径）</td></tr>
-            <tr><td><span class="nm">人力运维</span></td><td class="c mono">≈¥3~5 万</td><td>约 0.25~0.5 人年，负责监控值守 / 故障响应 / 新系统接入协调</td></tr>
-            <tr><td><span class="nm">人力（对照项）</span><span class="nm-sub">建设期一次性 · 非年度</span></td><td class="c mono">159 人天 ≈ ¥47.7 万</td><td>建设期（5 个月）人力投入；运维 ≈¥10~15 万（3 年口径，已并入上方年度估算）</td></tr>
-            <tr class="grp"><td>每年运维合计</td><td class="c mono" style="text-align:center;color:#6d28d9;">≈¥20~29 万</td><td>云资源是大头（≈80%+）；AI 席位占比极小。随系统数线性累加（6.5）</td></tr>
-        </tbody>
-    </table>
-    </div></div>
-    <div class="note amber"><b>年运维费怎么用：</b>① 预算口径直接取 <b>≈¥20~29 万/年</b>（15 系统 / 20 TB）；② 若企业已有 Azure EA 折扣，云侧可再降 15~30%；③ 测试环境可在非回归期停机再省 30~50%。<b>年度成本的重心在云侧用量，不在 AI 订阅与人力。</b></div>
-    <div class="note violet"><b>人力对照（承接第 05 章）：</b>传统模式建设期 290 人天，AI Vibe 降至 <b>159 人天 ≈¥47.7 万</b>，<strong>净省 131 人天 ≈¥39.3 万（-45%）</strong>——这部分省的是建设期人力，不是年度运维；年度运维人力已在 6.4 表中按 <b>≈¥3~5 万/年</b>单列（运维 ≈¥10~15 万/3 年口径）。</div>
-
-    <h3 class="sub">6.5 每加一个系统的费用（一次性接入 + 年度增量）</h3>
+    <h3 class="sub">6.3 每加一个系统的费用（一次性接入 + 年度增量）</h3>
     <p style="font-size:.88rem;color:#334155;">新系统接入采用<strong>元数据驱动、零代码</strong>（见 02/03 章），无需重新开发页面。增量费用分两块：<strong>一次性接入成本</strong>（人天 + 配置，随接入发生）与 <strong>年度持续增量</strong>（新增存储 + 少量 ETL，随数据量持续）。</p>
     <div class="tbl-wrap"><div class="tbl-scroll">
     <table class="t">
