@@ -249,7 +249,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         <div class="vibe-seg">
             <div class="vibe-seg-tag">③ 里程碑验收 · 一次性 · 人签字</div>
             <div class="vibe-row">
-                <div class="vibe-node green">验收回放<small>BDD 全量重跑 · 绿 = 通过</small></div>
+                <div class="vibe-node green">验收回放<small>SDD 验收用例全量重跑 · 绿 = 通过</small></div>
             </div>
         </div>
     </div>
@@ -328,7 +328,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统：写完再测</h4>
             <ul><li>开发写完提测，测试组再写用例、报 bug、回归</li><li>覆盖率在交付压力下常被牺牲</li><li>安全测试（脱敏/越权）往往拖到上线前才抽查</li><li>缺陷发现越晚，修复成本越高（晚一步贵 5~10 倍）</li></ul></div>
         <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI：测试先行</h4>
-            <ul><li><strong>测试先于实现</strong>：验收语句直接变 BDD 用例，当 AI 的生成靶子</li><li>退出标准 = 测试全绿，<strong>"看着对"不算，可验证才算</strong></li><li>AI 批量生成常规用例；人只盯三类：安全、不可逆（销毁）、跨边界</li></ul></div>
+            <ul><li><strong>测试先于实现</strong>：验收语句直接变 SDD 验收用例，当 AI 的生成靶子</li><li>退出标准 = 测试全绿，<strong>"看着对"不算，可验证才算</strong></li><li>AI 批量生成常规用例；人只盯三类：安全、不可逆（销毁）、跨边界</li></ul></div>
     </div>
     <div class="tbl-wrap"><div class="tbl-scroll">
     <table class="t">
@@ -337,7 +337,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
             <tr><td><span class="nm">功能用例</span></td><td class="c"><span class="pill p-ai">AI 生成</span></td><td>Schema CRUD、分页查询、RBAC 判断逻辑的正反用例</td><td>数量大、模式化，AI 生成效率是人写的 10 倍级</td></tr>
             <tr><td><span class="nm">安全用例</span></td><td class="c"><span class="pill p-bad">人写 · 人审</span></td><td>无脱敏权限查询 isPii 字段必须见掩码；SAS 过期后 403；越权访问他系统数据被拒</td><td>合规红线，AI"自我测试"不可信——生成者不能当裁判</td></tr>
             <tr><td><span class="nm">不可逆用例</span></td><td class="c"><span class="pill p-bad">人写 · 人审</span></td><td>销毁双人确认缺一不可；DESTROYED 后任何查询/恢复路径都失败</td><td>错了无法回滚，必须穷尽边界</td></tr>
-            <tr><td><span class="nm">回归用例</span></td><td class="c"><span class="pill p-ai">AI 维护</span></td><td>引擎切换后（Databricks ↔ SeaTunnel+Spark）同一套 BDD 全绿</td><td>接口双实现的契约测试，AI 比人勤快</td></tr>
+            <tr><td><span class="nm">回归用例</span></td><td class="c"><span class="pill p-ai">AI 维护</span></td><td>引擎切换后（Databricks ↔ SeaTunnel+Spark）同一套 SDD 验收用例全绿</td><td>接口双实现的契约测试，AI 比人勤快</td></tr>
         </tbody>
     </table>
     </div></div>
@@ -348,7 +348,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统：人工点页面</h4>
             <ul><li>UAT = 业务方按清单人工点页面，2~4 周</li><li>审计举证靠翻日志 + 截图拼材料</li><li>移交：代码 + 文档 + 培训</li><li>"这段代码为什么这么写"——三个月后没人说得清</li></ul></div>
         <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI：全量机械回放</h4>
-            <ul><li>UAT = BDD 用例在准生产环境<strong>全量回放</strong>，绿 = 通过</li><li>审计演练脚本化：脱敏对照、SAS 过期、"谁查了什么"一键导出</li><li>移交多三样：<strong>宪法 + ADR + 会话档案</strong>，"为什么这么写"可追溯</li></ul></div>
+            <ul><li>UAT = SDD 验收用例在准生产环境<strong>全量回放</strong>，绿 = 通过</li><li>审计演练脚本化：脱敏对照、SAS 过期、"谁查了什么"一键导出</li><li>移交多三样：<strong>宪法 + ADR + 会话档案</strong>，"为什么这么写"可追溯</li></ul></div>
     </div>
 </section>
 
@@ -385,7 +385,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
 
         <div class="step">
             <div class="step-head"><span class="step-no"></span><h3 class="step-title">验收回放</h3><span class="step-who who-ai">AI 回放 · 人签字</span></div>
-            <div class="step-body"><strong>里程碑/UAT 不用人工点页面：BDD 用例在准生产环境全量机械回放，绿 = 通过，人签字验收。</strong>同时跑审计演练并归档度量与会话档案。</div>
+            <div class="step-body"><strong>里程碑/UAT 不用人工点页面：SDD 验收用例在准生产环境全量机械回放，绿 = 通过，人签字验收。</strong>同时跑审计演练并归档度量与会话档案。</div>
         </div>
     </div>
     <div class="note green"><b>六步 vs 传统五阶段：</b>需求结构化 + Spec 冻结 ≈ 传统"需求+架构"；任务拆解 + 会话生成 ≈ 传统"编码"（人从写代码变成管会话）；审查合并 + 验收回放 ≈ 传统"测试+交付"（但测试已前置嵌进生成循环）。<b>总人天 290 → 159（-45%），重心从编码移到规格——详见第 05 章。</b></div>
@@ -414,7 +414,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         <div class="vs-col ai"><h4><span class="vs-tag" style="background:#059669;">WHY FIT</span>对 RIMS 的三个加分点</h4>
             <ul><li><strong>converge 匹配 POC 场景</strong>：RIMS 是典型的"存量库演进"（Brownfield）——官方三阶段（新建/探索/迭代增强）中明确支持此形态，POC 代码不必推倒，差距自动转任务</li><li><strong>Presets 支持合规定制</strong>：可强制 spec 模板带监管可追溯性、给 plan 加安全审查门——正好承载等保/审计要求</li><li><strong>Bundles 角色包</strong>：PM / 业务分析 / 安全研究员 / 开发者各有一键配置，3.5 人团队按角色取用</li></ul></div>
         <div class="vs-col trad"><h4><span class="vs-tag" style="background:#64748b;">BOUNDARY</span>它不覆盖什么（诚实边界）</h4>
-            <ul><li><strong>STEP 5 人工审查</strong>：三类 diff 强制人审是制度（CODEOWNERS + 分支保护），Spec Kit 不管</li><li><strong>STEP 6 验收回放</strong>：BDD 全量回放需自建测试基建，Spec Kit 只负责到任务执行</li><li><strong>七层护栏</strong>：jscpd 重复度、gitleaks、ArchUnit 等仍需第 04 章的 CI 配置——<strong>工具给流程骨架，护栏要自己立法</strong></li></ul></div>
+            <ul><li><strong>STEP 5 人工审查</strong>：三类 diff 强制人审是制度（CODEOWNERS + 分支保护），Spec Kit 不管</li><li><strong>STEP 6 验收回放</strong>：SDD 验收用例全量回放需自建测试基建，Spec Kit 只负责到任务执行</li><li><strong>七层护栏</strong>：jscpd 重复度、gitleaks、ArchUnit 等仍需第 04 章的 CI 配置——<strong>工具给流程骨架，护栏要自己立法</strong></li></ul></div>
     </div>
     <div class="note violet"><b>采用结论：</b>六步骤中 STEP 1–4 直接用 Spec Kit 命令驱动（不自建流程脚手架），STEP 5–6 与七层护栏由本项目的 CI 制度承接——<b>工具负责流程骨架，制度负责质量底线，两者合起来才是完整的交付轨。</b>第 05 章路线图 Phase A 已将 <span class="mono">specify init</span> 纳入首个交付动作。</div>
 </section>
@@ -437,7 +437,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
             <tr><td><span class="nm">安全用例（脱敏/越权/审计）</span></td><td class="raci-A">A + R</td><td class="c raci-C">C</td><td><strong>生成者不能当裁判</strong>：AI 的代码由 AI 测试不可信</td></tr>
             <tr><td><span class="nm">销毁链路（不可逆）</span></td><td class="raci-A">A + R</td><td class="c raci-C">C</td><td>双人确认制度本身也是人写人审</td></tr>
             <tr><td><span class="nm">三类 diff 审查</span></td><td class="raci-A">A + R</td><td class="c raci-I">I</td><td>安全/不可逆/跨边界，无旁路</td></tr>
-            <tr><td><span class="nm">UAT 签字</span></td><td class="raci-A">A</td><td class="c raci-R">R</td><td>AI 机械回放全量 BDD，人看结果签字</td></tr>
+            <tr><td><span class="nm">UAT 签字</span></td><td class="raci-A">A</td><td class="c raci-R">R</td><td>AI 机械回放全量 SDD 验收用例，人看结果签字</td></tr>
         </tbody>
     </table>
     </div></div>
@@ -450,7 +450,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
             <tr><td class="c mono">L1</td><td><span class="nm">风格与静态检查</span></td><td>ESLint / Checkstyle / strict tsc</td><td>保存即检</td><td>阻断提交</td></tr>
             <tr><td class="c mono">L2</td><td><span class="nm">类型 + 分层依赖</span></td><td>TS strict / Java 强类型 / ArchUnit：controller→service→mapper 单向、前端不跨界 import</td><td>本地构建</td><td>阻断提交</td></tr>
             <tr><td class="c mono">L3</td><td><span class="nm">单元测试</span></td><td>JUnit5 + Vitest；核心链路覆盖率 ≥70% 门槛</td><td>每次生成循环</td><td>AI 自动修复重试</td></tr>
-            <tr><td class="c mono">L4</td><td><span class="nm">契约校验</span></td><td>OpenAPI diff / schema_json 结构校验 / BDD 全绿 / <strong>引擎双实现契约测试</strong></td><td>每次生成循环</td><td>AI 自动修复重试</td></tr>
+            <tr><td class="c mono">L4</td><td><span class="nm">契约校验</span></td><td>OpenAPI diff / schema_json 结构校验 / SDD 验收用例全绿 / <strong>引擎双实现契约测试</strong></td><td>每次生成循环</td><td>AI 自动修复重试</td></tr>
             <tr><td class="c mono">L5</td><td><span class="nm">安全扫描</span></td><td>gitleaks（密钥）/ 依赖漏洞 / SQL 拼接模式 / <strong>重复度检测（jscpd，防 AI 复制粘贴债）</strong></td><td>CI 流水线</td><td><b>阻断合并</b></td></tr>
             <tr><td class="c mono">L6</td><td><span class="nm">集成验证</span></td><td>H2 集成测试 / flyway info / 脱敏越权用例 / 状态机非法跳转</td><td>CI 流水线</td><td>阻断合并</td></tr>
             <tr><td class="c mono">L7</td><td><span class="nm">人工闸门</span></td><td>三类 diff（安全/不可逆/跨边界）强制人审，CODEOWNERS + 分支保护</td><td>合并前</td><td><b>无旁路</b></td></tr>
@@ -480,8 +480,8 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
             <tr><td><span class="nm">需求 + 验收语句</span><span class="nm-sub">STEP 1</span></td><td class="c mono">20</td><td class="c mono" style="color:#b45309;font-weight:700;">30</td><td class="c w">+10</td><td class="c mono">¥6.0 万</td><td class="c mono" style="color:#b45309;font-weight:700;">¥9.0 万</td><td>GWT 逐条量化 + NFR 表——<strong>故意加重</strong>，是下游 -60% 的前提</td></tr>
             <tr><td><span class="nm">架构 + 宪法 + ADR</span><span class="nm-sub">STEP 2</span></td><td class="c mono">25</td><td class="c mono">12</td><td class="c g">-13</td><td class="c mono">¥7.5 万</td><td class="c mono">¥3.6 万</td><td>POC 已验证选型（12 天实证），仅补宪法固化与 ADR</td></tr>
             <tr><td><span class="nm">任务拆解 + 编码</span><span class="nm-sub">STEP 3 + 4</span></td><td class="c mono">150</td><td class="c mono">60</td><td class="c g">-90</td><td class="c mono">¥45.0 万</td><td class="c mono">¥18.0 万</td><td>会话生成循环 + 人审合并；数据模型 V1–V18 与动态查询内核直接平移</td></tr>
-            <tr><td><span class="nm">测试（嵌进循环）</span><span class="nm-sub">STEP 4 内嵌</span></td><td class="c mono">50</td><td class="c mono">30</td><td class="c g">-20</td><td class="c mono">¥15.0 万</td><td class="c mono">¥9.0 万</td><td>BDD 靶子先行，AI 生成常规用例；人聚焦安全/不可逆用例</td></tr>
-            <tr><td><span class="nm">审查 + 验收回放</span><span class="nm-sub">STEP 5 + 6</span></td><td class="c mono">20</td><td class="c mono">12</td><td class="c g">-8</td><td class="c mono">¥6.0 万</td><td class="c mono">¥3.6 万</td><td>BDD 机械回放替代人工 UAT；审计演练脚本化</td></tr>
+            <tr><td><span class="nm">测试（嵌进循环）</span><span class="nm-sub">STEP 4 内嵌</span></td><td class="c mono">50</td><td class="c mono">30</td><td class="c g">-20</td><td class="c mono">¥15.0 万</td><td class="c mono">¥9.0 万</td><td>SDD 验收靶子先行，AI 生成常规用例；人聚焦安全/不可逆用例</td></tr>
+            <tr><td><span class="nm">审查 + 验收回放</span><span class="nm-sub">STEP 5 + 6</span></td><td class="c mono">20</td><td class="c mono">12</td><td class="c g">-8</td><td class="c mono">¥6.0 万</td><td class="c mono">¥3.6 万</td><td>SDD 验收用例机械回放替代人工 UAT；审计演练脚本化</td></tr>
             <tr><td><span class="nm">PM 与协调</span></td><td class="c mono">25</td><td class="c mono">15</td><td class="c g">-10</td><td class="c mono">¥7.5 万</td><td class="c mono">¥4.5 万</td><td>评审异步化（diff 审查替代会议）；会话档案自动留痕</td></tr>
             <tr class="grp"><td>合计</td><td class="c mono" style="text-align:center;">290</td><td class="c mono" style="text-align:center;color:#6d28d9;">159</td><td class="c" style="text-align:center;"><span class="pill p-ok">-45%</span></td><td class="c mono" style="text-align:center;">¥87.0 万</td><td class="c mono" style="text-align:center;color:#6d28d9;">¥47.7 万</td><td>净省 131 人天 ≈¥39.3 万；AI 订阅 5 个月 ≈¥1.5 万，不足节省额 4%</td></tr>
         </tbody>
@@ -514,9 +514,9 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
             <span class="wt" style="color:#0e7490;background:var(--cyan-bg);border:1px solid var(--cyan-bd);">退出：Spec 冻结评审通过</span></div>
         <div class="phase p3"><span class="ph-no">PHASE B · 6~8 周</span><h4>STEP 3+4 生产内核重建</h4>
             <ul><li>UC 权限 + COLUMN MASK（替换前端脱敏）</li><li>SyncEngine / QueryEngine 双实现</li><li>Key Vault 密钥链路（替换明文）</li><li>销毁双人确认链路</li><li>Flyway V19 起平移数据模型</li></ul>
-            <span class="wt" style="color:#6d28d9;background:var(--ai-bg);border:1px solid var(--ai-bd);">退出：P0 差距清零 + BDD 核心场景绿</span></div>
+            <span class="wt" style="color:#6d28d9;background:var(--ai-bg);border:1px solid var(--ai-bd);">退出：P0 差距清零 + SDD 验收核心场景绿</span></div>
         <div class="phase p4"><span class="ph-no">PHASE C · 4~5 周</span><h4>STEP 5+6 质量与合规</h4>
-            <ul><li>覆盖率 ≥70% + 重复度达标</li><li>SBOM + 漏洞清零</li><li>审计演练（脱敏/SAS/越权）</li><li>UAT = BDD 全量回放</li></ul>
+            <ul><li>覆盖率 ≥70% + 重复度达标</li><li>SBOM + 漏洞清零</li><li>审计演练（脱敏/SAS/越权）</li><li>UAT = SDD 验收用例全量回放</li></ul>
             <span class="wt" style="color:#b45309;background:var(--warn-bg);border:1px solid var(--warn-bd);">退出：UAT 签字</span></div>
         <div class="phase p5"><span class="ph-no">PHASE D · 2 周</span><h4>上线移交</h4>
             <ul><li>运行手册 + 会话档案归档</li><li>审查能力培训（防团队空心化）</li><li>新系统接入模板化（零代码）</li></ul>
@@ -546,7 +546,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
             <tr><td><span class="nm">Claude Max（5x）</span><span class="nm-sub">或同档海外订阅</span></td><td>1 架构师</td><td class="c mono">$100 ≈ ¥710/月</td><td class="c mono">1 × 5</td><td class="c mono">¥3,550</td><td>宪法/spec 起草、复杂重构、第二意见审查</td></tr>
             <tr><td><span class="nm">轻量订阅</span><span class="nm-sub">Copilot / GLM Lite</span></td><td>0.5 测试</td><td class="c mono">¥100~200/月</td><td class="c mono">0.5 × 5</td><td class="c mono">¥500</td><td>用例生成辅助、日常补全</td></tr>
             <tr class="grp"><td colspan="6">② API 按量类（峰值补充 · 仅冲刺月）</td></tr>
-            <tr><td><span class="nm">GLM / Claude API</span><span class="nm-sub">批量任务与长上下文</span></td><td>Phase B 两个月冲刺</td><td class="c mono">~¥1,200/月</td><td class="c mono">2 个月</td><td class="c mono">~¥2,400</td><td>BDD 批量生成、converge 差距分析、并行只读会话</td></tr>
+            <tr><td><span class="nm">GLM / Claude API</span><span class="nm-sub">批量任务与长上下文</span></td><td>Phase B 两个月冲刺</td><td class="c mono">~¥1,200/月</td><td class="c mono">2 个月</td><td class="c mono">~¥2,400</td><td>SDD 验收用例批量生成、converge 差距分析、并行只读会话</td></tr>
             <tr class="grp"><td>合计（5 个月建设期）</td><td></td><td class="c">—</td><td class="c">—</td><td class="c mono" style="color:#6d28d9;">≈ ¥1.1~1.6 万</td><td>中位 ≈¥1.5 万</td></tr>
         </tbody>
     </table>
