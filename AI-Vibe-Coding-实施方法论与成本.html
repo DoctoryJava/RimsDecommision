@@ -123,6 +123,23 @@ table.t tr:hover td:not(.grp){background:rgba(124,58,237,.03);}
 .flow-lbl.ai{color:#7c3aed;}
 .flow-note{font-size:.78rem;color:var(--text-muted);margin-top:10px;line-height:1.7;}
 
+/* ===== AI Vibe 直观流程图（三段式） ===== */
+.vibe{display:flex;flex-direction:column;gap:8px;margin:1rem 0;}
+.vibe-seg{border:1px solid var(--ai-bd);border-radius:14px;padding:14px 16px;background:var(--ai-bg);}
+.vibe-seg.loop{border-color:#7c3aed;border-width:2px;background:linear-gradient(180deg,#faf8ff,#fff);}
+.vibe-seg-tag{font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:.05em;color:#6d28d9;margin-bottom:10px;}
+.vibe-row{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;}
+.vibe-node{flex:1;min-width:150px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border-radius:12px;padding:12px 14px;text-align:center;font-size:.84rem;font-weight:600;line-height:1.5;box-shadow:0 2px 8px rgba(124,58,237,.18);}
+.vibe-node small{display:block;font-weight:400;font-size:.68rem;opacity:.88;margin-top:3px;line-height:1.4;}
+.vibe-node.blue{background:linear-gradient(135deg,#2563eb,#3b82f6);box-shadow:0 2px 8px rgba(37,99,235,.18);}
+.vibe-node.green{background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 2px 8px rgba(5,150,105,.18);}
+.vibe-node.amber{background:linear-gradient(135deg,#d97706,#f59e0b);box-shadow:0 2px 8px rgba(217,119,6,.18);}
+.vibe-node.plain{background:#fff;color:#334155;border:1px solid var(--ai-bd);box-shadow:none;}
+.vibe-node.plain small{color:var(--text-muted);}
+.vibe-arrow{align-self:center;font-size:1.15rem;color:#7c3aed;font-weight:700;flex-shrink:0;}
+.vibe-down{text-align:center;color:#7c3aed;font-size:1rem;line-height:1;margin:2px 0;}
+.vibe-loop-note{text-align:center;font-size:.74rem;color:#6d28d9;font-weight:600;margin-top:10px;}
+
 /* ===== 数字大字报 ===== */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin:1.4rem 0;}
 .stat{border:1px solid var(--border);border-radius:14px;padding:18px 16px;text-align:center;background:linear-gradient(180deg,#fff,#fafaff);}
@@ -203,15 +220,40 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         <div class="fnode">交付验收<small>人工点页面 · UAT</small></div>
     </div>
 
-    <div class="flow-lbl ai">AI Vibe 流程（规格驱动 · 测试先行 · 循环生成）</div>
-    <div class="flow flow-ai">
-        <div class="fnode hl">① 需求结构化<small>验收语句 · 给 AI 执行</small></div>
-        <div class="fnode hl">② Spec 冻结<small>spec.md + 项目宪法</small></div>
-        <div class="fnode hl">③ 任务拆解<small>拆到"一个会话一个任务"</small></div>
-        <div class="fnode hl">④ 会话生成<small>生成→验证→修复循环</small></div>
-        <div class="fnode hl">⑤ 审查合并 + ⑥ 验收回放<small>人审三类 diff · BDD 重跑</small></div>
+    <div class="flow-lbl ai">AI Vibe 流程（三段式：规格前置 → 核心循环 → 里程碑验收）</div>
+    <div class="vibe">
+        <!-- 第 1 段：规格前置（一次性） -->
+        <div class="vibe-seg">
+            <div class="vibe-seg-tag">① 规格前置 · 一次性 · 人主导</div>
+            <div class="vibe-row">
+                <div class="vibe-node blue">需求结构化<small>把需求写成验收语句</small></div>
+                <div class="vibe-arrow">→</div>
+                <div class="vibe-node blue">Spec 冻结<small>spec.md + 项目宪法</small></div>
+            </div>
+        </div>
+        <div class="vibe-down">▼</div>
+        <!-- 第 2 段：核心循环（每个任务反复） -->
+        <div class="vibe-seg loop">
+            <div class="vibe-seg-tag">② 核心循环 · 每个任务反复 · AI 生成 + 人审查</div>
+            <div class="vibe-row">
+                <div class="vibe-node plain">任务拆解<small>拆到一个会话一个任务</small></div>
+                <div class="vibe-arrow">→</div>
+                <div class="vibe-node amber">会话生成<small>生成 → 自动验证 → 修复</small></div>
+                <div class="vibe-arrow">→</div>
+                <div class="vibe-node plain">审查合并<small>人审三类 diff</small></div>
+            </div>
+            <div class="vibe-loop-note">↺ 不绿不停 · 全绿才合并 · 然后回到任务拆解继续下一个（高频小循环）</div>
+        </div>
+        <div class="vibe-down">▼</div>
+        <!-- 第 3 段：里程碑验收 -->
+        <div class="vibe-seg">
+            <div class="vibe-seg-tag">③ 里程碑验收 · 一次性 · 人签字</div>
+            <div class="vibe-row">
+                <div class="vibe-node green">验收回放<small>BDD 全量重跑 · 绿 = 通过</small></div>
+            </div>
+        </div>
     </div>
-    <div class="flow-note">注意形状差异：传统是"单向流水线"，错了回头代价大；AI 模式是<strong>"规格冻结后的高频小循环"</strong>——每个任务都走「生成 → 自动验证 → 不绿不停 → 人审 → 合并」，错误在会话内就被拦截，而不是流到测试阶段才暴露。架构设计没有消失，而是<strong>前置固化进步骤②的宪法文件</strong>，每次生成都被强制读取。</div>
+    <div class="flow-note">对比两种形状：<strong>传统是"单向流水线"</strong>（需求→架构→编码→测试→交付），错了回头代价大；<strong>AI Vibe 是"规格冻结后的高频小循环"</strong>——架构被前置固化进宪法文件，测试嵌进生成循环，错误在会话内就被拦截，而不是流到测试阶段才暴露。</div>
 
     <h3 class="sub">1.1 本项目实证：两种速度都已真实发生过</h3>
     <div class="stats">
@@ -226,15 +268,15 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
 <!-- ================= 02 逐阶段对比 ================= -->
 <section id="s2">
     <div class="sec-head"><span class="sec-badge" style="background:#2563eb;">02</span><h2 class="sec-title">逐阶段对比：五个阶段，五种本质变化</h2></div>
-    <p class="sec-lead">每个阶段回答三个问题：传统怎么做？AI 模式怎么做？<strong>用本项目的真实场景举例</strong>。</p>
+    <p class="sec-lead">每个阶段一句话说清：<strong>传统怎么做 → AI 怎么做 → 关键差别</strong>，都用本项目举例。</p>
 
     <!-- 需求 -->
-    <h3 class="sub">阶段一 · 需求：从"写给人看的文档"到"写给 AI 执行的验收语句"</h3>
+    <h3 class="sub">阶段一 · 需求</h3>
     <div class="vs">
-        <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统做法</h4>
-            <ul><li>产出 SRS 规格书（几十页 Word），<strong>面向人阅读</strong></li><li>需求描述依赖自然语言，留大量解释空间："敏感字段需要脱敏展示"</li><li>变更走需求变更单，文档更新滞后于实际</li><li>验收标准写在 Excel 清单里，测试阶段才被翻出来</li></ul></div>
-        <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI 模式</h4>
-            <ul><li>产出<strong>验收语句</strong>（Given-When-Then），面向机器执行，人审批</li><li>需求必须量化到可判真假，否则 AI 无法生成达标代码</li><li>NFR（性能/安全指标）与功能需求同等结构化</li><li>验收语句直接成为测试用例——<strong>需求即测试靶子</strong></li></ul></div>
+        <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统：写给人看</h4>
+            <ul><li>几十页 Word 规格书，靠人读、靠人脑补歧义</li><li>需求说得含糊（"要脱敏"），具体怎么做等开发自己猜</li><li>验收标准到最后测试阶段才被翻出来</li></ul></div>
+        <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI：写给机器执行</h4>
+            <ul><li>写成验收语句（Given-When-Then），机器能直接判对错</li><li>每条需求量到可验证（"无权限角色查询 → 返回掩码 + 记录审计"）</li><li>验收语句直接当测试用例——<strong>需求即测试靶子</strong></li></ul></div>
     </div>
     <div class="tbl-wrap"><div class="tbl-scroll">
     <table class="t">
@@ -247,15 +289,15 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         </tbody>
     </table>
     </div></div>
-    <div class="note violet"><b>本质变化：</b>传统需求文档的读者是开发工程师（人可以脑补歧义）；AI 模式的读者是生成引擎（歧义 = 生成错误）。<b>把需求写到"AI 能执行"的精度，恰好也是传统模式下测试与验收最想要的那种精度——AI 逼着需求变好。</b>本项目现有的 task.csv（113 条任务清单）和 README 四阶段业务流已具备骨架，缺的是把每条升级为验收语句。</div>
+    <div class="note violet"><b>关键差别：</b>传统需求"给人看"，人可以脑补歧义；AI 需求"给机器看"，歧义 = 生成错误。<b>把需求写到 AI 能执行的精度，恰好也是传统测试最想要的精度——AI 逼着需求变好。</b>本项目 task.csv 已有 113 条任务骨架，缺的是把每条升级为验收语句。</div>
 
     <!-- 架构 -->
-    <h3 class="sub">阶段二 · 架构：从"设计白皮书"到"会话强制注入的项目宪法"</h3>
+    <h3 class="sub">阶段二 · 架构</h3>
     <div class="vs">
-        <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统做法</h4>
-            <ul><li>架构师出白皮书 + 评审会，周期 2~4 周</li><li>评审通过后<strong>文档归档</strong>，靠开发者记忆和 code review 维持约束</li><li>技术选型靠调研报告（本项目如：PG vs 湖仓、Appsmith vs 自研——见《归档架构选型对比报告》）</li><li>架构约束失效是常态：新人加入、时间一长，规范悄悄走样</li></ul></div>
-        <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI 模式</h4>
-            <ul><li>架构 = <strong>项目宪法文件</strong>（AGENTS.md 升级版），<strong>每次 AI 会话自动强制读取</strong></li><li>约束从"靠人记住"变成"机器每次生成前必读"——不会忘、不会走样</li><li><strong>POC 即架构参照物</strong>：选型已在 POC 验证（SeaTunnel 入湖 → Iceberg → Spark 查询已跑通），生产只需补 ADR 决策记录</li><li>重大决策一页 ADR（背景/选项/结论），AI 可检索复用</li></ul></div>
+        <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统：画完就归档</h4>
+            <ul><li>架构师出白皮书 + 评审，周期 2~4 周</li><li>评审通过后<strong>文档吃灰</strong>，靠人记住约束，久了规范就走样</li><li>新人进来、时间一长，没人再按文档执行</li></ul></div>
+        <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI：写进宪法，强制读取</h4>
+            <ul><li>架构 = <strong>项目宪法</strong>（AGENTS.md），<strong>每次 AI 会话自动读取</strong></li><li>约束从"靠人记住"变成"机器生成前必读"——不会忘、不会走样</li><li>重大决策一页 ADR（背景/选项/结论），AI 可检索复用</li></ul></div>
     </div>
     <div class="tbl-wrap"><div class="tbl-scroll">
     <table class="t">
@@ -268,25 +310,25 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         </tbody>
     </table>
     </div></div>
-    <div class="note violet"><b>本质变化：</b>传统架构文档是"交付物"（写完归档落灰），AI 模式的架构是"<b>生产资料</b>"（每次生成都被读取并约束输出）。本项目 AGENTS.md 的七条禁令在 POC 阶段已自发证明有效——12 天 167 次提交没有出现"绕过白名单拼 SQL"这类违规，就是因为规则写进了会话上下文。<b>架构师的角色从"画图的人"变成"立法的人"。</b></div>
+    <div class="note violet"><b>关键差别：</b>传统架构文档是"交付物"，写完就吃灰；AI 架构是"<b>生产资料</b>"，每次生成都被读取并约束输出。<b>架构师从"画图的人"变成"立法的人"。</b>本项目 AGENTS.md 的七条禁令在 12 天 167 次提交中自发有效，就是因为规则写进了会话上下文。</div>
 
     <!-- 编码 -->
-    <h3 class="sub">阶段三 · 编码：从"人逐行写"到"会话编排 + 生成验证循环"</h3>
+    <h3 class="sub">阶段三 · 编码</h3>
     <div class="vs">
-        <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统做法</h4>
-            <ul><li>工程师逐行编写：Controller/Service/Mapper/前端页面，估 3 人月的活就排 3 人月</li><li>速度与人数线性相关；并行开发靠模块分工 + 频繁开会对齐</li><li>代码质量靠 code review 兜底，review 粒度是"整个功能"</li><li>本项目的量：20 Controller + 22 Service/Mapper + 22 实体 + 16 前端页面</li></ul></div>
-        <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI 模式</h4>
-            <ul><li><strong>任务拆到"一个会话一个任务一个分支"</strong>（如"实现 BlobSasService"是一个会话）</li><li>每个会话内：AI 生成 → 自动跑 mvn test / lint / build → 失败自动修复 → <strong>全绿才交人审</strong></li><li>只读任务（调研/评审/用例生成）多会话并行；<strong>写码任务单会话串行</strong>避免冲突</li><li>人的产出 = 审查通过的合并量；POC 实证此节奏：日均 14 次提交</li></ul></div>
+        <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统：人逐行写</h4>
+            <ul><li>工程师手写 Controller / Mapper / 前端，估多少人就排多少人</li><li>速度随人数线性涨，靠开会对齐</li><li>质量靠 code review 兜底，一次审一整块功能</li></ul></div>
+        <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI：会话循环生成</h4>
+            <ul><li>任务拆到"<strong>一个会话一个任务一个分支</strong>"</li><li>AI 生成 → 自动跑测试/lint/build → 失败自修 → <strong>全绿才交人审</strong></li><li>只读任务可并行，写码任务串行避免冲突；人的产出 = 审查通过的合并量</li></ul></div>
     </div>
-    <div class="note amber"><b>本项目最有代表性的三个生成任务</b>（生产阶段同粒度拆解）：① <b>SAS 签发服务</b>——宪法规定"前端永不持有 Access Key"，AI 在此约束下生成 BlobSasService + 15min 过期 + 路径前缀校验 + 审计埋点；② <b>DynamicQueryBuilder</b>——白名单 + 参数化 SQL 是宪法条款，AI 生成的任何拼接尝试都会被 lint 规则打回；③ <b>动态查询前端</b>——Schema Registry 的 schema_json 直接驱动 DynamicFilterForm/DynamicDataTable 渲染，<strong>新系统接入零代码</strong>，这正是 AI 生成模式与元数据驱动架构的乘数效应。</div>
+    <div class="note amber"><b>三个代表性生成任务</b>：① <b>SAS 签发服务</b>——宪法规定"前端永不持有 Access Key"，AI 在此约束下生成带 15min 过期 + 审计的 BlobSasService；② <b>DynamicQueryBuilder</b>——白名单 + 参数化 SQL 是宪法条款，AI 的拼接尝试会被 lint 打回；③ <b>动态查询前端</b>——schema_json 直接驱动动态渲染，<strong>新系统接入零代码</strong>。</div>
 
     <!-- 测试 -->
-    <h3 class="sub">阶段四 · 测试：从"事后补写"到"先行的生成靶子"</h3>
+    <h3 class="sub">阶段四 · 测试</h3>
     <div class="vs">
-        <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统做法</h4>
-            <ul><li>开发提测后，测试组写用例、执行、报 bug、回归</li><li>单元测试靠开发自觉，覆盖率常在交付压力下妥协</li><li>安全测试（脱敏/越权/审计）往往只在上线前抽查</li><li>缺陷发现越晚，修复成本越高（测试阶段发现的成本 ≈ 编码阶段的 5~10 倍）</li></ul></div>
-        <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI 模式</h4>
-            <ul><li><strong>测试先于实现</strong>：阶段一的验收语句直接转为 BDD 用例，作为 AI 的生成靶子</li><li>AI 循环的标准退出条件 = 测试全绿，<strong>"看起来对"不算完成，可验证才算</strong></li><li>AI 批量生成常规用例；人只聚焦三类高价值用例：安全（脱敏/越权）、不可逆（销毁）、跨边界（引擎切换）</li><li>缺陷在会话内暴露（分钟级），不再流到测试阶段</li></ul></div>
+        <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统：写完再测</h4>
+            <ul><li>开发写完提测，测试组再写用例、报 bug、回归</li><li>覆盖率在交付压力下常被牺牲</li><li>安全测试（脱敏/越权）往往拖到上线前才抽查</li><li>缺陷发现越晚，修复成本越高（晚一步贵 5~10 倍）</li></ul></div>
+        <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI：测试先行</h4>
+            <ul><li><strong>测试先于实现</strong>：验收语句直接变 BDD 用例，当 AI 的生成靶子</li><li>退出标准 = 测试全绿，<strong>"看着对"不算，可验证才算</strong></li><li>AI 批量生成常规用例；人只盯三类：安全、不可逆（销毁）、跨边界</li></ul></div>
     </div>
     <div class="tbl-wrap"><div class="tbl-scroll">
     <table class="t">
@@ -301,12 +343,12 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
     </div></div>
 
     <!-- 交付 -->
-    <h3 class="sub">阶段五 · 交付验收：从"人工点页面"到"BDD 全量回放"</h3>
+    <h3 class="sub">阶段五 · 交付验收</h3>
     <div class="vs">
-        <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统做法</h4>
-            <ul><li>UAT = 业务方按验收清单人工点页面，周期 2~4 周</li><li>审计举证靠翻日志 + 截图拼材料</li><li>移交物：代码 + 文档 + 培训</li><li>"这段代码为什么这么写"——三个月后没人说得清</li></ul></div>
-        <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI 模式</h4>
-            <ul><li>UAT = 阶段一的 BDD 用例在准生产环境<strong>全量机械回放</strong>，绿 = 通过</li><li>审计演练脚本化：脱敏对照查询、SAS 过期验证、"谁在何时查了什么"一键导出</li><li>移交物多三样：<strong>宪法 + ADR 集 + 会话档案</strong>（167 次提交对应完整生成过程记录）</li><li>"为什么这么写"→ 回放会话档案与 ADR，可追溯</li></ul></div>
+        <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统：人工点页面</h4>
+            <ul><li>UAT = 业务方按清单人工点页面，2~4 周</li><li>审计举证靠翻日志 + 截图拼材料</li><li>移交：代码 + 文档 + 培训</li><li>"这段代码为什么这么写"——三个月后没人说得清</li></ul></div>
+        <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI：全量机械回放</h4>
+            <ul><li>UAT = BDD 用例在准生产环境<strong>全量回放</strong>，绿 = 通过</li><li>审计演练脚本化：脱敏对照、SAS 过期、"谁查了什么"一键导出</li><li>移交多三样：<strong>宪法 + ADR + 会话档案</strong>，"为什么这么写"可追溯</li></ul></div>
     </div>
 </section>
 
@@ -317,60 +359,36 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
 
     <div class="steps">
         <div class="step">
-            <div class="step-head"><span class="step-no"></span><h3 class="step-title">需求结构化：把需求写成验收语句</h3><span class="step-who who-h">人主导 · AI 辅助展开</span></div>
-            <div class="step-body">人定业务边界与量化指标，AI 把口语需求展开为完整 Given-When-Then 语句并主动追问遗漏（"销毁确认是单人还是双人？""SAS 有效期多少分钟？"）。
-                <ul><li>输入：README 四阶段业务流、task.csv 113 条任务、访谈记录</li><li>关键动作：NFR 量化表定稿（30s 超时 / LIMIT 10000 / SAS≤15min / 覆盖率≥70%）</li></ul>
-                <div class="step-eg"><span class="eg-t">RIMS 实例 · 产出片段</span>「Given 退役系统含 100 张表，When 管理员配置 Schema Registry 并确认，Then 每张表生成 schema_json 描述符且 isPii/objectKeyField 字段完成标注；未标注 isPii 的表不得进入同步阶段」</div>
-                <div class="out"><b>产出：</b>Epic 级验收语句集 + NFR 量化表 —— <b>这一步的质量决定后面所有步骤的速度</b></div>
-            </div>
+            <div class="step-head"><span class="step-no"></span><h3 class="step-title">需求结构化</h3><span class="step-who who-h">人主导</span></div>
+            <div class="step-body"><strong>把口语需求写成"AI 能执行"的验收语句（Given-When-Then），并把性能指标量化定稿。</strong>这一步的质量，决定后面所有步骤的速度。</div>
         </div>
 
         <div class="step">
-            <div class="step-head"><span class="step-no"></span><h3 class="step-title">Spec 冻结：spec.md + 项目宪法</h3><span class="step-who who-h">人审批 · AI 起草</span></div>
-            <div class="step-body">AI 把验收语句汇编为结构化 spec 文件（每条 Epic 一份），连同<strong>项目宪法</strong>（AGENTS.md 升级版：七条禁令 + 三条红线 + 分层边界 + 状态机规则）一并提交评审。人批准后冻结——<strong>此后任何修改走变更流程，不许"边生成边改需求"</strong>。
-                <ul><li>三条红线：销毁双人确认 / 密钥永不明文 / 脱敏必须平台侧（UC COLUMN MASK）</li><li>Schema Registry 的 schema_json 升级为规格附件（字段级验收已内含）</li></ul>
-                <div class="step-eg"><span class="eg-t">RIMS 实例 · 宪法条款</span>"Do NOT 在 JS/Java 层实现字段脱敏——isPii 列只允许 UC COLUMN MASK（MASK_FULL / MASK_FIRST_N）；任何应用层'等效脱敏'的实现一律拒绝合并。"（POC 的 mask.ts 前端脱敏即为此条款要替换的对象）</div>
-                <div class="out"><b>产出：</b>冻结版 spec.md × 4 + constitution（宪法）+ ADR 补录 5~8 条</div>
-            </div>
+            <div class="step-head"><span class="step-no"></span><h3 class="step-title">Spec 冻结</h3><span class="step-who who-h">人审批</span></div>
+            <div class="step-body"><strong>把验收语句汇编成 spec 文件，连同项目宪法（禁令 + 红线 + 边界）一起评审冻结。</strong>冻结后改需求必须走变更流程，不许"边生成边改"。</div>
         </div>
 
         <div class="step">
-            <div class="step-head"><span class="step-no"></span><h3 class="step-title">任务拆解：拆到"一个会话一个任务"</h3><span class="step-who who-ai">AI 拆解 · 人校验粒度</span></div>
-            <div class="step-body">AI 按 spec 生成任务清单（tasks.md），每个任务满足：<strong>一个分支、一次会话可完成、有明确验收命令</strong>（如 `mvn test -Dtest=BlobSasServiceTest`）。人只校验粒度与依赖顺序。
-                <ul><li>依赖排序示例：先 DDL（Flyway V19+）→ 再引擎接口 → 再服务实现 → 最后前端页面</li><li>并行判据：只读任务（契约比对/用例生成/文档）多会话并行；写码任务串行</li></ul>
-                <div class="step-eg"><span class="eg-t">RIMS 实例 · 任务卡</span>「任务 #47：实现 BlobSasService。范围：签发 ≤15min SAS + 路径前缀校验 + RBAC 检查 + 审计埋点。验收：mvn test -Dtest=BlobSasServiceTest 全绿 + gitleaks 无告警。依赖：#31 KeyVaultService。分支：arena/047-blob-sas」</div>
-                <div class="out"><b>产出：</b>tasks.md（预计 60~80 个会话级任务）+ 依赖图</div>
-            </div>
+            <div class="step-head"><span class="step-no"></span><h3 class="step-title">任务拆解</h3><span class="step-who who-ai">AI 拆 · 人核</span></div>
+            <div class="step-body"><strong>把 spec 拆成"一个会话一个任务一个分支"，每个任务都有明确验收命令。</strong>只读任务可并行，写码任务串行。</div>
         </div>
 
         <div class="step">
-            <div class="step-head"><span class="step-no"></span><h3 class="step-title">会话生成：生成 → 验证 → 修复循环</h3><span class="step-who who-ai">AI 执行 · 循环自纠</span></div>
-            <div class="step-body">每个任务的执行现场：AI 读宪法 → 探索相关代码 → 出实现计划 → 生成代码 → <strong>自动跑验证命令</strong>（mvn test / pnpm lint / type-check / build / flyway info）→ 失败读报错自修复 → 循环直到全绿。<strong>验证不过，会话不许结束</strong>（Stop hook 门禁）。
-                <ul><li>POC 已验证此节奏：12 天 167 次提交，日均 14 个"生成-验证-合并"循环</li><li>AI 必须出示证据（测试输出/命令回显），不接受"已完成"的口头断言</li></ul>
-                <div class="step-eg"><span class="eg-t">RIMS 实例 · 典型循环</span>生成 DynamicQueryBuilder → 跑测试发现 OR 条件未参数化（violates 白名单规则）→ AI 读到 lint 报错 → 自动重构为白名单枚举 + 参数化 → 重跑全绿 → 提交 `feat(query): whitelist-enforced dynamic SQL builder`</div>
-                <div class="out"><b>产出：</b>全绿的分支 + 测试证据 + 符合 Conventional Commits 的提交</div>
-            </div>
+            <div class="step-head"><span class="step-no"></span><h3 class="step-title">会话生成</h3><span class="step-who who-ai">AI 执行</span></div>
+            <div class="step-body"><strong>AI 读宪法 → 生成代码 → 自动跑测试 → 失败自修复 → 全绿才停。</strong>验证不过会话不许结束，AI 必须出示测试证据。</div>
         </div>
 
         <div class="step">
-            <div class="step-head"><span class="step-no"></span><h3 class="step-title">审查合并：人审三类 diff，其余快速过</h3><span class="step-who who-h">人审查 · 不可绕过</span></div>
-            <div class="step-body">全绿分支进入人工审查。审查资源聚焦三类 diff，其余（纯页面、纯样式、测试补充）快速扫描合并：
-                <ul><li><strong>安全敏感</strong>：密钥处理、SQL 构造、SAS 签发、脱敏路径 —— 逐行审</li><li><strong>不可逆</strong>：销毁脚本、DDL 迁移 —— 逐行审 + 第二人复核</li><li><strong>跨边界</strong>：引擎接口、状态机跳转、宪法文件本身 —— 架构师审</li></ul>
-                <div class="step-eg"><span class="eg-t">RIMS 实例 · 审查拦截场景</span>AI 生成的销毁服务里，VACUUM 参数写死 RETAIN 0——审查发现后要求改为宪法规定的"先归档清单、后销毁、保留审计快照"，避免物理删除不可追溯。</div>
-                <div class="out"><b>产出：</b>合并到主干 + 审查记录；人的时间只花在 20% 的高风险 diff 上</div>
-            </div>
+            <div class="step-head"><span class="step-no"></span><h3 class="step-title">审查合并</h3><span class="step-who who-h">人审查 · 不可绕过</span></div>
+            <div class="step-body"><strong>人只聚焦三类 diff 逐行审：安全敏感、不可逆（销毁/DDL）、跨边界（引擎/状态机）</strong>，其余页面样式快速扫过合并。</div>
         </div>
 
         <div class="step">
-            <div class="step-head"><span class="step-no"></span><h3 class="step-title">验收回放：BDD 重跑 + 度量归档</h3><span class="step-who who-ai">AI 回放 · 人签字</span></div>
-            <div class="step-body">里程碑与 UAT 不再人工点页面：阶段一的 BDD 用例在准生产环境<strong>全量机械回放</strong>；同时跑审计演练（脱敏对照查询 / SAS 过期 403 / 越权拒绝 / 审计一键导出）。全绿后人签字验收。
-                <ul><li>度量归档：AI 生成占比、返工率、缺陷率、任务耗时——为下一个项目校准估算</li><li>会话档案归档：167+ 会话记录成为"为什么这么写"的完整追溯材料</li></ul>
-                <div class="step-eg"><span class="eg-t">RIMS 实例 · UAT 回放清单（节选）</span>① 无脱敏权限账号查 CUSTOMER_ORDER → 断言 customer_name = "张*三"；② SAS URL 16 分钟后访问 → 断言 403；③ 模拟双人销毁缺第二人 → 断言状态仍 EXPIRING；④ 切换 QueryEngine 到 Databricks 实现 → 断言全量 BDD 仍绿。</div>
-                <div class="out"><b>产出：</b>UAT 签字 + 审计演练报告 + 度量基线（供持续改进）</div>
-            </div>
+            <div class="step-head"><span class="step-no"></span><h3 class="step-title">验收回放</h3><span class="step-who who-ai">AI 回放 · 人签字</span></div>
+            <div class="step-body"><strong>里程碑/UAT 不用人工点页面：BDD 用例在准生产环境全量机械回放，绿 = 通过，人签字验收。</strong>同时跑审计演练并归档度量与会话档案。</div>
         </div>
     </div>
-    <div class="note green"><b>六步与传统五阶段的对应关系：</b>需求结构化+Spec 冻结 ≈ 传统的"需求+架构设计"（但产物从文档变成可执行规格）；任务拆解+会话生成 ≈ 传统的"编码"（但人从写代码变成管会话）；审查合并+验收回放 ≈ 传统的"测试+交付"（但测试已前置嵌进生成循环）。<b>总人天从 290 降到 159（-45%），重心从编码（150 人天）移到规格（30 人天）——详见第 05 章。</b></div>
+    <div class="note green"><b>六步 vs 传统五阶段：</b>需求结构化 + Spec 冻结 ≈ 传统"需求+架构"；任务拆解 + 会话生成 ≈ 传统"编码"（人从写代码变成管会话）；审查合并 + 验收回放 ≈ 传统"测试+交付"（但测试已前置嵌进生成循环）。<b>总人天 290 → 159（-45%），重心从编码移到规格——详见第 05 章。</b></div>
 
     <h3 class="sub">3.1 六步骤的工具化：用 GitHub Spec Kit 跑同一套流程</h3>
     <p style="font-size:.88rem;color:#334155;line-height:1.85;margin:.6rem 0 1rem;">六步骤不需要自建工具链。GitHub 官方开源的 <strong>Spec Kit</strong>（<span class="mono">github/spec-kit</span> · 129.6k star · MIT · 2026-08 核实）把"先定义要建什么，再动手建"的规格驱动开发（SDD）做成了现成 CLI，与 <strong>30+ AI 编码代理兼容</strong>（Claude Code / Copilot / Codex / Gemini CLI 等，含本仓库在用的 pi 类工具）。其核心主张：<strong>规格不再是写完即弃的脚手架，而是可执行的——直接驱动实现生成</strong>。安装两条命令即得与六步骤同构的流水线：</p>
