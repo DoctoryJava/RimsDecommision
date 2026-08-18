@@ -4059,7 +4059,7 @@
 <rect x="654" y="812" width="570" height="34" rx="8" fill="#fff8ed" stroke="#fbbf24"/>
 <text x="939" y="834" class="az-line" fill="#b45309" text-anchor="middle">前置条件：Premium 层 · NCC 需 Account Admin · 区域能力需实测</text>
 </svg>
-<svg viewBox="0 0 1620 1014" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 1620 1100" xmlns="http://www.w3.org/2000/svg">
 <defs>
 <marker id="m1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#64748b"/></marker>
 <marker id="m2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0078d4"/></marker>
@@ -4190,7 +4190,7 @@
 <rect x="354" y="524" width="498" height="30" rx="4" fill="#f0f9ff" stroke="#7dd3fc"/>
 <text x="603" y="536" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="7.2" font-weight="700" fill="#0c4a6e" text-anchor="middle">元数据服务承载：系统台账 · 表清单与勾选配置 · 保留期与销毁策略 · 任务执行记录 · 操作审计流水</text>
 <text x="603" y="548" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="6.8" font-weight="400" fill="#64748b" text-anchor="middle">销毁调度服务按策略触发 Databricks Jobs 执行 DROP PARTITION，结果回写元数据库并上报审计</text>
-<text x="603" y="566" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="7.2" font-weight="400" fill="#64748b" text-anchor="middle">AKS 托管集群 · HPA 自动伸缩 · 托管标识免密访问下游服务</text>
+<text x="603" y="566" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="7.2" font-weight="400" fill="#64748b" text-anchor="middle">AKS 托管集群 · HPA 自动伸缩 · 托管标识免密 · 节点池跨可用区(AZ)冗余</text>
 
 <rect x="876" y="372" width="266" height="204" rx="6" fill="#fff" stroke="#0078d4" stroke-width="1.2"/>
 <text x="892" y="390" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="8.2" font-weight="700" fill="#0078d4" text-anchor="start">私有端点子网 · 10.0.2.0/24</text>
@@ -4247,7 +4247,7 @@
 <path d="M 1180 688 a 5.5 5.5 0 0 1 1 -10.8 a 7.5 7.5 0 0 1 14.2 -1.6 a 6 6 0 0 1 7.8 5.8 a 5.5 5.5 0 0 1 -5 6.6 z" fill="#0078d4"/>
 <text x="1191" y="712" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="8.4" font-weight="700" fill="#0f172a" text-anchor="middle">Azure SQL Database</text>
 <text x="1191" y="728" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="7.3" font-weight="700" fill="#0078d4" text-anchor="middle">元数据库 Standard S2</text>
-<text x="1191" y="743" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="6.9" font-weight="400" fill="#64748b" text-anchor="middle">由 .NET 元数据服务读写</text>
+<text x="1191" y="743" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="6.9" font-weight="400" fill="#64748b" text-anchor="middle">由 .NET 元数据服务读写 · 主备自动故障转移</text>
 <rect x="1112" y="752" width="158" height="18" rx="3" fill="#eff6ff" stroke="#bfdbfe" />
 <text x="1191" y="764" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="6.7" font-weight="700" fill="#1e40af" text-anchor="middle">Private Endpoint</text>
 <text x="1191" y="784" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="6.7" font-weight="700" fill="#dc2626" text-anchor="middle">公网访问：已禁用</text>
@@ -4256,7 +4256,7 @@
 <path d="M 1438 688 a 5.5 5.5 0 0 1 1 -10.8 a 7.5 7.5 0 0 1 14.2 -1.6 a 6 6 0 0 1 7.8 5.8 a 5.5 5.5 0 0 1 -5 6.6 z" fill="#0078d4"/>
 <text x="1449" y="706" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="8.4" font-weight="700" fill="#0f172a" text-anchor="middle">两个独立存储账户</text>
 <text x="1449" y="720" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="7.1" font-weight="700" fill="#0078d4" text-anchor="middle">① ADLS Gen2（HNS）· Iceberg 表</text>
-<text x="1449" y="732" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="6.6" font-weight="400" fill="#64748b" text-anchor="middle">Hot/Cool · 供 Databricks 用 ABFS 读</text>
+<text x="1449" y="732" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="6.6" font-weight="400" fill="#64748b" text-anchor="middle">Hot/Cool · ZRS 冗余 · 供 Databricks 用 ABFS 读</text>
 <text x="1449" y="746" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="7.1" font-weight="700" fill="#d97706" text-anchor="middle">② Blob（FNS 平面）· 非结构化附件</text>
 <text x="1449" y="758" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="6.6" font-weight="400" fill="#a16207" text-anchor="middle">Cool→Cold · 写按次计费 · 可开 WORM</text>
 <rect x="1370" y="764" width="158" height="17" rx="3" fill="#eff6ff" stroke="#bfdbfe" />
@@ -4299,6 +4299,13 @@
 <text x="62" y="954" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="7.6" font-weight="400" fill="#475569" text-anchor="start">B2 相比方案 B 省去 Trino 集群与 VNet 注入的 host / container 双子网——查询层完全托管，无集群运维负担</text>
 <text x="46" y="971" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="7.6" font-weight="700" fill="#0078d4" text-anchor="start">⑥</text>
 <text x="62" y="971" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="7.6" font-weight="400" fill="#475569" text-anchor="start">需 Azure Databricks Premium 层（私有端点与 NCC 均为 Premium 特性）；NCC 属账户级对象，配置需 Databricks Account Admin 权限</text>
+
+
+<rect x="24" y="1004" width="1572" height="86" rx="8" fill="rgba(220,38,38,0.04)" stroke="#f87171" stroke-dasharray="6,4"/>
+<text x="42" y="1022" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="9" font-weight="700" fill="#b91c1c" text-anchor="start">高可用 &amp; 容灾（HA / DR）设计</text>
+<text x="42" y="1039" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="7.2" font-weight="400" fill="#475569" text-anchor="start">① 可用区冗余：AKS 节点池跨 2+ AZ；Azure SQL DB 主备自动故障转移；ADLS/Blob 存储启用 ZRS 冗余 · ② 无单点：前端/后端/SQL/存储均由平台托管，Serverless 计算空闲归零、故障自动重建</text>
+<text x="42" y="1055" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="7.2" font-weight="400" fill="#475569" text-anchor="start">③ 备份与恢复：SQL DB 自动备份 + 时间点还原(PITR)；ADLS/Blob 生命周期分层 + 可选 GRS 跨区复制 · ④ DR 目标：RPO ≤ 15min / RTO ≤ 2h（Azure 默认备份保留 7~35 天，可按合规扩展）</text>
+<text x="42" y="1071" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="7.2" font-weight="400" fill="#475569" text-anchor="start">⑤ 备份与销毁审计：关键元数据与审计日志独立备份，不随业务数据销毁；销毁演练纳入年度运维（见《AI-Vibe-Coding》6.4）</text>
 </svg>
         </div>
 
