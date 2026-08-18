@@ -9,78 +9,76 @@
   body {
     font-family:'Inter','Segoe UI','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
     min-height:100vh; padding:34px 40px;
-    background: radial-gradient(1000px 500px at 110% -10%, rgba(52,120,246,.16), transparent 60%),
-                radial-gradient(800px 400px at -20% 110%, rgba(16,185,129,.10), transparent 55%),
-                linear-gradient(180deg,#0b1220,#070d1a);
-    color:#e5edf8;
+    background:#ffffff;
+    color:#0f172a;
     overflow-x:auto;
   }
   .topline { position:fixed; top:0; left:0; right:0; height:1px;
-    background:linear-gradient(90deg,transparent,rgba(52,120,246,.9),rgba(16,185,129,.6),transparent); }
+    background:linear-gradient(90deg,transparent,rgba(37,99,235,.6),rgba(16,185,129,.5),transparent); }
   .wrap { max-width:1500px; margin:0 auto; }
 
   .head { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:20px; }
-  .head h1 { font-size:30px; font-weight:800; letter-spacing:-.01em; }
-  .head h1 .glow { background:linear-gradient(120deg,#599dff,#22d3ee 60%,#34d399); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .head .sub { color:#8aa0bb; font-size:13px; margin-top:5px; }
+  .head h1 { font-size:30px; font-weight:800; letter-spacing:-.01em; color:#0f172a; }
+  .head h1 .glow { background:linear-gradient(120deg,#2563eb,#0891b2 60%,#059669); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .head .sub { color:#64748b; font-size:13px; margin-top:5px; }
   .pills { display:flex; gap:8px; flex-wrap:wrap; }
   .pill { display:inline-block; padding:3px 11px; border-radius:999px; font-size:11px; font-weight:600; }
-  .pill-ai { background:rgba(52,120,246,.16); color:#7db1ff; border:1px solid rgba(52,120,246,.4); }
-  .pill-human { background:rgba(16,185,129,.14); color:#4ed6a8; border:1px solid rgba(16,185,129,.4); }
-  .pill-both { background:rgba(245,158,11,.14); color:#fbbf24; border:1px solid rgba(245,158,11,.4); }
+  .pill-ai { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+  .pill-human { background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; }
+  .pill-both { background:#fffbeb; color:#b45309; border:1px solid #fde68a; }
 
   .grid { display:grid; gap:16px; }
   .g2 { grid-template-columns:1fr 1fr; }
-  .card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:18px 20px; }
-  .card h3 { font-size:14px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px; color:#fff; }
+  .card { background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:18px 20px; box-shadow:0 1px 3px rgba(15,23,42,.05); }
+  .card h3 { font-size:14px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px; color:#0f172a; }
   .card h3 .ic { width:24px; height:24px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:12px; }
   .card ul { list-style:none; }
-  .card li { font-size:12.5px; color:#c8d6ea; padding:4px 0; border-bottom:1px dashed rgba(255,255,255,.06); line-height:1.5; }
+  .card li { font-size:12.5px; color:#334155; padding:4px 0; border-bottom:1px dashed #e2e8f0; line-height:1.5; }
   .card li:last-child { border-bottom:none; }
-  .card li b { color:#fff; font-weight:600; }
+  .card li b { color:#0f172a; font-weight:600; }
 
-  .table-wrap { border:1px solid rgba(255,255,255,.08); border-radius:12px; overflow:hidden; background:rgba(255,255,255,.04); }
+  .table-wrap { border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; background:#ffffff; }
   table { width:100%; border-collapse:collapse; font-size:12px; }
-  thead th { text-align:left; padding:9px 14px; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#8aa0bb; background:rgba(255,255,255,.03); border-bottom:1px solid rgba(255,255,255,.08); }
-  tbody td { padding:8px 14px; border-bottom:1px solid rgba(255,255,255,.05); color:#d6e2f2; vertical-align:top; }
+  thead th { text-align:left; padding:9px 14px; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#475569; background:#f1f5f9; border-bottom:1px solid #cbd5e1; }
+  tbody td { padding:8px 14px; border-bottom:1px solid #eef2f7; color:#334155; vertical-align:top; }
   tbody tr:last-child td { border-bottom:none; }
   .mono { font-family:ui-monospace,monospace; font-size:11.5px; }
 
-  .bar { height:9px; border-radius:5px; background:rgba(255,255,255,.06); overflow:hidden; margin:4px 0 8px; }
+  .bar { height:9px; border-radius:5px; background:#e2e8f0; overflow:hidden; margin:4px 0 8px; }
   .bar-fill { height:100%; border-radius:5px; }
-  .bar-ai { background:linear-gradient(90deg,#3478f6,#22d3ee); }
+  .bar-ai { background:linear-gradient(90deg,#2563eb,#22d3ee); }
   .bar-human { background:linear-gradient(90deg,#059669,#34d399); }
-  .legend { display:flex; gap:16px; font-size:11.5px; color:#8aa0bb; margin-top:6px; }
+  .legend { display:flex; gap:16px; font-size:11.5px; color:#64748b; margin-top:6px; }
   .legend span { display:flex; align-items:center; gap:6px; }
   .dot { width:9px; height:9px; border-radius:3px; display:inline-block; }
   .tag { font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px; white-space:nowrap; }
-  .t-ai { background:rgba(52,120,246,.16); color:#7db1ff; }
-  .t-human { background:rgba(16,185,129,.14); color:#4ed6a8; }
-  .t-both { background:rgba(245,158,11,.14); color:#fbbf24; }
-  .divider { height:1px; background:linear-gradient(90deg,transparent,rgba(52,120,246,.5),transparent); margin:16px 0; }
+  .t-ai { background:#eff6ff; color:#1d4ed8; }
+  .t-human { background:#ecfdf5; color:#059669; }
+  .t-both { background:#fffbeb; color:#b45309; }
+  .divider { height:1px; background:linear-gradient(90deg,transparent,rgba(37,99,235,.5),transparent); margin:16px 0; }
 
   /* 功能实现状态 */
   .st { display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:600; white-space:nowrap; }
-  .st-y { background:rgba(16,185,129,.16); color:#4ed6a8; border:1px solid rgba(16,185,129,.45); }
-  .st-p { background:rgba(245,158,11,.16); color:#fbbf24; border:1px solid rgba(245,158,11,.45); }
-  .st-n { background:rgba(239,68,68,.15); color:#f87171; border:1px solid rgba(239,68,68,.45); }
-  .legend-impl { display:flex; gap:16px; font-size:12px; color:#8aa0bb; margin-top:12px; flex-wrap:wrap; }
+  .st-y { background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; }
+  .st-p { background:#fffbeb; color:#b45309; border:1px solid #fde68a; }
+  .st-n { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+  .legend-impl { display:flex; gap:16px; font-size:12px; color:#64748b; margin-top:12px; flex-wrap:wrap; }
   .legend-impl span { display:flex; align-items:center; gap:6px; }
-  .sec-title { font-size:22px; font-weight:800; margin-bottom:4px; }
-  .sec-sub { color:#8aa0bb; font-size:13px; margin-bottom:14px; }
+  .sec-title { font-size:22px; font-weight:800; margin-bottom:4px; color:#0f172a; }
+  .sec-sub { color:#64748b; font-size:13px; margin-bottom:14px; }
 
-  .cat-cell { font-weight:700; color:#fff; white-space:nowrap; font-size:12px; line-height:1.5; }
+  .cat-cell { font-weight:700; color:#0f172a; white-space:nowrap; font-size:12px; line-height:1.5; }
 
   /* ===== Demo 技术栈 slide ===== */
-  .grp td { padding:8px 14px; font-weight:700; color:#b9d2ff; background:rgba(52,120,246,.10); font-size:12px; letter-spacing:.03em; }
-  .tbl-name { font-weight:700; color:#fff; display:block; }
-  .tbl-sub { color:#8aa0bb; font-size:11px; font-weight:400; display:block; margin-top:1px; }
+  .grp td { padding:8px 14px; font-weight:700; color:#1e3a8a; background:#eef2ff; font-size:12px; letter-spacing:.03em; }
+  .tbl-name { font-weight:700; color:#0f172a; display:block; }
+  .tbl-sub { color:#64748b; font-size:11px; font-weight:400; display:block; margin-top:1px; }
   .role-pill { display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:600; white-space:nowrap; }
-  .role-self { background:rgba(255,255,255,.10); color:#d6e2f2; border:1px solid rgba(255,255,255,.18); }
-  .role-idle { background:rgba(245,158,11,.14); color:#fbbf24; border:1px solid rgba(245,158,11,.45); }
-  .role-ext { background:rgba(52,120,246,.14); color:#7db1ff; border:1px solid rgba(52,120,246,.4); }
-  .tsd-note { margin-top:16px; font-size:12.5px; color:#8aa0bb; line-height:1.7; border:1px solid rgba(245,158,11,.3); background:rgba(245,158,11,.07); border-radius:10px; padding:12px 16px; }
-  .tsd-note b { color:#fbbf24; }
+  .role-self { background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; }
+  .role-idle { background:#fffbeb; color:#b45309; border:1px solid #fde68a; }
+  .role-ext { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+  .tsd-note { margin-top:16px; font-size:12.5px; color:#7c2d12; line-height:1.7; border:1px solid #fde68a; background:#fffbeb; border-radius:10px; padding:12px 16px; }
+  .tsd-note b { color:#b45309; }
 
   /* ===== PPT 分页 ===== */
   .deck { position:relative; }
@@ -90,16 +88,16 @@
 
   .nav-bar { display:flex; align-items:center; justify-content:center; gap:18px; margin-top:26px; }
   .nav-btn {
-    width:44px; height:44px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
-    background:rgba(255,255,255,.05); color:#e5edf8; cursor:pointer; font-size:20px;
+    width:44px; height:44px; border-radius:12px; border:1px solid #cbd5e1;
+    background:#ffffff; color:#0f172a; cursor:pointer; font-size:20px;
     display:flex; align-items:center; justify-content:center; transition:.2s; user-select:none;
   }
-  .nav-btn:hover { background:rgba(52,120,246,.25); border-color:rgba(52,120,246,.6); }
+  .nav-btn:hover { background:#eff6ff; border-color:#93c5fd; }
   .nav-btn:disabled { opacity:.3; cursor:default; }
   .dots { display:flex; gap:9px; }
-  .dot-s { width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,.18); cursor:pointer; transition:.3s; }
-  .dot-s.on { background:var(--p2,#22d3ee); box-shadow:0 0 9px rgba(34,211,238,.7); }
-  .page-label { font-size:13px; color:#8aa0bb; min-width:44px; text-align:center; font-family:ui-monospace,monospace; }
+  .dot-s { width:10px; height:10px; border-radius:50%; background:#cbd5e1; cursor:pointer; transition:.3s; }
+  .dot-s.on { background:#22d3ee; box-shadow:0 0 9px rgba(34,211,238,.5); }
+  .page-label { font-size:13px; color:#64748b; min-width:44px; text-align:center; font-family:ui-monospace,monospace; }
 </style>
 </head>
 <body>
@@ -121,9 +119,9 @@
     </div>
   </div>
   <div class="card" style="margin-top:8px; text-align:center; padding:36px 24px;">
-    <div style="font-size:16px; color:#c8d6ea; line-height:1.9;">
-      <b style="color:#7db1ff">AI 负责“怎么写”</b>（编码 / 设计 / 排错）　·　<b style="color:#4ed6a8">人负责“为什么 / 对不对”</b>（决策 / 环境 / 验收）<br>
-      <span style="color:#8aa0bb; font-size:14px;">一个需求往往一轮对话即可落地可用 —— 人机协作的价值在于：<b style="color:#fbbf24">AI 提速，人掌舵</b>。</span>
+    <div style="font-size:16px; color:#334155; line-height:1.9;">
+      <b style="color:#1d4ed8">AI 负责“怎么写”</b>（编码 / 设计 / 排错）　·　<b style="color:#047857">人负责“为什么 / 对不对”</b>（决策 / 环境 / 验收）<br>
+      <span style="color:#64748b; font-size:14px;">一个需求往往一轮对话即可落地可用 —— 人机协作的价值在于：<b style="color:#b45309">AI 提速，人掌舵</b>。</span>
     </div>
   </div>
   <div class="divider" style="margin:22px 0"></div>
@@ -167,16 +165,16 @@
     </div>
     <div class="card">
       <h3><span class="ic" style="background:rgba(245,158,11,.2)">📊</span>投入占比</h3>
-      <div style="font-size:12px; color:#8aa0bb; margin-bottom:2px">🤖 AI</div>
+      <div style="font-size:12px; color:#64748b; margin-bottom:2px">🤖 AI</div>
       <div class="bar"><div class="bar-fill bar-ai" style="width:70%"></div></div>
-      <div style="font-size:12px; color:#8aa0bb; margin:8px 0 2px">🧑‍💻 人</div>
+      <div style="font-size:12px; color:#64748b; margin:8px 0 2px">🧑‍💻 人</div>
       <div class="bar"><div class="bar-fill bar-human" style="width:30%"></div></div>
       <div class="legend">
         <span><span class="dot" style="background:#22d3ee"></span>AI ≈ 70%</span>
         <span><span class="dot" style="background:#34d399"></span>人 ≈ 30%</span>
       </div>
       <div class="divider"></div>
-      <p style="font-size:13px; color:#c8d6ea; line-height:1.6">结论：<b style="color:#7db1ff">AI 提速、人掌舵</b> —— 把人力从写代码中解放出来，投入到决策、环境与验证。</p>
+      <p style="font-size:13px; color:#334155; line-height:1.6">结论：<b style="color:#1d4ed8">AI 提速、人掌舵</b> —— 把人力从写代码中解放出来，投入到决策、环境与验证。</p>
     </div>
   </div>
   <div class="divider" style="margin:22px 0"></div>
@@ -261,8 +259,8 @@
     </table>
   </div>
 
-  <div style="margin-top:16px; font-size:12.5px; color:#8aa0bb; line-height:1.7;">
-    统计：<b style="color:#4ed6a8">已实现 8 项</b> · <b style="color:#fbbf24">部分实现 6 项</b> · <b style="color:#f87171">未实现 8 项</b>
+  <div style="margin-top:16px; font-size:12.5px; color:#64748b; line-height:1.7;">
+    统计：<b style="color:#047857">已实现 8 项</b> · <b style="color:#b45309">部分实现 6 项</b> · <b style="color:#dc2626">未实现 8 项</b>
     &nbsp;|&nbsp; 核心检索 / 导出 / 脱敏 / 审计 / 用户权限已可用，迁移治理、归档转换、存储安全与连接器等模块待完善。
   </div>
   </section>
@@ -332,7 +330,7 @@
       <ul>
         <li><b>React (JSX/TSX)</b>：JSX 本质是 JS 语法扩展，UI 与逻辑统一在 JS 函数中；LLM 擅长连贯逻辑 + 强类型 JS/TS</li>
         <li><b>Vue (SFC Template)</b>：默认单文件组件（.vue），模板指令 / 插值 / 修饰符是「另一套 DSL」，AI 容易误用</li>
-        <li>结论：<b style="color:#7db1ff">“Everything is JavaScript”</b> 让 AI 推理 / 重构 / 生成 React 代码的<b>准确率与成功率显著更高</b></li>
+        <li>结论：<b style="color:#1d4ed8">“Everything is JavaScript”</b> 让 AI 推理 / 重构 / 生成 React 代码的<b>准确率与成功率显著更高</b></li>
       </ul>
     </div>
     <div class="card">
@@ -357,7 +355,7 @@
       <ul>
         <li><b>React Hooks</b>：将逻辑解耦为纯函数（如 <span class="mono">useChat</span> / <span class="mono">useCompletion</span>），AI 生成/组合自定义 Hook 非常精准</li>
         <li><b>Vue 3 Composition API</b>：响应式追踪存在隐式陷阱 —— <span class="mono">ref.value</span> 拆包、<span class="mono">reactive</span> 解构丢失响应性</li>
-        <li>AI 极易在此类细节上犯错：<b style="color:#f87171">忘记 .value、不当解构</b></li>
+        <li>AI 极易在此类细节上犯错：<b style="color:#dc2626">忘记 .value、不当解构</b></li>
       </ul>
     </div>
     <div class="card">
@@ -370,9 +368,9 @@
     </div>
     <div class="card" style="background:rgba(245,158,11,.08); border-color:rgba(245,158,11,.35);">
       <h3><span class="ic" style="background:rgba(245,158,11,.2)">💡</span>一句话结论</h3>
-      <p style="font-size:13px; color:#c8d6ea; line-height:1.7">
-        并不是 Vue 本身不够优秀，而是<b style="color:#7db1ff">在 AI 辅助编程的新时代，React 的纯 JS 表达方式（JSX）与巨大的开源数据积淀，天然成为最契合 AI（LLM）的“编程语言”</b>。<br><br>
-        本项目前端即采用 <b style="color:#4ed6a8">React 19 + Vite 8 + TypeScript + Tailwind</b> —— 正是基于此选型考量。
+      <p style="font-size:13px; color:#334155; line-height:1.7">
+        并不是 Vue 本身不够优秀，而是<b style="color:#1d4ed8">在 AI 辅助编程的新时代，React 的纯 JS 表达方式（JSX）与巨大的开源数据积淀，天然成为最契合 AI（LLM）的“编程语言”</b>。<br><br>
+        本项目前端即采用 <b style="color:#047857">React 19 + Vite 8 + TypeScript + Tailwind</b> —— 正是基于此选型考量。
       </p>
     </div>
   </div>
@@ -385,10 +383,10 @@
         <tr><th style="width:22%">维度</th><th style="width:39%">React（AI 视角）</th><th style="width:39%">Vue（AI 视角）</th></tr>
       </thead>
       <tbody>
-        <tr><td><b style="color:#fff">AI 生成代码准确度</b></td><td>⭐⭐⭐⭐⭐ JSX 即 JS，AI 理解力极佳</td><td>⭐⭐⭐☆ 模板指令有时被 AI 误用</td></tr>
-        <tr><td><b style="color:#fff">LLM 训练数据量</b></td><td>⭐⭐⭐⭐⭐ 极其庞大，涵盖各种场景</td><td>⭐⭐⭐⭐ 较充足但弱于 React</td></tr>
-        <tr><td><b style="color:#fff">AI 相关 SDK & UI 生态</b></td><td>⭐⭐⭐⭐⭐ Vercel AI SDK / shadcn 原生支持</td><td>⭐⭐⭐☆ 多为社区移植版</td></tr>
-        <tr><td><b style="color:#fff">AI 犯错率（响应性陷阱）</b></td><td>较少（主要是 <span class="mono">useEffect</span> 依赖项问题）</td><td>较多（AI 易忘记 <span class="mono">.value</span> 或破坏响应性）</td></tr>
+        <tr><td><b style="color:#0f172a">AI 生成代码准确度</b></td><td>⭐⭐⭐⭐⭐ JSX 即 JS，AI 理解力极佳</td><td>⭐⭐⭐☆ 模板指令有时被 AI 误用</td></tr>
+        <tr><td><b style="color:#0f172a">LLM 训练数据量</b></td><td>⭐⭐⭐⭐⭐ 极其庞大，涵盖各种场景</td><td>⭐⭐⭐⭐ 较充足但弱于 React</td></tr>
+        <tr><td><b style="color:#0f172a">AI 相关 SDK & UI 生态</b></td><td>⭐⭐⭐⭐⭐ Vercel AI SDK / shadcn 原生支持</td><td>⭐⭐⭐☆ 多为社区移植版</td></tr>
+        <tr><td><b style="color:#0f172a">AI 犯错率（响应性陷阱）</b></td><td>较少（主要是 <span class="mono">useEffect</span> 依赖项问题）</td><td>较多（AI 易忘记 <span class="mono">.value</span> 或破坏响应性）</td></tr>
       </tbody>
     </table>
   </div>
