@@ -341,7 +341,13 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         </tbody>
     </table>
     </div></div>
-    <div class="note blue"><b>一句话选型：</b>若公司 SLC 是硬性流程不能改 → 走<strong>场景二</strong>（AI 辅助，风险最小）；若追求极致速度、且愿意重塑流程 → 走<strong>场景三</strong>（AI Native，本报告推荐并实证）；传统项目或极严合规 → 保留<strong>场景一</strong>但可局部引入 AI。本报告主体论述的正是 <strong>场景三 · AI Native（六步法）</strong>，第 05/06 章成本亦按此口径。</div>
+    <div class="note blue"><b>无论走哪个场景，「人审查」都不可绕过——这是 AI Native 的底线：</b>
+        <ul style="margin:8px 0 0;padding-left:18px;font-size:.85rem;line-height:1.85;color:#1e3a5f;">
+            <li><strong>为什么必须审查：</strong>AI 能"快速生成"，但<strong>不能替人负责</strong>。它可能写出"看起来对、实则危险"的代码——比如销毁逻辑里 <code>VACUUM RETAIN 0</code> 直接物理删除不留审计、SQL 拼接绕过白名单、密钥写死在代码里。这些错误<strong>测试不一定拦得住</strong>（测试只验证"预期行为"，审查看的是"是否埋了不该有的行为"）。</li>
+            <li><strong>必要性：</strong>AI 是"生成者"，生成者不能当自己的裁判。第 04 章的原则就是<strong>"AI 负责 Draft（草稿），人负责 Decision（决策）与 Guard（护栏）"</strong>。凡不可逆（销毁）、涉密（密钥/脱敏）、跨边界（引擎/状态机）的改动，<strong>必须人逐行审查，且无旁路</strong>。</li>
+            <li><strong>审查的价值不是"挑错"而是"把关"：</strong>它把 AI 的<strong>速度</strong> + 人的<strong>判断</strong>结合成可靠结果——AI 让交付快 10 倍，审查保证这 10 倍的产出是安全的、合规的、可追溯的。省掉审查，省下的时间会在事故与返工里加倍还回去。</li>
+        </ul>
+    </div>
 
     <h3 class="sub">1.2 本项目实证：AI Native 速度真实发生过</h3>
     <div class="stats">
