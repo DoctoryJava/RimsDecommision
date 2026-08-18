@@ -534,6 +534,22 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
     <div class="sec-head"><span class="sec-badge" style="background:#d97706;">04</span><h2 class="sec-title">人机分工与质量护栏</h2></div>
     <p class="sec-lead">原则一句话：<strong>AI 负责 Draft（草稿），人负责 Decision（决策）与 Guard（护栏）</strong>。凡不可逆、涉密、触碰红线的，人守 A（最终负责）。</p>
 
+    <h3 class="sub">4.0 为什么 AI 代码不能直接使用？AI 的代价</h3>
+    <p style="font-size:.88rem;color:#334155;line-height:1.85;margin:.4rem 0 1rem;">AI 能"快速生成"，但<strong>生成的代码 ≠ 可交付的代码</strong>。它带着四类代价，直接拿来用会在生产环境付出更高学费——这正是必须有人审查 + 护栏的原因。</p>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:16%;">代价</th><th style="width:42%;">AI 生成的常见问题</th><th style="width:42%;">不处理会发生什么</th></tr></thead>
+        <tbody>
+            <tr><td><span class="nm">错误 / 幻觉</span></td><td>"看起来对、实则错"：API 用错、字段名编造、逻辑与需求不符（幻觉）</td><td>功能不达预期；错误逻辑上线后<strong>影响真实数据</strong>（如归档误删、查询结果错误）</td></tr>
+            <tr><td><span class="nm">安全漏洞</span></td><td>SQL 拼接绕过白名单、密钥写死、越权接口、SAS 过期不当</td><td>数据泄露、被越权访问；<strong>合规事故</strong>（等保/个保法）</td></tr>
+            <tr><td><span class="nm">缺少测试</span></td><td>只生成实现，不生成/不验证测试；"看着能跑"就提交</td><td>回归无保障，改动引入新 bug 无法及时发现；<strong>缺陷流到生产</strong></td></tr>
+            <tr><td><span class="nm">隐性技术债</span></td><td>重复代码（复制粘贴）、结构混乱、不遵守分层/命名规范</td><td>后续维护成本陡增；<strong>重复度债</strong>（jscpd 检测）拖慢迭代</td></tr>
+            <tr><td><span class="nm">边界缺失</span></td><td>没处理异常/并发/幂等/超时，只覆盖"正常路径"</td><td>真实环境下偶发崩溃、数据不一致；<strong>不可逆场景（销毁）后果致命</strong></td></tr>
+        </tbody>
+    </table>
+    </div></div>
+    <div class="note amber"><b>一句话：</b>AI 给的是<strong>高完成度的草稿（Draft）</strong>，不是经过验证的交付物。它的"错误、缺失的测试、隐藏的安全与边界问题"就是<strong>AI 的代价</strong>——抵消这些代价，靠的是第 4.1 的 RACI 分工、第 4.2 的七层护栏，以及下面 4.3 的三条红线。<strong>"直接使用 AI 代码"省下的审查时间，会在事故与返工里加倍还回去。</b></div>
+
     <h3 class="sub">4.1 RACI 矩阵（A=最终负责 R=执行 C=咨询 I=知会）</h3>
     <div class="tbl-wrap"><div class="tbl-scroll">
     <table class="t">
