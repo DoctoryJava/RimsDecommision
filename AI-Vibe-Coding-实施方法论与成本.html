@@ -294,7 +294,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
             <div class="vibe-row">
                 <div class="vibe-node blue">需求结构化<small>PRD + 验收语句（Given-When-Then）</small></div>
                 <div class="vibe-arrow">→</div>
-                <div class="vibe-node blue">Spec 冻结<small>spec.md + 项目宪法（AGENTS.md）</small></div>
+                <div class="vibe-node blue">Spec 冻结<small>验收语句汇总成 spec.md · 评审通过后锁死</small></div>
             </div>
         </div>
         <div class="vibe-down">▼</div>
@@ -453,7 +453,13 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
 
         <div class="step">
             <div class="step-head"><span class="step-no"></span><h3 class="step-title">Spec 冻结</h3><span class="step-who who-h">人审批</span></div>
-            <div class="step-body"><strong>把验收语句汇编成 spec 文件，连同项目宪法（禁令 + 红线 + 边界）一起评审冻结。</strong>冻结后改需求必须走变更流程，不许"边生成边改"。</div>
+            <div class="step-body"><strong>把第 ① 步写好的「验收语句」汇总成一个正式文件（spec.md），连同项目宪法（禁令 + 红线 + 边界）一起评审，通过后就"锁死"。</strong>锁死的意思是：<em>从这一刻起，需求不许边做边改</em>——真要改，必须走变更流程重新评审。
+                <ul>
+                    <li><strong>为什么必须锁</strong>：AI 每次生成都要有<strong>同一个稳定标准</strong>。如果一边做一边改需求（一会儿"单人确认"、一会儿"双人确认"），AI 做出来的代码就会前后矛盾、无法验收。</li>
+                    <li><strong>打个比方</strong>：就像盖房子前先把<strong>施工图纸</strong>定稿盖章——图纸定死，工人（AI）照着盖；想改设计可以，但要重新走审批，不能现场随手改。</li>
+                    <li><strong>产出</strong>：冻结版 spec.md（4 条 Epic 各一份）+ 宪法 + ADR 补录。</li>
+                </ul>
+            </div>
         </div>
 
         <div class="step">
