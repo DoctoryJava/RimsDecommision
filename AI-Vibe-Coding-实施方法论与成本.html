@@ -277,7 +277,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         <div class="vs-col trad"><h4><span class="vs-tag">HOW</span>怎么实施</h4>
             <ul><li>阶段严格串行，前一个阶段产出"文档"（PRD/架构书/设计稿）后，才进入下一个</li><li>每阶段有明确交付物与评审门；变更走正式变更单</li><li>编码由人逐行完成，进度按人天估算，人力是主要成本与瓶颈</li><li>测试在编码完成后补做，缺陷越晚发现修复越贵</li></ul></div>
         <div class="vs-col trad"><h4><span class="vs-tag">PAIN</span>痛点</h4>
-            <ul><li><strong>文档与实际脱节</strong>：需求文档写完就过时，靠人脑补</li><li><strong>瀑布回头难</strong>：需求或架构错了，后期返工代价大</li><li><strong>编码占比高</strong>：本平台约 150 人天花在编码（占 52%）</li><li><strong>人写代码慢</strong>：传统方式 5 个月起步、总人天 290</li></ul></div>
+            <ul><li><strong>文档与实际脱节</strong>：需求文档写完就过时，靠人脑补</li><li><strong>瀑布回头难</strong>：需求或架构错了，后期返工代价大</li><li><strong>编码占比高</strong>：本平台约 150 人天花在编码（占 52%）</li><li><strong>人写代码慢</strong>：传统方式 5 个月起步、总人天 310</li></ul></div>
     </div>
 
     <!-- 场景二：有 AI 辅助的 SLC -->
@@ -301,7 +301,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         <div class="vs-col ai"><h4><span class="vs-tag">HOW</span>怎么实施</h4>
             <ul><li>仍保留 SLC 的 7 个阶段与评审门，但<strong>每个阶段用 AI 提效</strong>——AI 是"超级工具"，人仍是流程主导</li><li>需求/设计/编码/测试/运维/退役，AI 都参与生成与校验，人负责拍板与审查</li><li>合规流程（评审、审计、变更单）不变，风险小、易落地</li><li>适合公司已有严格流程、需要平稳过渡的场景</li></ul></div>
         <div class="vs-col ai"><h4><span class="vs-tag">GAIN</span>收益 & 局限</h4>
-            <ul><li><strong>每个阶段加速</strong>：文档起草、代码生成、用例编写、日志排查都更快</li><li><strong>人天下降</strong>：从 290 人天降到约 200~240（视 AI 参与度）</li><li><strong>局限</strong>：流程骨架没变，阶段间的等待与返工仍在；AI 的收益被"文档交接"和"评审门"部分抵消</li><li>本质是<strong>用 AI 给旧流程"提速"，而非"重塑"</strong></li></ul></div>
+            <ul><li><strong>每个阶段加速</strong>：文档起草、代码生成、用例编写、日志排查都更快</li><li><strong>人天下降</strong>：从 310 人天降到约 220~260（视 AI 参与度）</li><li><strong>局限</strong>：流程骨架没变，阶段间的等待与返工仍在；AI 的收益被"文档交接"和"评审门"部分抵消</li><li>本质是<strong>用 AI 给旧流程"提速"，而非"重塑"</strong></li></ul></div>
     </div>
 
     <!-- 场景三：AI Native / Vibe Coding -->
@@ -339,7 +339,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         <div class="vs-col ai"><h4><span class="vs-tag">HOW</span>怎么实施（本报告六步法）</h4>
             <ul><li><strong>不管旧流程</strong>，从"规格冻结 + 高频小循环"重新设计实施</li><li>第 03 章的六步：需求结构化 → Spec 冻结 → 任务拆解 → 会话生成 → 审查合并 → 验收回放</li><li>编码嵌入生成循环，测试前置为靶子，架构固化进宪法每次读取</li><li>人从"写代码"变为"管会话 + 审 diff + 签验收"</li></ul></div>
         <div class="vs-col ai"><h4><span class="vs-tag">GAIN</span>收益</h4>
-            <ul><li><strong>彻底重塑</strong>：不再有 7 阶段间的等待与文档交接，规格直接驱动生成</li><li><strong>最大提速</strong>：本项目实证 12 天跑通 POC、总人天 290 → 159（-45%）</li><li><strong>错误前置</strong>：测试嵌进生成循环，错误在会话内拦截而非流到测试阶段</li><li>代价：需要人更懂"怎么写规格/怎么审"，且治理护栏（第 04 章）必须补齐</li></ul></div>
+            <ul><li><strong>彻底重塑</strong>：不再有 7 阶段间的等待与文档交接，规格直接驱动生成</li><li><strong>最大提速</strong>：本项目实证 12 天跑通 POC、总人天 310 → 179（-42%）</li><li><strong>错误前置</strong>：测试嵌进生成循环，错误在会话内拦截而非流到测试阶段</li><li>代价：需要人更懂"怎么写规格/怎么审"，且治理护栏（第 04 章）必须补齐</li></ul></div>
     </div>
 
     <!-- 三场景横向对比表 -->
@@ -592,7 +592,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
     <p class="sec-lead">口径：同等交付范围（15 系统归档平台 + RBAC + 动态查询 + 生命周期销毁 + 审计合规），传统自研 vs 六步 AI 流程。人天含评审；费率 ¥3,000/人天可替换，比例结论稳健。</p>
 
     <div class="stats">
-        <div class="stat"><div class="n">-45%</div><div class="d">总人天 290 → 159<br>净省 ≈¥25~28 万</div></div>
+        <div class="stat"><div class="n">-42%</div><div class="d">总人天 310 → 179<br>净省 ≈¥39 万</div></div>
         <div class="stat"><div class="n">-60%</div><div class="d">编码人天 150 → 60<br>POC 资产平移加持</div></div>
         <div class="stat"><div class="n">+50%</div><div class="d">规格人天 20 → 30<br>买保险，不是买工具</div></div>
         <div class="stat"><div class="n">5个月</div><div class="d">交付周期（传统约 14 个月）<br>时间价值另计</div></div>
@@ -609,11 +609,12 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
             <tr><td><span class="nm">测试（嵌进循环）</span><span class="nm-sub">STEP 4 内嵌</span></td><td class="c mono">50</td><td class="c mono">30</td><td class="c g">-20</td><td class="c mono">¥15.0 万</td><td class="c mono">¥9.0 万</td><td>验收语句靶子先行，AI 生成常规用例；人聚焦安全/不可逆用例</td></tr>
             <tr><td><span class="nm">审查 + 验收回放</span><span class="nm-sub">STEP 5 + 6</span></td><td class="c mono">20</td><td class="c mono">12</td><td class="c g">-8</td><td class="c mono">¥6.0 万</td><td class="c mono">¥3.6 万</td><td>验收用例机械回放替代人工 UAT；审计演练脚本化</td></tr>
             <tr><td><span class="nm">PM 与协调</span></td><td class="c mono">25</td><td class="c mono">15</td><td class="c g">-10</td><td class="c mono">¥7.5 万</td><td class="c mono">¥4.5 万</td><td>评审异步化（diff 审查替代会议）；会话档案自动留痕</td></tr>
-            <tr class="grp"><td>合计</td><td class="c mono" style="text-align:center;">290</td><td class="c mono" style="text-align:center;color:#6d28d9;">159</td><td class="c" style="text-align:center;"><span class="pill p-ok">-45%</span></td><td class="c mono" style="text-align:center;">¥87.0 万</td><td class="c mono" style="text-align:center;color:#6d28d9;">¥47.7 万</td><td>净省 131 人天 ≈¥39.3 万；AI 订阅 5 个月 ≈¥1.5 万，不足节省额 4%</td></tr>
+            <tr><td><span class="nm">文档工作（SLC 各阶段）</span><span class="nm-sub">传统 / AI Vibe 均需产出</span></td><td class="c mono">20</td><td class="c mono">20</td><td class="c" style="color:#64748b;">0</td><td class="c mono">¥6.0 万</td><td class="c mono">¥6.0 万</td><td>覆盖整个生命周期 SLC 各阶段文档（需求/设计/测试/运维/退役）；无论哪种方式都要做，不因 AI 减少</td></tr>
+            <tr class="grp"><td>合计</td><td class="c mono" style="text-align:center;">310</td><td class="c mono" style="text-align:center;color:#6d28d9;">179</td><td class="c" style="text-align:center;"><span class="pill p-ok">-42%</span></td><td class="c mono" style="text-align:center;">¥93.0 万</td><td class="c mono" style="text-align:center;color:#6d28d9;">¥53.7 万</td><td>净省 131 人天 ≈¥39.3 万；AI 订阅 5 个月 ≈¥1.5 万，不足节省额 4%</td></tr>
         </tbody>
     </table>
     </div></div>
-    <div class="note blue"><b>金额口径：</b>¥3,000/人天（文档统一费率，可替换）。<strong>净省 131 人天 ≈¥39.3 万</strong>，其中约 ¥27 万来自编码阶段（150→60 人天）——这是 AI 会话生成 + POC 资产平移的直接结果；而需求阶段金额不降反升（¥6→9 万），是有意"买保险"，换来下游 -60%。</div>
+    <div class="note blue"><b>金额口径：</b>¥3,000/人天（文档统一费率，可替换）；两种方式的合计均含「文档工作 20 人天」（SLC 各阶段都要产出，不因 AI 减少）。<strong>净省 131 人天 ≈¥39.3 万</strong>，其中约 ¥27 万来自编码阶段（150→60 人天）——这是 AI 会话生成 + POC 资产平移的直接结果；而需求阶段金额不降反升（¥6→9 万），是有意"买保险"，换来下游 -60%。</div>
 
     <h3 class="sub">5.2 价值链重心迁移</h3>
     <div class="legend-bar">
