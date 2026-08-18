@@ -407,8 +407,8 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
     <table class="t">
         <thead><tr><th style="width:22%;">RIMS 宪法条款</th><th style="width:42%;">内容（POC 的 AGENTS.md 已有雏形）</th><th style="width:36%;">强制机制（传统模式做不到的）</th></tr></thead>
         <tbody>
-            <tr><td><span class="nm">七条 Do NOT</span><span class="nm-sub">POC 已存在 ✓</span></td><td>不改 V1/V2 迁移、不绕过 DynamicQueryBuilder 白名单、不在 JS/Java 做脱敏、MySQL 不存业务数据等</td><td>写入 AGENTS.md，每次会话注入；再升级为 CI 规则（ArchUnit + gitleaks）机器强制</td></tr>
-            <tr><td><span class="nm">分层边界</span></td><td>controller→service→mapper 单向依赖；前端 decommission/ 不跨界 import</td><td>ArchUnit / ESLint import 规则，<strong>违反即 CI 失败</strong></td></tr>
+            <tr><td><span class="nm">七条 Do NOT</span><span class="nm-sub">POC 已存在 ✓</span></td><td>不改 V1/V2 迁移、不绕过 DynamicQueryBuilder 白名单、不在 JS/.NET 做脱敏、MySQL 不存业务数据等</td><td>写入 AGENTS.md，每次会话注入；再升级为 CI 规则（ArchUnitNET + gitleaks）机器强制</td></tr>
+            <tr><td><span class="nm">分层边界</span></td><td>controller→service→mapper 单向依赖；前端 decommission/ 不跨界 import</td><td>ArchUnitNET / ESLint import 规则，<strong>违反即 CI 失败</strong></td></tr>
             <tr><td><span class="nm">引擎抽象</span><span class="nm-sub">生产新增</span></td><td>SyncEngine / QueryEngine 接口：生产 Databricks、演示 SeaTunnel+Spark 双实现可切换</td><td>接口稳定性测试 + ADR-001 记录决策理由</td></tr>
             <tr><td><span class="nm">状态机封闭</span></td><td>REGISTERED→CONFIGURED→SYNCING→ARCHIVED→EXPIRING→DESTROYED，跳转只经状态机服务</td><td>非法跳转单测即失败；销毁跳转额外要求双人确认</td></tr>
         </tbody>
@@ -524,7 +524,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         <div class="vs-col ai"><h4><span class="vs-tag" style="background:#059669;">WHY FIT</span>对 RIMS 的三个加分点</h4>
             <ul><li><strong>converge 匹配 POC 场景</strong>：RIMS 是典型的"存量库演进"（Brownfield）——官方三阶段（新建/探索/迭代增强）中明确支持此形态，POC 代码不必推倒，差距自动转任务</li><li><strong>Presets 支持合规定制</strong>：可强制 spec 模板带监管可追溯性、给 plan 加安全审查门——正好承载等保/审计要求</li><li><strong>Bundles 角色包</strong>：PM / 业务分析 / 安全研究员 / 开发者各有一键配置，3.5 人团队按角色取用</li></ul></div>
         <div class="vs-col trad"><h4><span class="vs-tag" style="background:#64748b;">BOUNDARY</span>它不覆盖什么（诚实边界）</h4>
-            <ul><li><strong>STEP 5 人工审查</strong>：三类 diff 强制人审是制度（CODEOWNERS + 分支保护），Spec Kit 不管</li><li><strong>STEP 6 验收回放</strong>：验收用例全量回放需自建测试基建，Spec Kit 只负责到任务执行</li><li><strong>七层护栏</strong>：jscpd 重复度、gitleaks、ArchUnit 等仍需第 04 章的 CI 配置——<strong>工具给流程骨架，护栏要自己立法</strong></li></ul></div>
+            <ul><li><strong>STEP 5 人工审查</strong>：三类 diff 强制人审是制度（CODEOWNERS + 分支保护），Spec Kit 不管</li><li><strong>STEP 6 验收回放</strong>：验收用例全量回放需自建测试基建，Spec Kit 只负责到任务执行</li><li><strong>七层护栏</strong>：jscpd 重复度、gitleaks、ArchUnitNET 等仍需第 04 章的 CI 配置——<strong>工具给流程骨架，护栏要自己立法</strong></li></ul></div>
     </div>
     <div class="note violet"><b>采用结论：</b>六步骤中 STEP 1–4 直接用 Spec Kit 命令驱动（不自建流程脚手架），STEP 5–6 与七层护栏由本项目的 CI 制度承接——<b>工具负责流程骨架，制度负责质量底线，两者合起来才是完整的交付轨。</b>第 05 章路线图 Phase A 已将 <span class="mono">specify init</span> 纳入首个交付动作。</div>
 </section>
@@ -573,12 +573,12 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
     <table class="t">
         <thead><tr><th style="width:6%;" class="c">层</th><th style="width:20%;">护栏</th><th style="width:44%;">内容（RIMS 具体化）</th><th style="width:14%;">拦截时机</th><th style="width:16%;">失败动作</th></tr></thead>
         <tbody>
-            <tr><td class="c mono">L1</td><td><span class="nm">风格与静态检查</span></td><td>ESLint / Checkstyle / strict tsc</td><td>保存即检</td><td>阻断提交</td></tr>
-            <tr><td class="c mono">L2</td><td><span class="nm">类型 + 分层依赖</span></td><td>TS strict / Java 强类型 / ArchUnit：controller→service→mapper 单向、前端不跨界 import</td><td>本地构建</td><td>阻断提交</td></tr>
+            <tr><td class="c mono">L1</td><td><span class="nm">风格与静态检查</span></td><td>ESLint / StyleCop（.NET 代码规范）+ strict tsc</td><td>保存即检</td><td>阻断提交</td></tr>
+            <tr><td class="c mono">L2</td><td><span class="nm">类型 + 分层依赖</span></td><td>TS strict / C# 强类型 / .NET 分层约束（controller→service→mapper 单向、前端不跨界 import）</td><td>本地构建</td><td>阻断提交</td></tr>
             <tr><td class="c mono">L3</td><td><span class="nm">单元测试</span></td><td>后端 xUnit（.NET）+ 前端 Vitest（React）；核心链路覆盖率 ≥70% 门槛</td><td>每次生成循环</td><td>AI 自动修复重试</td></tr>
             <tr><td class="c mono">L4</td><td><span class="nm">契约校验</span></td><td>OpenAPI diff / schema_json 结构校验 / 验收用例全绿 / <strong>引擎双实现契约测试</strong></td><td>每次生成循环</td><td>AI 自动修复重试</td></tr>
             <tr><td class="c mono">L5</td><td><span class="nm">安全扫描</span></td><td>gitleaks（密钥）/ 依赖漏洞 / SQL 拼接模式 / <strong>重复度检测（jscpd，防 AI 复制粘贴债）</strong></td><td>CI 流水线</td><td><b>阻断合并</b></td></tr>
-            <tr><td class="c mono">L6</td><td><span class="nm">集成验证</span></td><td>H2 集成测试 / flyway info / 脱敏越权用例 / 状态机非法跳转</td><td>CI 流水线</td><td>阻断合并</td></tr>
+            <tr><td class="c mono">L6</td><td><span class="nm">集成验证</span></td><td>测试数据库集成测试 / EF Core Migrations 校验 / 脱敏越权用例 / 状态机非法跳转</td><td>CI 流水线</td><td>阻断合并</td></tr>
             <tr><td class="c mono">L7</td><td><span class="nm">人工闸门</span></td><td>三类 diff（安全/不可逆/跨边界）强制人审，CODEOWNERS + 分支保护</td><td>合并前</td><td><b>无旁路</b></td></tr>
         </tbody>
     </table>
