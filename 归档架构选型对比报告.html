@@ -1702,6 +1702,79 @@
         </div>
     </div>
 
+    <!-- ===== 方案 B2 技术栈速查（湖仓一体 · Databricks 读写） ===== -->
+    <div style="margin-top:36px; border-top:1px dashed var(--border-color); padding-top:26px;">
+        <div class="ts-demo-head">
+            <span class="ts-demo-badge" style="background:#7c3aed;">B2 · STACK</span>
+            <h3 class="ts-demo-title">方案 B2 技术栈速查 · 湖仓一体 + Databricks 读写（按写读链路 + 存算分离分栏）</h3>
+        </div>
+        <p class="ts-demo-lead">方案 B2 与方案 B 的唯一差异在<strong>读侧查询引擎</strong>：由 Trino 换成 <strong>Databricks SQL Serverless</strong>，写侧、存储、前端与 B 完全相同。下表按「写侧 / 存储 / 读侧 / 前端 / 治理运维」分左右两栏，与上方方案 B 表对照可见差异仅在读侧。</p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <!-- 左栏：写侧 + 存储（与 B 相同） -->
+            <div class="table-container">
+                <div class="enc-block-head" style="padding:14px 16px 4px;margin-bottom:0;"><strong>🖊 写侧链路 · 数据入湖 + 存储层</strong><span>源库 → Iceberg</span></div>
+                <div style="overflow-x:auto;">
+                <table class="ts-tbl">
+                    <thead><tr><th style="width:30%;">组件</th><th style="width:14%;" class="c">类别</th><th>职责 / 说明</th></tr></thead>
+                    <tbody>
+                        <tr class="grp"><td colspan="3">① 数据抽取与编排（与 B 相同）</td></tr>
+                        <tr><td><span class="ts-nm">DataX / SeaTunnel</span></td><td class="c"><span class="ts-pill ts-self">自建</span></td><td>从源库 1:1 批量抽取到 Iceberg（200+ 连接器，类型映射/对账）</td></tr>
+                        <tr><td><span class="ts-nm">Airflow / ADF</span></td><td class="c"><span class="ts-pill ts-self">自建</span></td><td>抽取任务调度编排（DAG 定时触发）</td></tr>
+                        <tr class="grp"><td colspan="3">② 存储层（冷湖，与 B 相同）</td></tr>
+                        <tr><td><span class="ts-nm">ADLS Gen2（HNS）</span></td><td class="c"><span class="ts-pill ts-paas">PaaS</span></td><td>湖表对象存储，Hot/Cool 混合 ≈¥90~150/TB·月，供引擎用 ABFS 读</td></tr>
+                        <tr><td><span class="ts-nm">Apache Iceberg</span></td><td class="c"><span class="ts-pill ts-self">自建</span></td><td>开放表格式，RAW→CURATED→LAKE→SERVE 四层，快照/时间旅行</td></tr>
+                        <tr><td><span class="ts-nm">Azure Blob（FNS）</span></td><td class="c"><span class="ts-pill ts-paas">PaaS</span></td><td>独立账户存非结构化附件，Cool→Cold 分层，可开 WORM</td></tr>
+                        <tr><td><span class="ts-nm">Databricks（写侧 Jobs）</span></td><td class="c"><span class="ts-pill ts-lic">许可</span></td><td>RAW→SERVE 加工（compaction/Z-Order/VACUUM），按 DBU 计费</td></tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+            <!-- 右栏：读侧（Databricks Serverless）+ 前端 -->
+            <div class="table-container">
+                <div class="enc-block-head" style="padding:14px 16px 4px;margin-bottom:0;"><strong>🔍 读侧链路 · 查询服务 + 前端</strong><span>Iceberg → 业务查询</span></div>
+                <div style="overflow-x:auto;">
+                <table class="ts-tbl">
+                    <thead><tr><th style="width:30%;">组件</th><th style="width:14%;" class="c">类别</th><th>职责 / 说明</th></tr></thead>
+                    <tbody>
+                        <tr class="grp"><td colspan="3">③ 读侧查询引擎（Databricks，区别于 B 的 Trino）</td></tr>
+                        <tr><td><span class="ts-nm">Databricks SQL Serverless</span></td><td class="c"><span class="ts-pill ts-lic">许可</span></td><td>读侧查询引擎，Iceberg 外表，空闲自动缩到 0、零集群运维，按 DBU × 在线时长计费</td></tr>
+                        <tr><td><span class="ts-nm">Unity Catalog 权限</span></td><td class="c"><span class="ts-pill ts-paas">PaaS</span></td><td>UC GRANT 表级授权（支持向下继承），替代 Trino rules.json</td></tr>
+                        <tr><td><span class="ts-nm">UC COLUMN MASK</span></td><td class="c"><span class="ts-pill ts-paas">PaaS</span></td><td>列级脱敏（MASK_FULL / MASK_FIRST_N），B 用 Trino 时不可用</td></tr>
+                        <tr class="grp"><td colspan="3">④ 前端展示层（与 B 相同）</td></tr>
+                        <tr><td><span class="ts-nm">自研配置化查询平台</span></td><td class="c"><span class="ts-pill ts-self">自建</span></td><td>元数据驱动，JSON Schema 渲染，新系统接入零代码</td></tr>
+                        <tr><td><span class="ts-nm">React + Vite + TS</span></td><td class="c"><span class="ts-pill ts-self">自建</span></td><td>React 19 / Vite / TypeScript / Tailwind 前端技术栈</td></tr>
+                        <tr><td><span class="ts-nm">Axios</span></td><td class="c"><span class="ts-pill ts-self">自建</span></td><td>HTTP 客户端，统一 Result 解包 + JWT 拦截</td></tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 下层：元数据 / 治理 / 运维（与 B 相同，读侧由 UC 承接） -->
+        <div class="table-container" style="margin-top:14px;">
+            <div class="enc-block-head" style="padding:14px 16px 4px;margin-bottom:0;"><strong>⚙️ 元数据 · 治理 · 运维（与 B 相同，读侧治理由 UC 统一承接）</strong><span>跨左右两侧的支撑层</span></div>
+            <div style="overflow-x:auto;">
+            <table class="ts-tbl">
+                <thead><tr><th style="width:26%;">组件</th><th style="width:13%;" class="c">类别</th><th style="width:61%;">职责 / 说明</th></tr></thead>
+                <tbody>
+                    <tr><td><span class="ts-nm">.NET 后端（AKS）</span></td><td class="c"><span class="ts-pill ts-self">自建</span></td><td>元数据管理 / 销毁调度 / API 鉴权 / SAS 签发（ASP.NET Core + EF Core）</td></tr>
+                    <tr><td><span class="ts-nm">Azure SQL Database</span></td><td class="c"><span class="ts-pill ts-paas">PaaS</span></td><td>元数据库（配置/Schema/RBAC/审计），Standard S2 ≈¥0.04 万/月</td></tr>
+                    <tr><td><span class="ts-nm">Unity Catalog</span></td><td class="c"><span class="ts-pill ts-paas">PaaS</span></td><td>湖仓统一权限/脱敏/血缘/审计——B2 读侧治理全部由此承接，无需另配 Trino ACL</td></tr>
+                    <tr><td><span class="ts-nm">Azure Key Vault</span></td><td class="c"><span class="ts-pill ts-paas">PaaS</span></td><td>密钥与源库凭据托管、轮转</td></tr>
+                    <tr><td><span class="ts-nm">App Insights + Monitor</span></td><td class="c"><span class="ts-pill ts-paas">PaaS</span></td><td>审计留痕 / 指标告警 / 链路追踪</td></tr>
+                    <tr><td><span class="ts-nm">Microsoft Entra ID</span></td><td class="c"><span class="ts-pill ts-paas">PaaS</span></td><td>SSO 单点登录 / 托管标识免密</td></tr>
+                    <tr><td><span class="ts-nm">湖内日志表</span></td><td class="c"><span class="ts-pill ts-self">自建</span></td><td>日志以 Iceberg 表落湖，SQL 直查（替代 ELK）</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <div class="ts-demo-note">
+            <strong>方案 B2 技术栈要点：</strong>① 与 B 的唯一差异在<strong>读侧引擎</strong>——Trino 换成 <strong>Databricks SQL Serverless</strong>；② 换来<strong>零集群运维</strong>（空闲自动归零）、<strong>UC 列级脱敏可用</strong>、权限/审计单点治理；③ 代价是<strong>治理层绑定 Unity Catalog</strong>，引擎中立性下降。
+        </div>
+    </div>
+
 
     </section>
 
