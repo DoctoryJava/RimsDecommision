@@ -201,7 +201,7 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         <a class="toc-item" href="#s5"><span class="toc-no" style="background:#b45309;">05</span>
             <span><span class="toc-t">成本测算与路线图</span><span class="toc-d">290 → 159 人天 · 13~16 周四阶段</span></span></a>
         <a class="toc-item" href="#s6"><span class="toc-no" style="background:#0891b2;">06</span>
-            <span><span class="toc-t">AI 工具成本 + 云资源成本<span class="toc-badge" style="background:#ecfeff;color:#0e7490;">分开列示</span></span><span class="toc-d">订阅与 API 账单 · 演示/生产云环境 · 每加一系统费用</span></span></a>
+            <span><span class="toc-t">AI 工具成本 + 云资源成本<span class="toc-badge" style="background:#ecfeff;color:#0e7490;">分开列示</span></span><span class="toc-d">AI 订阅 · 双环境云费 · 年度运维 · 新系统接入 4 小时</span></span></a>
     </div>
     <div class="toc-ft"><strong>快速路径：</strong>想直接看"AI 时代步骤是什么" → 读 <strong>03</strong>；想看每个阶段和传统差在哪 → 读 <strong>02</strong>；决策层看 <strong>05 + 06</strong>（人力 + AI 订阅 + 云资源三笔账）。</div>
 </nav>
@@ -528,11 +528,13 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
 <!-- ================= 06 AI 与云成本 ================= -->
 <section id="s6">
     <div class="sec-head"><span class="sec-badge" style="background:#0891b2;">06</span><h2 class="sec-title">AI 工具成本 + 云资源成本</h2></div>
-    <p class="sec-lead">两类成本性质完全不同，<strong>必须分开列、分开管</strong>：AI 工具费是<strong>建设期一次性支出</strong>（随项目周期 5 个月产生，人力维度）；云资源费是<strong>运行期持续支出</strong>（逐月累加，随数据量与用量弹性，与《归档架构选型对比报告》B2 方案口径一致）。</p>
+    <p class="sec-lead">四类成本性质不同，<strong>分开列、分开管</strong>：AI 工具费是<strong>建设期一次性支出</strong>；云资源费是<strong>运行期持续支出</strong>（逐月累加，与选型报告 B2 口径一致）；<strong>年度运维费</strong>是上线后的人力投入；<strong>新系统接入费</strong>是边际成本（一次性 4 小时配置 + 月度增量）。</p>
 
     <div class="cost2">
         <div class="stat"><div class="n">≈¥1.5万</div><div class="d">AI 工具总成本（5 个月建设期）<br>占人力节省额（¥39.3 万）的 <strong>&lt;4%</strong></div></div>
         <div class="stat"><div class="n">¥1.47~1.98万/月</div><div class="d">生产云资源月费（15 系统/20TB）<br>另测试环境 ¥0.23~0.44 万/月（同构低配）</div></div>
+        <div class="stat"><div class="n">≈¥6~11万/年</div><div class="d">年度运维成本（0.1~0.2 FTE 兼职）<br>不含云资源与 AI 席位，见 6.4</div></div>
+        <div class="stat"><div class="n">4小时</div><div class="d">新系统接入配置（SQL 配置功能）<br>≈0.5 人天 ≈¥1,500/系统，见 6.3</div></div>
     </div>
 
     <h3 class="sub">6.1 AI 工具成本（建设期 · 一次性）</h3>
@@ -613,15 +615,32 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
     <table class="t">
         <thead><tr><th style="width:26%;">增量项</th><th style="width:20%;" class="c">一次性接入</th><th style="width:20%;" class="c">年度持续</th><th style="width:34%;">说明</th></tr></thead>
         <tbody>
-            <tr><td><span class="nm">配置接入人天</span></td><td class="c mono">3~6 人天</td><td class="c mono">—</td><td>源库连接 + 表清单勾选 + Schema 配置 + 保留策略，零代码（对应 02 章 5.1 边际）</td></tr>
-            <tr><td><span class="nm">一次性接入成本</span><span class="nm-sub">¥3,000/人天</span></td><td class="c mono" style="color:#6d28d9;font-weight:700;">≈¥0.9~1.8 万</td><td class="c mono">—</td><td>一次性投入，配置即上线；后续系统复用同一套配置流程</td></tr>
+            <tr><td><span class="nm">配置接入人天</span></td><td class="c mono">≈4 人时<br><span class="nm-sub">0.5 人天</span></td><td class="c mono">—</td><td>核心是「<strong>SQL 配置</strong>」功能：源库连接 + Schema/查询配置 + 保留策略——零代码，配置即上线（02 章动态查询内核 + Schema Registry 的直接红利）</td></tr>
+            <tr><td><span class="nm">一次性接入成本</span><span class="nm-sub">¥3,000/人天 = ¥375/人时</span></td><td class="c mono" style="color:#6d28d9;font-weight:700;">4h ≈ ¥1,500</td><td class="c mono">—</td><td>对外报价建议按 <strong>1 人天（¥3,000）预留</strong>——含连接测试、抽样数据核对、isPii 脱敏抽查，更稳妥</td></tr>
             <tr><td><span class="nm">新增存储</span><span class="nm-sub">≈+1.3 TB/系统</span></td><td class="c mono">—</td><td class="c mono">≈¥1,400~2,000/月</td><td>湖存 Hot/Cool 混合 ¥90~150/TB + 附件 Cool→Cold，按 20TB/15 系统均值推算</td></tr>
             <tr><td><span class="nm">新增 ETL 计算</span><span class="nm-sub">同步 + 周期加工</span></td><td class="c mono">—</td><td class="c mono">≈¥300~800/月</td><td>新增同步 / compaction 作业按时长计费</td></tr>
-            <tr class="grp"><td>每系统合计</td><td class="c mono" style="text-align:center;">≈¥0.9~1.8 万（一次性）</td><td class="c mono" style="text-align:center;color:#6d28d9;">≈¥1,700~2,800/月<br>≈¥2.0~3.4 万/年</td><td>与 6.2「月费增幅 ≈¥300~800/系统」口径一致并展开明细</td></tr>
+            <tr class="grp"><td>每系统合计</td><td class="c mono" style="text-align:center;">4h ≈ ¥1,500（对外预留 ¥3,000）</td><td class="c mono" style="text-align:center;color:#6d28d9;">≈¥1,700~2,800/月<br>≈¥2.0~3.4 万/年</td><td>与 6.2「月费增幅 ≈¥300~800/系统」口径一致并展开明细</td></tr>
         </tbody>
     </table>
     </div></div>
-    <div class="note green"><b>增量规律：</b>① <strong>一次性接入 ≈¥1 万级</strong>，越到后面越省（流程/模板复用）；② <strong>年度增量 ≈¥2~3.4 万/系统</strong>，主要是存储 + 少量 ETL，占比低于整体云费的平均值；③ <strong>零代码接入是成本拐点</strong>——相比传统逐系统开发（3~21 人天/系统），AI + 元数据驱动把边际成本压到配置级。<b>规模越大，均摊越划算。</b></div>
+    <div class="note green"><b>增量规律：</b>① <strong>一次性接入只要 4 小时</strong>（SQL 配置功能），相比传统逐系统开发（3~21 人天/系统）<strong>降幅 95% 以上</strong>——零代码接入是本平台最大的成本拐点；② <strong>年度增量 ≈¥2~3.4 万/系统</strong>，主要是存储 + 少量 ETL；③ 后续系统复用同一套配置流程，第 N 个系统的 4 小时里剠练度还会提升。<b>规模越大，均摊越划算。</b></div>
+
+    <h3 class="sub">6.4 年度运维成本（上线后每年）</h3>
+    <p style="font-size:.88rem;color:#334155;">按建设团队<strong>兼职持维</strong>口径（约 0.1~0.2 FTE）。<strong>不含云资源与 AI 席位</strong>（已在 6.1/6.2 列示，避免双计）；不含新系统接入的 4h 配置（属 6.3 边际成本，向对应系统项目计费）；费率同口径 ¥3,000/人天。</p>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:20%;">运维项</th><th style="width:44%;">内容</th><th style="width:16%;" class="c">人天/年</th><th style="width:20%;" class="c">费用/年</th></tr></thead>
+        <tbody>
+            <tr><td><span class="nm">日常监控与告警</span></td><td>平台/同步作业/审计链路健康巡检，告警跟进</td><td class="c mono">5~10</td><td class="c mono">¥1.5~3.0 万</td></tr>
+            <tr><td><span class="nm">故障响应与恢复</span></td><td>偶发故障定位重跑、SAS/权限问题处理、性能调优</td><td class="c mono">5~10</td><td class="c mono">¥1.5~3.0 万</td></tr>
+            <tr><td><span class="nm">例行变更</span></td><td>权限调整、同步批次调整、查询口径微调</td><td class="c mono">4~8</td><td class="c mono">¥1.2~2.4 万</td></tr>
+            <tr><td><span class="nm">合规与演练</span></td><td>季度审计日志导出、销毁双人演练、权限巡检比对</td><td class="c mono">3~5</td><td class="c mono">¥0.9~1.5 万</td></tr>
+            <tr><td><span class="nm">补丁与升级</span></td><td>依赖安全补丁、季度小版本升级验证</td><td class="c mono">3~5</td><td class="c mono">¥0.9~1.5 万</td></tr>
+            <tr class="grp"><td>年度合计</td><td>≈0.1~0.2 FTE（折合每月 2~3 人天，兼职可覆盖）</td><td class="c mono" style="text-align:center;">20~38</td><td class="c mono" style="text-align:center;color:#6d28d9;">≈¥6.0~11.4 万/年</td></tr>
+        </tbody>
+    </table>
+    </div></div>
+    <div class="note blue"><b>运维成本三个特征：</b>① <strong>人力是运维主体</strong>（云资源已在 6.2 另计）——归档系统负载平稳、无交易峰值，兼职可覆盖，无需专职运维岗；② 年度运维 ≈ 建设费（¥47.7 万）的 <strong>13~24%</strong>，落在行业健康区间（15~25%）内；③ 销毁演练与审计导出是合规刚需项——这部分不能省，是“合规举证”能力的年度保鲜成本。</div>
 </section>
 
 
