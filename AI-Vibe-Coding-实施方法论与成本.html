@@ -175,6 +175,33 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
 .cost2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0;}
 @media(max-width:900px){.cost2{grid-template-columns:1fr;}}
 @media(max-width:900px){h1{font-size:1.8rem;} .chain{grid-template-columns:80px 1fr;}.chain .dlt{grid-column:2;}}
+
+/* ===== 01 三场景对比（SLC / AI-Assisted / AI Native）===== */
+.cmp3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1.2rem 0;}
+@media(max-width:960px){.cmp3{grid-template-columns:1fr;}}
+.cmp3-col{border-radius:14px;padding:18px 20px;border:1px solid var(--border);background:#fff;display:flex;flex-direction:column;gap:10px;}
+.cmp3-col .cmp-tag{font-family:'JetBrains Mono',monospace;font-size:.62rem;font-weight:700;letter-spacing:.06em;padding:2px 8px;border-radius:5px;color:#fff;align-self:flex-start;}
+.cmp3-col h4{margin:0;font-size:1rem;font-weight:800;}
+.cmp3-col .cmp-sub{font-size:.76rem;color:var(--text-muted);line-height:1.6;}
+.cmp3-col .cmp-tag.a{background:#64748b;} .cmp3-col.cmp-a h4{color:#475569;}
+.cmp3-col .cmp-tag.b{background:#2563eb;} .cmp3-col.cmp-b h4{color:#1d4ed8;}
+.cmp3-col .cmp-tag.c{background:#7c3aed;} .cmp3-col.cmp-c h4{color:#6d28d9;}
+.cmp3-col ul{margin:0;padding-left:16px;font-size:.82rem;line-height:1.75;color:#334155;}
+.cmp3-col li{margin-bottom:5px;}
+.cmp3-col .cmp-callout{border-radius:8px;padding:8px 12px;font-size:.78rem;line-height:1.6;margin-top:auto;}
+.cmp3-col.cmp-a .cmp-callout{background:var(--trad-bg);border:1px solid var(--trad-bd);color:#475569;}
+.cmp3-col.cmp-b .cmp-callout{background:var(--info-bg);border:1px solid var(--info-bd);color:#1e3a5f;}
+.cmp3-col.cmp-c .cmp-callout{background:var(--ai-bg);border:1px solid var(--ai-bd);color:#4c1d95;}
+/* SLC 阶段条 */
+.slc{display:flex;flex-wrap:wrap;gap:6px;margin:.6rem 0 1rem;}
+.slc .s{border-radius:8px;padding:8px 10px;font-size:.72rem;font-weight:600;text-align:center;line-height:1.35;flex:1;min-width:92px;}
+.slc .s small{display:block;font-weight:400;font-size:.64rem;opacity:.85;margin-top:2px;}
+.slc.s-a .s{background:var(--trad-bg);border:1px solid var(--trad-bd);color:#334155;}
+.slc.s-b .s{background:var(--info-bg);border:1px solid var(--info-bd);color:#1e3a5f;}
+.slc.s-c .s{background:var(--ai-bg);border:1px solid var(--ai-bd);color:#4c1d95;}
+.slc.s-c .s.hl{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border-color:#7c3aed;}
+.slc-arrow{color:#94a3b8;font-size:.9rem;align-self:center;}
+
 </style>
 </head>
 <body>
@@ -208,44 +235,81 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
 
 <!-- ================= 01 总览 ================= -->
 <section id="s1">
-    <div class="sec-head"><span class="sec-badge" style="background:#0891b2;">01</span><h2 class="sec-title">总览：流程形状变了</h2></div>
-    <p class="sec-lead">传统流程是<strong>串行的瀑布</strong>：需求文档 → 架构设计 → 编码 → 测试 → 交付，每个阶段产出"给人看的文档"，编码占掉一半人力。AI 模式不是把其中一步加速，而是<strong>改变了流程的形状</strong>：规格直接驱动生成、测试先于编码、架构约束从文档变成每次会话强制注入的规则。</p>
+    <div class="sec-head"><span class="sec-badge" style="background:#0891b2;">01</span><h2 class="sec-title">总览：三种实施方式的流程对比</h2></div>
+    <p class="sec-lead">同一个项目（以本项目 RIMS 归档平台为例），可以走三种不同的实施方式：<strong>① 当前公司的 SLC 流程</strong>（传统 7 阶段瀑布）、<strong>② 有 AI 辅助的 SLC</strong>（流程骨架不变、每阶段用 AI 提效）、<strong>③ AI Native / Vibe Coding</strong>（推倒旧流程，从规格到生成一体化的新范式）。三者对"项目实施怎么做"的回答完全不同。</p>
 
-    <div class="flow-lbl">传统流程（线性 · 文档驱动 · 人写代码）</div>
-    <div class="flow flow-trad">
-        <div class="fnode">需求调研<small>Word 规格书 · 给人看</small></div>
-        <div class="fnode">架构设计<small>白皮书 · 评审后归档</small></div>
-        <div class="fnode">编码<small>人逐行写 · 占 50% 人力</small></div>
-        <div class="fnode">测试<small>编码后补 · 常被压缩</small></div>
-        <div class="fnode">交付验收<small>人工点页面 · UAT</small></div>
+    <!-- 场景一：当前公司 SLC -->
+    <h3 class="sub">场景一 · 当前公司 SLC 流程（传统瀑布 · 7 阶段）</h3>
+    <div class="slc s-a">
+        <div class="s">Planning<small>目标/范围/时间表/预算</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Requirements<small>需求收集/文档</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Design<small>架构/详细设计</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Construction<small>人写代码</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Testing & Impl<small>测试/部署</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Operations<small>运维/优化</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Decommission<small>退役/处置</small></div>
+    </div>
+    <div class="vs">
+        <div class="vs-col trad"><h4><span class="vs-tag">HOW</span>怎么实施</h4>
+            <ul><li>阶段严格串行，前一个阶段产出"文档"（PRD/架构书/设计稿）后，才进入下一个</li><li>每阶段有明确交付物与评审门；变更走正式变更单</li><li>编码由人逐行完成，进度按人天估算，人力是主要成本与瓶颈</li><li>测试在编码完成后补做，缺陷越晚发现修复越贵</li></ul></div>
+        <div class="vs-col trad"><h4><span class="vs-tag">PAIN</span>痛点</h4>
+            <ul><li><strong>文档与实际脱节</strong>：需求文档写完就过时，靠人脑补</li><li><strong>瀑布回头难</strong>：需求或架构错了，后期返工代价大</li><li><strong>编码占比高</strong>：本平台约 150 人天花在编码（占 52%）</li><li><strong>人写代码慢</strong>：传统方式 5 个月起步、总人天 290</li></ul></div>
     </div>
 
-    <div class="flow-lbl ai">AI Vibe 流程（三段式：规格前置 → 核心循环 → 里程碑验收）</div>
+    <!-- 场景二：有 AI 辅助的 SLC -->
+    <h3 class="sub">场景二 · 有 AI 辅助的 SLC（流程骨架不变 · 每阶段 AI 提效）</h3>
+    <div class="slc s-b">
+        <div class="s">Planning<small>AI 辅助 WBS/排期</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Requirements<small>AI 起草/校验需求</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Design<small>AI 出架构/ER 草稿</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Construction<small>AI 生成·人审查</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Testing & Impl<small>AI 造用例/自动测</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Operations<small>AI 监控/排障辅助</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Decommission<small>AI 清单/脚本</small></div>
+    </div>
+    <div class="vs">
+        <div class="vs-col ai"><h4><span class="vs-tag">HOW</span>怎么实施</h4>
+            <ul><li>仍保留 SLC 的 7 个阶段与评审门，但<strong>每个阶段用 AI 提效</strong>——AI 是"超级工具"，人仍是流程主导</li><li>需求/设计/编码/测试/运维/退役，AI 都参与生成与校验，人负责拍板与审查</li><li>合规流程（评审、审计、变更单）不变，风险小、易落地</li><li>适合公司已有严格流程、需要平稳过渡的场景</li></ul></div>
+        <div class="vs-col ai"><h4><span class="vs-tag">GAIN</span>收益 & 局限</h4>
+            <ul><li><strong>每个阶段加速</strong>：文档起草、代码生成、用例编写、日志排查都更快</li><li><strong>人天下降</strong>：从 290 人天降到约 200~240（视 AI 参与度）</li><li><strong>局限</strong>：流程骨架没变，阶段间的等待与返工仍在；AI 的收益被"文档交接"和"评审门"部分抵消</li><li>本质是<strong>用 AI 给旧流程"提速"，而非"重塑"</strong></li></ul></div>
+    </div>
+
+    <!-- 场景三：AI Native / Vibe Coding -->
+    <h3 class="sub">场景三 · AI Native / Vibe Coding（推倒旧流程 · 从规格到生成一体化）</h3>
     <div class="vibe">
-        <!-- 第 1 段：规格前置（一次性） -->
         <div class="vibe-seg">
-            <div class="vibe-seg-tag">① 规格前置 · 一次性 · 人主导</div>
+            <div class="vibe-seg-tag">① 规格前置 · 一次性 · 人主导（Vibe 用 PRD+验收语句替代 7 阶段文档）</div>
             <div class="vibe-row">
-                <div class="vibe-node blue">需求结构化<small>把需求写成验收语句</small></div>
+                <div class="vibe-node blue">需求结构化<small>PRD + 验收语句（Given-When-Then）</small></div>
                 <div class="vibe-arrow">→</div>
-                <div class="vibe-node blue">Spec 冻结<small>spec.md + 项目宪法</small></div>
+                <div class="vibe-node blue">Spec 冻结<small>spec.md + 项目宪法（AGENTS.md）</small></div>
             </div>
         </div>
         <div class="vibe-down">▼</div>
-        <!-- 第 2 段：核心循环（每个任务反复） -->
         <div class="vibe-seg loop">
-            <div class="vibe-seg-tag">② 核心循环 · 每个任务反复 · AI 生成 + 人审查</div>
+            <div class="vibe-seg-tag">② 核心循环 · 每个任务反复 · 意图驱动（Vibe Coding 的本质）</div>
             <div class="vibe-row">
-                <div class="vibe-node plain">任务拆解<small>拆到一个会话一个任务</small></div>
+                <div class="vibe-node plain">描述意图<small>自然语言说"要什么"</small></div>
                 <div class="vibe-arrow">→</div>
-                <div class="vibe-node amber">会话生成<small>生成 → 自动验证 → 修复</small></div>
+                <div class="vibe-node amber">AI 生成<small>AI 产出代码/方案</small></div>
                 <div class="vibe-arrow">→</div>
-                <div class="vibe-node plain">审查合并<small>人审三类 diff</small></div>
+                <div class="vibe-node plain">自动验证<small>跑测试 · 出问题贴回 AI</small></div>
             </div>
-            <div class="vibe-loop-note">↺ 不绿不停 · 全绿才合并 · 然后回到任务拆解继续下一个（高频小循环）</div>
+            <div class="vibe-loop-note">↺ 看效果 → 说需求 → 出问题就贴给 AI 改 → 循环迭代（Karpathy 式 Vibe Coding）</div>
         </div>
         <div class="vibe-down">▼</div>
-        <!-- 第 3 段：里程碑验收 -->
         <div class="vibe-seg">
             <div class="vibe-seg-tag">③ 里程碑验收 · 一次性 · 人签字</div>
             <div class="vibe-row">
@@ -253,16 +317,40 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
             </div>
         </div>
     </div>
-    <div class="flow-note">对比两种形状：<strong>传统是"单向流水线"</strong>（需求→架构→编码→测试→交付），错了回头代价大；<strong>AI Vibe 是"规格冻结后的高频小循环"</strong>——架构被前置固化进宪法文件，测试嵌进生成循环，错误在会话内就被拦截，而不是流到测试阶段才暴露。</div>
+    <div class="vs">
+        <div class="vs-col ai"><h4><span class="vs-tag">HOW</span>怎么实施（本报告六步法）</h4>
+            <ul><li><strong>不管旧流程</strong>，从"规格冻结 + 高频小循环"重新设计实施</li><li>第 03 章的六步：需求结构化 → Spec 冻结 → 任务拆解 → 会话生成 → 审查合并 → 验收回放</li><li>编码嵌入生成循环，测试前置为靶子，架构固化进宪法每次读取</li><li>人从"写代码"变为"管会话 + 审 diff + 签验收"</li></ul></div>
+        <div class="vs-col ai"><h4><span class="vs-tag">GAIN</span>收益</h4>
+            <ul><li><strong>彻底重塑</strong>：不再有 7 阶段间的等待与文档交接，规格直接驱动生成</li><li><strong>最大提速</strong>：本项目实证 12 天跑通 POC、总人天 290 → 159（-45%）</li><li><strong>错误前置</strong>：测试嵌进生成循环，错误在会话内拦截而非流到测试阶段</li><li>代价：需要人更懂"怎么写规格/怎么审"，且治理护栏（第 04 章）必须补齐</li></ul></div>
+    </div>
 
-    <h3 class="sub">1.1 本项目实证：两种速度都已真实发生过</h3>
+    <!-- 三场景横向对比表 -->
+    <h3 class="sub">1.1 三场景横向对比 · 项目实施怎么做</h3>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:18%;">对比维度</th><th style="width:27%;">① 当前 SLC</th><th style="width:27%;">② 有 AI 辅助 SLC</th><th style="width:28%;">③ AI Native / Vibe Coding</th></tr></thead>
+        <tbody>
+            <tr><td><span class="nm">流程骨架</span></td><td>7 阶段瀑布，严格串行</td><td>保留 7 阶段，AI 参与每阶段</td><td>推倒重来，规格冻结 + 高频循环</td></tr>
+            <tr><td><span class="nm">文档产出</span></td><td>PRD / 架构书 / 设计稿，给人看</td><td>文档仍在，AI 起草加速</td><td>spec.md + 宪法 + 验收语句，给机器执行</td></tr>
+            <tr><td><span class="nm">编码方式</span></td><td>人逐行写</td><td>AI 生成 · 人审查</td><td>AI 生成 · 人审三类 diff</td></tr>
+            <tr><td><span class="nm">测试时机</span></td><td>编码后补做</td><td>阶段内用 AI 提效，基本后置</td><td>测试前置为生成靶子，嵌进循环</td></tr>
+            <tr><td><span class="nm">主导角色</span></td><td>人写 + 人测</td><td>人主导流程，AI 辅助执行</td><td>人管规格/审查/验收，AI 主导生成</td></tr>
+            <tr><td><span class="nm">总人天</span></td><td>≈290</td><td>≈200~240</td><td>≈159（-45%）</td></tr>
+            <tr><td><span class="nm">落地风险</span></td><td>低（成熟流程）但慢</td><td>低，平稳过渡</td><td>需补治理护栏，对团队要求高</td></tr>
+            <tr><td><span class="nm">适用场景</span></td><td>流程成熟、合规严格的传统项目</td><td>已有 SLC 需渐进引入 AI</td><td>追求速度、AI 原生团队、原型/新平台</td></tr>
+        </tbody>
+    </table>
+    </div></div>
+    <div class="note blue"><b>一句话选型：</b>若公司 SLC 是硬性流程不能改 → 走<strong>场景二</strong>（AI 辅助，风险最小）；若追求极致速度、且愿意重塑流程 → 走<strong>场景三</strong>（AI Native，本报告推荐并实证）；传统项目或极严合规 → 保留<strong>场景一</strong>但可局部引入 AI。本报告主体论述的正是 <strong>场景三 · AI Native（六步法）</strong>，第 05/06 章成本亦按此口径。</div>
+
+    <h3 class="sub">1.2 本项目实证：AI Native 速度真实发生过</h3>
     <div class="stats">
         <div class="stat"><div class="n">12天</div><div class="d">POC 用 AI Vibe 模式跑通全链路<br>（2026-08-06 → 08-17）</div></div>
         <div class="stat"><div class="n">167</div><div class="d">次提交 · 一会话一分支<br>（arena/* 会话纪律）</div></div>
         <div class="stat"><div class="n">138</div><div class="d">个源文件产出<br>（108 Java + 30 TS · 16 页面）</div></div>
         <div class="stat"><div class="n">18版</div><div class="d">Flyway 数据模型演化<br>（V1–V18，可平移生产）</div></div>
     </div>
-    <div class="note blue"><b>这套对比不是理论推演：</b>当前仓库就是 AI Vibe 模式的实证——12 天完成传统模式约 2~3 个月的工作量。但 POC 是"探索轨"（快糙猛合理：应用层脱敏、本地 Spark、明文密钥都 OK，因为产物不交付）；生产项目要走"交付轨"——同样的六步流程，加上第 04 章的护栏。<b>POC 代码是参照物和资产库，不是交付物。</b></div>
+    <div class="note blue"><b>这套对比不是理论推演：</b>当前仓库就是 AI Native 模式的实证——12 天完成传统模式约 2~3 个月的工作量。但 POC 是"探索轨"（快糙猛合理：应用层脱敏、本地 Spark、明文密钥都 OK，因为产物不交付）；生产项目要走"交付轨"——同样的六步流程，加上第 04 章的护栏。<b>POC 代码是参照物和资产库，不是交付物。</b></div>
 </section>
 
 <!-- ================= 02 逐阶段对比 ================= -->
