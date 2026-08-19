@@ -314,6 +314,17 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
                 <div class="vibe-arrow">→</div>
                 <div class="vibe-node blue">Spec 冻结<small>验收语句定稿成 spec.md · 评审后锁死</small></div>
             </div>
+            <div class="note violet" style="margin-top:12px;">
+                <b>📄 Spec 冻结 是什么：</b>把第①步写好的「验收语句（Given-When-Then）」汇总成一个正式文件 <code>spec.md</code>，连同项目宪法（禁令 + 红线 + 边界）一起评审，通过后就<b>锁死</b>。<br>
+                <b>为什么必须锁：</b>AI 每次生成都要有<b>同一个稳定标准</b>。若一边做一边改需求（一会儿"单人确认"、一会儿"双人确认"），AI 做出的代码会前后矛盾、无法验收。<br>
+                <b>打个比方：</b>就像盖房子前先把<b>施工图纸</b>定稿盖章——图纸定死，工人（AI）照着盖；想改设计可以，但要重新走审批，不能现场随手改。<br>
+                <b>spec.md 里装什么：</b>① <b>背景与目标</b>（为什么做、范围、非目标）；② <b>验收语句</b>（Given-When-Then，机器能直接判对错）；③ <b>NFR 量化表</b>（响应时间、审计完整性等指标）；④ <b>边界与红线</b>（引用宪法）；⑤ <b>关联工件</b>（spec↔plan↔tasks↔验收用例）；⑥ <b>冻结记录</b>（版本与变更日志）。本项目 4 条 Epic（登记→同步→查询→销毁）各一份。<br>
+                <b>举例（销毁 Epic 的一条验收语句）：</b>
+                <code style="display:block;white-space:pre-wrap;margin:6px 0 0;background:#f5f3ff;padding:8px 12px;border-radius:6px;font-size:.8rem;">Given 存在一条已提交的 DESTROY 任务
+When 两名不同管理员先后点击「确认销毁」
+Then 任务状态变为 APPROVED，记录两个审批人（approver_id 不同）与审批时间</code>
+                <span style="display:block;font-size:.78rem;color:#6d28d9;margin-top:6px;">完整示例见 <code>docs/spec-example-DESTROY.md</code>。</span>
+            </div>
         </div>
         <div class="vibe-down">▼</div>
         <div class="vibe-seg loop">
