@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Vibe Coding 实施步骤与成本 · 演示版</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --text-main:#0f172a; --text-muted:#64748b; --border:rgba(15,23,42,.1);
+  --ai:#7c3aed; --ai-bg:#f5f3ff; --ai-bd:#ddd6fe;
+  --trad:#475569; --trad-bg:#f1f5f9; --trad-bd:#cbd5e1;
+  --ok:#059669; --ok-bg:#ecfdf5; --ok-bd:#a7f3d0;
+  --warn:#d97706; --warn-bg:#fffbeb; --warn-bd:#fde68a;
+  --bad:#dc2626; --bad-bg:#fef2f2; --bad-bd:#fecaca;
+  --info:#2563eb; --info-bg:#eff6ff; --info-bd:#bfdbfe;
+  --cyan:#0891b2; --cyan-bg:#ecfeff; --cyan-bd:#a5f3fc;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;} [id]{scroll-margin-top:24px;}
+body{font-family:'Inter',system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#fff;color:var(--text-main);margin:0;padding:40px 20px;line-height:1.65;}
+.container{max-width:1180px;margin:0 auto;}
+header{text-align:center;margin-bottom:46px;}
+h1{font-size:2.4rem;font-weight:800;margin-bottom:14px;background:linear-gradient(to right,#7c3aed,#2563eb);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.02em;}
+p.subtitle{color:var(--text-muted);font-size:1.05rem;max-width:720px;margin:0 auto;}
+.mono{font-family:'JetBrains Mono','Courier New',monospace;}
+
+/* ===== TOC ===== */
+.toc{border:1px solid #e2e8f0;border-radius:18px;overflow:hidden;margin-bottom:48px;box-shadow:0 4px 20px rgba(15,23,42,.07);background:#fff;}
+.toc-hd{background:linear-gradient(135deg,#0f172a,#1e293b);padding:20px 28px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;}
+.toc-hd h2{margin:0;color:#fff;font-size:1.2rem;font-weight:700;white-space:nowrap;}
+.toc-hd span{color:#94a3b8;font-size:.8rem;}
+.toc-bd{padding:20px 24px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+@media(max-width:820px){.toc-bd{grid-template-columns:1fr;}}
+.toc-item{display:flex;gap:13px;padding:13px 16px;border-radius:12px;border:1px solid #eef2f7;text-decoration:none;background:#fff;transition:all .18s;}
+.toc-item:hover{border-color:#c4b5fd;background:#faf8ff;transform:translateX(3px);box-shadow:0 2px 10px rgba(124,58,237,.08);}
+.toc-no{flex-shrink:0;width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:.74rem;font-weight:700;color:#fff;}
+.toc-t{display:block;font-size:.89rem;font-weight:600;color:#0f172a;}
+.toc-d{display:block;font-size:.75rem;color:#94a3b8;margin-top:3px;}
+.toc-item:hover .toc-t{color:#7c3aed;}
+.toc-ft{border-top:1px solid #eef2f7;padding:12px 26px;background:#f8fafc;font-size:.76rem;color:#64748b;}
+
+/* ===== 通用 section ===== */
+section{margin:56px 0;}
+.sec-head{display:flex;align-items:center;gap:.9rem;margin-bottom:.4rem;flex-wrap:wrap;}
+.sec-badge{font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;letter-spacing:.1em;color:#fff;background:#7c3aed;padding:4px 10px;border-radius:6px;}
+.sec-title{font-size:1.6rem;font-weight:700;margin:0;letter-spacing:-.01em;}
+.sec-lead{color:var(--text-muted);font-size:.95rem;max-width:940px;margin:0 0 1.4rem;line-height:1.8;}
+h3.sub{font-size:1.05rem;font-weight:700;color:#0f172a;margin:28px 0 12px;padding-left:11px;border-left:4px solid #7c3aed;}
+
+/* ===== 双栏对比 ===== */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0;}
+@media(max-width:900px){.vs{grid-template-columns:1fr;}}
+.vs-col{border-radius:14px;padding:18px 20px;border:1px solid var(--border);}
+.vs-col.trad{background:var(--trad-bg);border-color:var(--trad-bd);}
+.vs-col.ai{background:var(--ai-bg);border-color:var(--ai-bd);}
+.vs-col h4{margin:0 0 10px;font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:8px;}
+.vs-col.trad h4{color:#475569;} .vs-col.ai h4{color:#6d28d9;}
+.vs-col ul{margin:0;padding-left:18px;font-size:.85rem;line-height:1.8;color:#334155;}
+.vs-col li{margin-bottom:6px;}
+.vs-tag{font-family:'JetBrains Mono',monospace;font-size:.64rem;font-weight:700;letter-spacing:.06em;padding:2px 8px;border-radius:5px;color:#fff;}
+.vs-col.trad .vs-tag{background:#64748b;} .vs-col.ai .vs-tag{background:#7c3aed;}
+.vs-arrow{text-align:center;color:#94a3b8;font-size:1.2rem;margin:.2rem 0;}
+
+/* ===== 表格 ===== */
+.tbl-wrap{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,.05);margin:1.2rem 0;}
+.tbl-scroll{overflow-x:auto;}
+table.t{width:100%;border-collapse:collapse;font-size:.85rem;}
+table.t th{background:#f1f5f9;padding:12px 14px;text-align:left;font-weight:600;color:#334155;border-bottom:2px solid #cbd5e1;font-size:.82rem;width:auto;}
+table.t td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.7;}
+table.t tr:last-child td{border-bottom:none;}
+table.t tr.grp td{background:#0f172a;color:#fff;font-weight:700;font-size:.82rem;padding:8px 14px;letter-spacing:.04em;}
+table.t tr:hover td:not(.grp){background:rgba(124,58,237,.03);}
+.nm{font-weight:600;display:block;}
+.nm-sub{font-size:.73rem;color:var(--text-muted);display:block;margin-top:2px;font-weight:400;}
+.c{text-align:center;}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.73rem;font-weight:700;white-space:nowrap;}
+.p-ai{color:#6d28d9;background:var(--ai-bg);border:1px solid var(--ai-bd);}
+.p-trad{color:#475569;background:var(--trad-bg);border:1px solid var(--trad-bd);}
+.p-ok{color:#059669;background:var(--ok-bg);border:1px solid var(--ok-bd);}
+.p-warn{color:#b45309;background:var(--warn-bg);border:1px solid var(--warn-bd);}
+.p-bad{color:#dc2626;background:var(--bad-bg);border:1px solid var(--bad-bd);}
+.p-info{color:#1d4ed8;background:var(--info-bg);border:1px solid var(--info-bd);}
+.g{color:#059669;font-weight:700;} .r{color:#dc2626;font-weight:700;} .w{color:#d97706;font-weight:700;}
+
+/* ===== 提示框 ===== */
+.note{border-radius:12px;padding:16px 20px;font-size:.87rem;line-height:1.85;margin:1.2rem 0;}
+.note b{font-weight:700;}
+.note.blue{background:var(--info-bg);border:1px solid var(--info-bd);color:#1e3a5f;}
+.note.amber{background:var(--warn-bg);border:1px solid var(--warn-bd);color:#78350f;}
+.note.green{background:var(--ok-bg);border:1px solid var(--ok-bd);color:#064e3b;}
+.note.red{background:var(--bad-bg);border:1px solid var(--bad-bd);color:#7f1d1d;}
+.note.violet{background:var(--ai-bg);border:1px solid var(--ai-bd);color:#4c1d95;}
+
+/* ===== 六步骤 ===== */
+.steps{counter-reset:step;display:grid;gap:1rem;margin:1.4rem 0;}
+.step{border:1px solid var(--border);border-radius:14px;padding:20px 22px 18px;background:#fff;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,.04);}
+.step::before{content:'';position:absolute;top:0;left:0;bottom:0;width:4px;background:linear-gradient(180deg,#7c3aed,#2563eb);}
+.step-head{display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap;}
+.step-no{counter-increment:step;font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;color:#fff;background:linear-gradient(135deg,#7c3aed,#2563eb);padding:4px 12px;border-radius:8px;}
+.step-no::before{content:'STEP ';}
+.step-title{font-size:1.08rem;font-weight:700;margin:0;}
+.step-who{margin-left:auto;font-size:.72rem;font-weight:700;padding:2px 10px;border-radius:999px;}
+.who-h{color:#b45309;background:var(--warn-bg);border:1px solid var(--warn-bd);}
+.who-ai{color:#6d28d9;background:var(--ai-bg);border:1px solid var(--ai-bd);}
+.step-body{font-size:.88rem;color:#334155;line-height:1.85;}
+.step-body ul{margin:6px 0 0;padding-left:18px;}
+.step-body li{margin-bottom:4px;}
+.step-eg{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;margin-top:10px;font-size:.82rem;line-height:1.75;color:#334155;}
+.step-eg .eg-t{font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:.08em;color:#0891b2;display:block;margin-bottom:4px;}
+.step .out{font-size:.75rem;color:var(--text-muted);margin-top:10px;padding-top:8px;border-top:1px dashed var(--border);}
+.step .out b{color:#475569;}
+
+/* ===== 流程对比图 ===== */
+.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:1.2rem 0;}
+@media(max-width:900px){.flow{grid-template-columns:1fr;}}
+.flow .fnode{border-radius:10px;padding:12px 10px;text-align:center;font-size:.8rem;font-weight:600;line-height:1.5;min-height:64px;display:flex;flex-direction:column;justify-content:center;gap:3px;}
+.flow .fnode small{font-weight:400;font-size:.68rem;opacity:.8;}
+.flow-trad .fnode{background:var(--trad-bg);border:1px solid var(--trad-bd);color:#334155;}
+.flow-ai .fnode{background:var(--ai-bg);border:1px solid var(--ai-bd);color:#4c1d95;}
+.flow-ai .fnode.hl{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border-color:#7c3aed;}
+.flow-lbl{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;color:#64748b;margin:10px 0 6px;}
+.flow-lbl.ai{color:#7c3aed;}
+.flow-note{font-size:.78rem;color:var(--text-muted);margin-top:10px;line-height:1.7;}
+
+/* ===== AI Vibe 直观流程图（三段式） ===== */
+.vibe{display:flex;flex-direction:column;gap:8px;margin:1rem 0;}
+.vibe-seg{border:1px solid var(--ai-bd);border-radius:14px;padding:14px 16px;background:var(--ai-bg);}
+.vibe-seg.loop{border-color:#7c3aed;border-width:2px;background:linear-gradient(180deg,#faf8ff,#fff);}
+.vibe-seg-tag{font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:.05em;color:#6d28d9;margin-bottom:10px;}
+.vibe-row{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;}
+.vibe-node{flex:1;min-width:150px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border-radius:12px;padding:12px 14px;text-align:center;font-size:.84rem;font-weight:600;line-height:1.5;box-shadow:0 2px 8px rgba(124,58,237,.18);}
+.vibe-node small{display:block;font-weight:400;font-size:.68rem;opacity:.88;margin-top:3px;line-height:1.4;}
+.vibe-node.blue{background:linear-gradient(135deg,#2563eb,#3b82f6);box-shadow:0 2px 8px rgba(37,99,235,.18);}
+.vibe-node.green{background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 2px 8px rgba(5,150,105,.18);}
+.vibe-node.amber{background:linear-gradient(135deg,#d97706,#f59e0b);box-shadow:0 2px 8px rgba(217,119,6,.18);}
+.vibe-node.plain{background:#fff;color:#334155;border:1px solid var(--ai-bd);box-shadow:none;}
+.vibe-node.plain small{color:var(--text-muted);}
+.vibe-arrow{align-self:center;font-size:1.15rem;color:#7c3aed;font-weight:700;flex-shrink:0;}
+.vibe-down{text-align:center;color:#7c3aed;font-size:1rem;line-height:1;margin:2px 0;}
+.vibe-loop-note{text-align:center;font-size:.74rem;color:#6d28d9;font-weight:600;margin-top:10px;}
+
+/* ===== 数字大字报 ===== */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin:1.4rem 0;}
+.stat{border:1px solid var(--border);border-radius:14px;padding:18px 16px;text-align:center;background:linear-gradient(180deg,#fff,#fafaff);}
+.stat .n{font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:800;background:linear-gradient(to right,#7c3aed,#2563eb);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.25;}
+.stat .d{font-size:.76rem;color:var(--text-muted);margin-top:6px;line-height:1.6;}
+
+/* ===== 价值链对比条 ===== */
+.chain{display:grid;grid-template-columns:110px 1fr 90px;gap:0 14px;align-items:center;margin:.8rem 0;font-size:.8rem;}
+.chain .lbl{font-weight:700;color:#334155;text-align:right;padding-right:4px;}
+.chain .bar{display:flex;height:34px;border-radius:8px;overflow:hidden;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;color:#fff;min-width:0;}
+.chain .bar span{display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;}
+.chain .dlt{font-weight:700;font-family:'JetBrains Mono',monospace;}
+.legend-bar{display:flex;flex-wrap:wrap;gap:14px;font-size:.78rem;margin:.6rem 0 0;color:#475569;align-items:center;}
+.sw{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:5px;}
+
+/* ===== RACI ===== */
+.raci-A{color:#dc2626;font-weight:800;} .raci-R{color:#7c3aed;font-weight:800;} .raci-C{color:#d97706;font-weight:800;} .raci-I{color:#94a3b8;font-weight:800;}
+
+/* ===== 阶段 ===== */
+.phases{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1.4rem 0;}
+.phase{border:1px solid var(--border);border-radius:14px;padding:18px;background:#fff;position:relative;overflow:hidden;}
+.phase::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.phase.p1::before{background:#0891b2;} .phase.p2::before{background:#2563eb;} .phase.p3::before{background:#7c3aed;} .phase.p4::before{background:#d97706;} .phase.p5::before{background:#059669;}
+.phase .ph-no{font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:.1em;color:#94a3b8;}
+.phase h4{margin:4px 0 10px;font-size:.95rem;font-weight:700;}
+.phase ul{margin:0;padding-left:16px;font-size:.8rem;line-height:1.75;color:#334155;}
+.phase li{margin-bottom:4px;}
+.phase .wt{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;display:inline-block;margin-top:8px;}
+.road-foot{font-size:.78rem;color:var(--text-muted);text-align:center;margin-top:1rem;}
+
+footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-align:center;color:#94a3b8;font-size:.78rem;line-height:1.8;}
+.toc-badge{display:inline-block;font-size:.66rem;font-weight:700;padding:1px 6px;border-radius:5px;margin-left:6px;vertical-align:1px;}
+.cost2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0;}
+@media(max-width:900px){.cost2{grid-template-columns:1fr;}}
+@media(max-width:900px){h1{font-size:1.8rem;} .chain{grid-template-columns:80px 1fr;}.chain .dlt{grid-column:2;}}
+
+/* ===== 01 三场景对比（SLC / AI-Assisted / AI Native）===== */
+.cmp3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1.2rem 0;}
+@media(max-width:960px){.cmp3{grid-template-columns:1fr;}}
+.cmp3-col{border-radius:14px;padding:18px 20px;border:1px solid var(--border);background:#fff;display:flex;flex-direction:column;gap:10px;}
+.cmp3-col .cmp-tag{font-family:'JetBrains Mono',monospace;font-size:.62rem;font-weight:700;letter-spacing:.06em;padding:2px 8px;border-radius:5px;color:#fff;align-self:flex-start;}
+.cmp3-col h4{margin:0;font-size:1rem;font-weight:800;}
+.cmp3-col .cmp-sub{font-size:.76rem;color:var(--text-muted);line-height:1.6;}
+.cmp3-col .cmp-tag.a{background:#64748b;} .cmp3-col.cmp-a h4{color:#475569;}
+.cmp3-col .cmp-tag.b{background:#2563eb;} .cmp3-col.cmp-b h4{color:#1d4ed8;}
+.cmp3-col .cmp-tag.c{background:#7c3aed;} .cmp3-col.cmp-c h4{color:#6d28d9;}
+.cmp3-col ul{margin:0;padding-left:16px;font-size:.82rem;line-height:1.75;color:#334155;}
+.cmp3-col li{margin-bottom:5px;}
+.cmp3-col .cmp-callout{border-radius:8px;padding:8px 12px;font-size:.78rem;line-height:1.6;margin-top:auto;}
+.cmp3-col.cmp-a .cmp-callout{background:var(--trad-bg);border:1px solid var(--trad-bd);color:#475569;}
+.cmp3-col.cmp-b .cmp-callout{background:var(--info-bg);border:1px solid var(--info-bd);color:#1e3a5f;}
+.cmp3-col.cmp-c .cmp-callout{background:var(--ai-bg);border:1px solid var(--ai-bd);color:#4c1d95;}
+/* SLC 阶段条 */
+.slc{display:flex;flex-wrap:wrap;gap:6px;margin:.6rem 0 1rem;}
+.slc .s{border-radius:8px;padding:8px 10px;font-size:.72rem;font-weight:600;text-align:center;line-height:1.35;flex:1;min-width:92px;}
+.slc .s small{display:block;font-weight:400;font-size:.64rem;opacity:.85;margin-top:2px;}
+.slc.s-a .s{background:var(--trad-bg);border:1px solid var(--trad-bd);color:#334155;}
+.slc.s-b .s{background:var(--info-bg);border:1px solid var(--info-bd);color:#1e3a5f;}
+.slc.s-c .s{background:var(--ai-bg);border:1px solid var(--ai-bd);color:#4c1d95;}
+.slc.s-c .s.hl{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border-color:#7c3aed;}
+.slc-arrow{color:#94a3b8;font-size:.9rem;align-self:center;}
+
+
+/* ===== 07 前端框架选型（迁移自 AI-collaboration PPT，浅色适配）===== */
+.grid{display:grid;gap:16px;}
+.g2{grid-template-columns:1fr 1fr;}
+@media(max-width:900px){.g2{grid-template-columns:1fr;}}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:18px 20px;box-shadow:0 1px 3px rgba(15,23,42,.05);}
+.card h3{font-size:17px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:9px;color:var(--text-main);}
+.card h3 .ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.card ul{list-style:none;}
+.card li{font-size:12.5px;color:#334155;padding:4px 0;border-bottom:1px dashed #e2e8f0;line-height:1.5;}
+.card li:last-child{border-bottom:none;}
+.card li b{color:var(--text-main);font-weight:600;}
+.table-wrap{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff;}
+.divider{height:1px;background:linear-gradient(90deg,transparent,rgba(37,99,235,.5),transparent);margin:16px 0;}
+.sec-sub{color:var(--text-muted);font-size:.95rem;margin-bottom:14px;}
+
+</style>
+/* ===== PPT 分页 ===== */
+.deck{position:relative;}
+.slide{display:none;}
+.slide.active{display:block;animation:fadeSlide .45s ease;}
+@keyframes fadeSlide{from{opacity:0;transform:translateX(30px);}to{opacity:1;transform:none;}}
+body{padding:24px 20px;}
+.slide{padding-bottom:30px;}
+.nav-bar{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:20px;position:sticky;bottom:12px;background:#fff;border-radius:30px;box-shadow:0 2px 12px rgba(15,23,42,.1);padding:10px 22px;width:fit-content;margin-left:auto;margin-right:auto;}
+.nav-btn{width:44px;height:44px;border-radius:50%;border:1px solid var(--border);background:#fff;color:var(--text-main);cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:.2s;user-select:none;}
+.nav-btn:hover{background:var(--ai-bg);border-color:var(--ai-bd);}
+.nav-btn:disabled{opacity:.3;cursor:default;}
+.dots{display:flex;gap:8px;}
+.dot-s{width:10px;height:10px;border-radius:50%;background:#e2e8f0;cursor:pointer;transition:.3s;}
+.dot-s.on{background:var(--ai,#7c3aed);box-shadow:0 0 8px rgba(124,58,237,.5);}
+.page-label{font-size:13px;color:var(--text-muted);min-width:50px;text-align:center;font-family:'JetBrains Mono',monospace;}
+.slide-head{font-size:1.1rem;font-weight:800;color:var(--text-main);margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+@media(max-width:820px){.nav-bar{width:100%;justify-content:space-between;}}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+  <section class="slide" data-index="1">
+<section id="s1">
+    <div class="sec-head"><span class="sec-badge" style="background:#0891b2;">01</span><h2 class="sec-title">总览：三种实施方式的流程对比</h2></div>
+    <p class="sec-lead">同一个项目（以本项目 RIMS 归档平台为例），可以走三种不同的实施方式：<strong>① 当前公司的 SLC 流程</strong>（传统 7 阶段瀑布）、<strong>② 有 AI 辅助的 SLC</strong>（流程骨架不变、每阶段用 AI 提效）、<strong>③ AI Native / Vibe Coding</strong>（推倒旧流程，从规格到生成一体化的新范式）。三者对"项目实施怎么做"的回答完全不同。</p>
+
+    <!-- 场景一：当前公司 SLC -->
+    <h3 class="sub">场景一 · 当前公司 SLC 流程（传统瀑布 · 7 阶段）</h3>
+    <div class="slc s-a">
+        <div class="s">Planning<small>目标/范围/时间表/预算</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Requirements<small>需求收集FunctionMap/文档BRD</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Design<small>架构/详细设计 ADD/SDD</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Construction<small>人写代码</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Testing & Impl<small>测试/部署</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Operations<small>运维/优化</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Decommission<small>退役/处置</small></div>
+    </div>
+    <div class="vs">
+        <div class="vs-col trad"><h4><span class="vs-tag">HOW</span>怎么实施</h4>
+            <ul><li>阶段严格串行，前一个阶段产出"文档"（PRD/架构书/设计稿）后，才进入下一个</li><li>每阶段有明确交付物与评审门；变更走正式变更单</li><li>编码由人逐行完成，进度按人天估算，人力是主要成本与瓶颈</li><li>测试在编码完成后补做，缺陷越晚发现修复越贵</li></ul></div>
+        <div class="vs-col trad"><h4><span class="vs-tag">PAIN</span>痛点</h4>
+            <ul><li><strong>文档与实际脱节</strong>：需求文档写完就过时，靠人脑补</li><li><strong>瀑布回头难</strong>：需求或架构错了，后期返工代价大</li><li><strong>编码占比高</strong>：本平台约 150 人天花在编码（占 52%）</li><li><strong>人写代码慢</strong>：传统方式 5 个月起步、总人天 310</li></ul></div>
+    </div>
+
+    <!-- 场景二：有 AI 辅助的 SLC -->
+    <h3 class="sub">场景二 · 有 AI 辅助的 SLC（流程骨架不变 · 每阶段 AI 提效）</h3>
+    <div class="slc s-b">
+        <div class="s">Planning<small>AI 辅助 WBS/排期</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Requirements<small>AI 起草/校验需求</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Design<small>AI 出架构/ER 草稿</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Construction<small>AI 生成·人审查</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Testing & Impl<small>AI 造用例/自动测</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Operations<small>AI 监控/排障辅助</small></div>
+        <div class="slc-arrow">→</div>
+        <div class="s">Decommission<small>AI 清单/脚本</small></div>
+    </div>
+    <div class="vs">
+        <div class="vs-col ai"><h4><span class="vs-tag">HOW</span>怎么实施</h4>
+            <ul><li>仍保留 SLC 的 7 个阶段与评审门，但<strong>每个阶段用 AI 提效</strong>——AI 是"超级工具"，人仍是流程主导</li><li>需求/设计/编码/测试/运维/退役，AI 都参与生成与校验，人负责拍板与审查</li><li>合规流程（评审、审计、变更单）不变，风险小、易落地</li><li>适合公司已有严格流程、需要平稳过渡的场景</li></ul></div>
+        <div class="vs-col ai"><h4><span class="vs-tag">GAIN</span>收益 & 局限</h4>
+            <ul><li><strong>每个阶段加速</strong>：文档起草、代码生成、用例编写、日志排查都更快</li><li><strong>人天下降</strong>：从 310 人天降到约 220~260（视 AI 参与度）</li><li><strong>局限</strong>：流程骨架没变，阶段间的等待与返工仍在；AI 的收益被"文档交接"和"评审门"部分抵消</li><li>本质是<strong>用 AI 给旧流程"提速"，而非"重塑"</strong></li></ul></div>
+    </div>
+
+    <!-- 场景三：AI Native / Vibe Coding（规格驱动模式） -->
+    <h3 class="sub">场景三 · AI Native / Vibe Coding（规格驱动模式 · 从规格到生成一体化）</h3>
+    <div class="vibe">
+        <!-- ① 项目记忆 + 需求规格 -->
+        <div class="vibe-seg">
+            <div class="vibe-seg-tag">① 项目记忆 + 需求规格 · 一次性 · 人主导</div>
+            <div class="vibe-row">
+                <div class="vibe-node blue">项目记忆库<small>产品/技术栈/代码组织 · 全局规则</small></div>
+                <div class="vibe-arrow">→</div>
+                <div class="vibe-node blue">需求规格<small>用户故事 + 验收标准 · 可验证语句</small></div>
+            </div>
+            <div class="vibe-loop-note" style="margin-top:10px;">✔ 人工审批门：需求规格评审通过后才放行 —— 需求锁定（对应"Spec 冻结"）</div>
+        </div>
+        <div class="vibe-down">▼</div>
+        <!-- ② 设计规格 + 任务清单 -->
+        <div class="vibe-seg">
+            <div class="vibe-seg-tag">② 设计规格 + 任务清单 · 一次性 · 人主导</div>
+            <div class="vibe-row">
+                <div class="vibe-node blue">设计规格<small>技术方案 · 架构/数据/测试策略</small></div>
+                <div class="vibe-arrow">→</div>
+                <div class="vibe-node blue">任务清单<small>拆到原子任务 · 与需求一一对应</small></div>
+            </div>
+            <div class="vibe-loop-note" style="margin-top:10px;">✔ 人工审批门：设计与任务清单逐级评审放行，未放行不进入实现</div>
+        </div>
+        <div class="vibe-down">▼</div>
+        <!-- ③ 实现循环 -->
+        <div class="vibe-seg loop">
+            <div class="vibe-seg-tag">③ 实现循环 · 每个任务反复 · AI 执行 + 自动验证</div>
+            <div class="vibe-row">
+                <div class="vibe-node plain">按任务实现<small>AI 生成代码</small></div>
+                <div class="vibe-arrow">→</div>
+                <div class="vibe-node amber">自动验证<small>跑测试/lint · 不绿不停</small></div>
+                <div class="vibe-arrow">→</div>
+                <div class="vibe-node plain">人工审查<small>审 diff · 通过才合并</small></div>
+            </div>
+            <div class="vibe-loop-note">↺ 全绿才停 · 人审通过才部署 · 然后进入下一任务（高频小循环）</div>
+        </div>
+        <div class="vibe-down">▼</div>
+        <!-- ④ 验收 -->
+        <div class="vibe-seg">
+            <div class="vibe-seg-tag">④ 验收 · 一次性 · 人签字</div>
+            <div class="vibe-row">
+                <div class="vibe-node green">验收回放<small>验收标准全量重跑 · 绿 = 通过</small></div>
+            </div>
+        </div>
+    </div>
+    <div class="vs">
+        <div class="vs-col ai"><h4><span class="vs-tag">HOW</span>怎么实施（规格驱动流程）</h4>
+            <ul><li><strong>三步规格：需求 → 设计 → 任务</strong>，每步产出独立规格文档 + 人工审批门</li><li><strong>项目记忆库</strong>（产品/技术栈/代码组织）提供全局上下文，贯穿所有功能</li><li>需求规格用<strong>用户故事 + 验收标准</strong>——把口语需求写成可验证语句</li><li>审批门（评审通过）= 规格冻结，未放行不进入下一步</li><li>实现由自动验证钩子跑测试，人审 diff 后部署</li></ul></div>
+        <div class="vs-col ai"><h4><span class="vs-tag">GAIN</span>收益</h4>
+            <ul><li><strong>彻底重塑</strong>：不再有 7 阶段等待与文档交接，规格直接驱动生成</li><li><strong>最大提速</strong>：本项目实证 12 天跑通 POC、总人天 310 → 179（-42%）</li><li><strong>错误前置</strong>：测试自动验证，错误在会话内拦截而非流到测试阶段</li><li>代价：需要人更懂"怎么写规格/怎么审"，且审批门必须认真把关</li></ul></div>
+    </div>
+
+    <!-- 三场景横向对比表 -->
+    <h3 class="sub">1.1 三场景横向对比 · 项目实施怎么做</h3>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:18%;">对比维度</th><th style="width:27%;">① 当前 SLC</th><th style="width:27%;">② 有 AI 辅助 SLC</th><th style="width:28%;">③ AI Native / Vibe Coding</th></tr></thead>
+        <tbody>
+            <tr><td><span class="nm">流程骨架</span></td><td>7 阶段瀑布，严格串行</td><td>保留 7 阶段，AI 参与每阶段</td><td>推倒重来，规格冻结 + 高频循环</td></tr>
+            <tr><td><span class="nm">文档产出</span></td><td>PRD / 架构书 / 设计稿，给人看</td><td>文档仍在，AI 起草加速</td><td>spec.md + 宪法 + 验收语句，给机器执行</td></tr>
+            <tr><td><span class="nm">编码方式</span></td><td>人逐行写</td><td>AI 生成 · 人审查</td><td>AI 生成 · 人审三类 diff</td></tr>
+            <tr><td><span class="nm">测试时机</span></td><td>编码后补做</td><td>阶段内用 AI 提效，基本后置</td><td>测试前置为生成靶子，嵌进循环</td></tr>
+            <tr><td><span class="nm">主导角色</span></td><td>人写 + 人测</td><td>人主导流程，AI 辅助执行</td><td>人管规格/审查/验收，AI 主导生成</td></tr>
+            <tr><td><span class="nm">总人天</span></td><td>≈290</td><td>≈200~240</td><td>≈159（-45%）</td></tr>
+            <tr><td><span class="nm">落地风险</span></td><td>低（成熟流程）但慢</td><td>低，平稳过渡</td><td>需补治理护栏，对团队要求高</td></tr>
+            <tr><td><span class="nm">适用场景</span></td><td>流程成熟、合规严格的传统项目</td><td>已有 SLC 需渐进引入 AI</td><td>追求速度、AI 原生团队、原型/新平台</td></tr>
+        </tbody>
+    </table>
+    </div></div>
+    <div class="note blue"><b>无论走哪个场景，「人审查」都不可绕过——这是 AI Native 的底线：</b>
+        <ul style="margin:8px 0 0;padding-left:18px;font-size:.85rem;line-height:1.85;color:#1e3a5f;">
+            <li><strong>为什么必须审查：</strong>AI 能"快速生成"，但<strong>不能替人负责</strong>。它可能写出"看起来对、实则危险"的代码——比如销毁逻辑里 <code>VACUUM RETAIN 0</code> 直接物理删除不留审计、SQL 拼接绕过白名单、密钥写死在代码里。这些错误<strong>测试不一定拦得住</strong>（测试只验证"预期行为"，审查看的是"是否埋了不该有的行为"）。</li>
+            <li><strong>必要性：</strong>AI 是"生成者"，生成者不能当自己的裁判。第 04 章的原则就是<strong>"AI 负责 Draft（草稿），人负责 Decision（决策）与 Guard（护栏）"</strong>。凡不可逆（销毁）、涉密（密钥/脱敏）、跨边界（引擎/状态机）的改动，<strong>必须人逐行审查，且无旁路</strong>。</li>
+            <li><strong>审查的价值不是"挑错"而是"把关"：</strong>它把 AI 的<strong>速度</strong> + 人的<strong>判断</strong>结合成可靠结果——AI 让交付快 10 倍，审查保证这 10 倍的产出是安全的、合规的、可追溯的。省掉审查，省下的时间会在事故与返工里加倍还回去。</li>
+        </ul>
+    </div>
+
+    </section>
+  </section>
+  <section class="slide" data-index="2">
+<section id="s2">
+    <div class="sec-head"><span class="sec-badge" style="background:#2563eb;">02</span><h2 class="sec-title">逐阶段对比：五个阶段，五种本质变化</h2></div>
+    <p class="sec-lead">每个阶段一句话说清：<strong>传统怎么做 → AI 怎么做 → 关键差别</strong>，都用本项目举例。</p>
+
+    <!-- 需求 -->
+    <h3 class="sub">阶段一 · 需求</h3>
+    <div class="vs">
+        <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统：写给人看</h4>
+            <ul><li>几十页 Word 规格书，靠人读、靠人脑补歧义</li><li>需求说得含糊（"要脱敏"），具体怎么做等开发自己猜</li><li>验收标准到最后测试阶段才被翻出来</li></ul></div>
+        <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI：写给机器执行</h4>
+            <ul><li>写成验收语句（Given-When-Then），机器能直接判对错</li><li>每条需求量到可验证（"无权限角色查询 → 返回掩码 + 记录审计"）</li><li>验收语句直接当测试用例——<strong>需求即测试靶子</strong></li></ul></div>
+    </div>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:24%;">RIMS 场景</th><th style="width:38%;">传统写法</th><th style="width:38%;">AI 模式写法</th></tr></thead>
+        <tbody>
+            <tr><td><span class="nm">脱敏需求</span></td><td>"客户姓名等敏感信息需要脱敏后展示，具体规则由开发与安全协商确定"</td><td>「<b>Given</b> 表 CUSTOMER_ORDER 含 isPii 字段 customer_name <b>When</b> 无脱敏权限的角色查询 <b>Then</b> 返回 MASK_FIRST_N(4) 掩码且 sys_audit_log 记录查询者/时间/表名」</td></tr>
+            <tr><td><span class="nm">附件安全</span></td><td>"附件下载链接需要有时效性，避免泄露"</td><td>「<b>Given</b> 用户请求附件预览 <b>When</b> RBAC 校验通过 <b>Then</b> 签发 SAS URL 且 <b>有效期 ≤15 分钟</b>，过期访问返回 403」</td></tr>
+            <tr><td><span class="nm">查询性能</span></td><td>"查询响应要快，大数据量下不能超时"</td><td>「归档查询走 Statement Execution API，<b>30s 超时</b>，默认 LIMIT 100、上限 10000，超限提示收敛条件」</td></tr>
+            <tr><td><span class="nm">销毁合规</span></td><td>"数据到期后需要销毁，销毁前要确认"</td><td>「<b>Given</b> 系统状态 EXPIRING <b>When</b> 管理员单方点击销毁 <b>Then</b> 系统拒绝——必须第二管理员确认（双人制）后才执行 DROP+VACUUM，全程审计」</td></tr>
+        </tbody>
+    </table>
+    </div></div>
+    <div class="note violet"><b>关键差别：</b>传统需求"给人看"，人可以脑补歧义；AI 需求"给机器看"，歧义 = 生成错误。<b>把需求写到 AI 能执行的精度，恰好也是传统测试最想要的精度——AI 逼着需求变好。</b>本项目 task.csv 已有 113 条任务骨架，缺的是把每条升级为验收语句。</div>
+
+    <!-- 架构 -->
+    <h3 class="sub">阶段二 · 架构</h3>
+    <div class="vs">
+        <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统：画完就归档</h4>
+            <ul><li>架构师出白皮书 + 评审，周期 2~4 周</li><li>评审通过后<strong>文档吃灰</strong>，靠人记住约束，久了规范就走样</li><li>新人进来、时间一长，没人再按文档执行</li></ul></div>
+        <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI：写进宪法，强制读取</h4>
+            <ul><li>架构 = <strong>项目宪法</strong>（AGENTS.md），<strong>每次 AI 会话自动读取</strong></li><li>约束从"靠人记住"变成"机器生成前必读"——不会忘、不会走样</li><li>重大决策一页 ADR（背景/选项/结论），AI 可检索复用</li></ul></div>
+    </div>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:22%;">RIMS 宪法条款</th><th style="width:42%;">内容（POC 的 AGENTS.md 已有雏形）</th><th style="width:36%;">强制机制（传统模式做不到的）</th></tr></thead>
+        <tbody>
+            <tr><td><span class="nm">七条 Do NOT</span><span class="nm-sub">POC 已存在 ✓</span></td><td>不改 V1/V2 迁移、不绕过 DynamicQueryBuilder 白名单、不在 JS/.NET 做脱敏、MySQL 不存业务数据等</td><td>写入 AGENTS.md，每次会话注入；再升级为 CI 规则（ArchUnitNET + gitleaks）机器强制</td></tr>
+            <tr><td><span class="nm">分层边界</span></td><td>controller→service→mapper 单向依赖；前端 decommission/ 不跨界 import</td><td>ArchUnitNET / ESLint import 规则，<strong>违反即 CI 失败</strong></td></tr>
+            <tr><td><span class="nm">引擎抽象</span><span class="nm-sub">生产新增</span></td><td>SyncEngine / QueryEngine 接口：生产 Databricks、演示 SeaTunnel+Spark 双实现可切换</td><td>接口稳定性测试 + ADR-001 记录决策理由</td></tr>
+            <tr><td><span class="nm">状态机封闭</span></td><td>REGISTERED→CONFIGURED→SYNCING→ARCHIVED→EXPIRING→DESTROYED，跳转只经状态机服务</td><td>非法跳转单测即失败；销毁跳转额外要求双人确认</td></tr>
+        </tbody>
+    </table>
+    </div></div>
+    <div class="note violet"><b>关键差别：</b>传统架构文档是"交付物"，写完就吃灰；AI 架构是"<b>生产资料</b>"，每次生成都被读取并约束输出。<b>架构师从"画图的人"变成"立法的人"。</b>本项目 AGENTS.md 的七条禁令在 12 天 167 次提交中自发有效，就是因为规则写进了会话上下文。</div>
+
+    <!-- 编码 -->
+    <h3 class="sub">阶段三 · 编码</h3>
+    <div class="vs">
+        <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统：人逐行写</h4>
+            <ul><li>工程师手写 Controller / Mapper / 前端，估多少人就排多少人</li><li>速度随人数线性涨，靠开会对齐</li><li>质量靠 code review 兜底，一次审一整块功能</li></ul></div>
+        <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI：会话循环生成</h4>
+            <ul><li>任务拆到"<strong>一个会话一个任务一个分支</strong>"</li><li>AI 生成 → 自动跑测试/lint/build → 失败自修 → <strong>全绿才交人审</strong></li><li>只读任务可并行，写码任务串行避免冲突；人的产出 = 审查通过的合并量</li></ul></div>
+    </div>
+    <div class="note amber"><b>三个代表性生成任务</b>：① <b>SAS 签发服务</b>——宪法规定"前端永不持有 Access Key"，AI 在此约束下生成带 15min 过期 + 审计的 BlobSasService；② <b>DynamicQueryBuilder</b>——白名单 + 参数化 SQL 是宪法条款，AI 的拼接尝试会被 lint 打回；③ <b>动态查询前端</b>——schema_json 直接驱动动态渲染，<strong>新系统接入零代码</strong>。</div>
+
+    <!-- 测试 -->
+    <h3 class="sub">阶段四 · 测试</h3>
+    <div class="vs">
+        <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统：写完再测</h4>
+            <ul><li>开发写完提测，测试组再写用例、报 bug、回归</li><li>覆盖率在交付压力下常被牺牲</li><li>安全测试（脱敏/越权）往往拖到上线前才抽查</li><li>缺陷发现越晚，修复成本越高（晚一步贵 5~10 倍）</li></ul></div>
+        <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI：测试先行</h4>
+            <ul><li><strong>测试先于实现</strong>：验收语句直接变成验收用例，当 AI 的生成靶子</li><li>退出标准 = 测试全绿，<strong>"看着对"不算，可验证才算</strong></li><li>AI 批量生成常规用例；人只盯三类：安全、不可逆（销毁）、跨边界</li></ul></div>
+    </div>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:20%;">用例类型</th><th style="width:16%;" class="c">谁写</th><th style="width:32%;">RIMS 例子</th><th style="width:32%;">为什么这么分</th></tr></thead>
+        <tbody>
+            <tr><td><span class="nm">功能用例</span></td><td class="c"><span class="pill p-ai">AI 生成</span></td><td>Schema CRUD、分页查询、RBAC 判断逻辑的正反用例</td><td>数量大、模式化，AI 生成效率是人写的 10 倍级</td></tr>
+            <tr><td><span class="nm">安全用例</span></td><td class="c"><span class="pill p-bad">人写 · 人审</span></td><td>无脱敏权限查询 isPii 字段必须见掩码；SAS 过期后 403；越权访问他系统数据被拒</td><td>合规红线，AI"自我测试"不可信——生成者不能当裁判</td></tr>
+            <tr><td><span class="nm">不可逆用例</span></td><td class="c"><span class="pill p-bad">人写 · 人审</span></td><td>销毁双人确认缺一不可；DESTROYED 后任何查询/恢复路径都失败</td><td>错了无法回滚，必须穷尽边界</td></tr>
+            <tr><td><span class="nm">回归用例</span></td><td class="c"><span class="pill p-ai">AI 维护</span></td><td>引擎切换后（Databricks ↔ SeaTunnel+Spark）同一套验收用例全绿</td><td>接口双实现的契约测试，AI 比人勤快</td></tr>
+        </tbody>
+    </table>
+    </div></div>
+
+    <!-- 交付 -->
+    <h3 class="sub">阶段五 · 交付验收</h3>
+    <div class="vs">
+        <div class="vs-col trad"><h4><span class="vs-tag">TRADITIONAL</span>传统：人工点页面</h4>
+            <ul><li>UAT = 业务方按清单人工点页面，2~4 周</li><li>审计举证靠翻日志 + 截图拼材料</li><li>移交：代码 + 文档 + 培训</li><li>"这段代码为什么这么写"——三个月后没人说得清</li></ul></div>
+        <div class="vs-col ai"><h4><span class="vs-tag">AI VIBE</span>AI：全量机械回放</h4>
+            <ul><li>UAT = 验收用例在准生产环境<strong>全量回放</strong>，绿 = 通过</li><li>审计演练脚本化：脱敏对照、SAS 过期、"谁查了什么"一键导出</li><li>移交多三样：<strong>宪法 + ADR + 会话档案</strong>，"为什么这么写"可追溯</li></ul></div>
+    </div>
+</section>
+  </section>
+  <section class="slide" data-index="3">
+<section id="s3">
+    <div class="sec-head"><span class="sec-badge">03</span><h2 class="sec-title">AI 模式的六个步骤（本项目工作流）</h2></div>
+    <p class="sec-lead">把第 02 章的差异落成可执行流程。六个步骤覆盖从需求到验收的完整链路，<strong>每步标注主导者（人 / AI）并给出 RIMS 实例</strong>。这就是"传统五阶段"在 AI 模式下的实际形态——注意测试不再是独立阶段，而是嵌进步骤④的循环里。</p>
+
+    <div class="steps">
+        <div class="step">
+            <div class="step-head"><span class="step-no"></span><h3 class="step-title">需求结构化</h3><span class="step-who who-h">人主导</span></div>
+            <div class="step-body"><strong>把口语需求写成"AI 能执行"的验收语句（Given-When-Then），并把性能指标量化定稿。</strong>这一步的质量，决定后面所有步骤的速度。</div>
+        </div>
+
+        <div class="step">
+            <div class="step-head"><span class="step-no"></span><h3 class="step-title">Spec 冻结</h3><span class="step-who who-h">人审批</span></div>
+            <div class="step-body"><strong>把第 ① 步写好的「验收语句」汇总成一个正式文件（spec.md），连同项目宪法（禁令 + 红线 + 边界）一起评审，通过后就"锁死"。</strong>锁死的意思是：<em>从这一刻起，需求不许边做边改</em>——真要改，必须走变更流程重新评审。
+                <ul>
+                    <li><strong>为什么必须锁</strong>：AI 每次生成都要有<strong>同一个稳定标准</strong>。如果一边做一边改需求（一会儿"单人确认"、一会儿"双人确认"），AI 做出来的代码就会前后矛盾、无法验收。</li>
+                    <li><strong>打个比方</strong>：就像盖房子前先把<strong>施工图纸</strong>定稿盖章——图纸定死，工人（AI）照着盖；想改设计可以，但要重新走审批，不能现场随手改。</li>
+                    <li><strong>产出</strong>：冻结版 spec.md（4 条 Epic 各一份）+ 宪法 + ADR 补录。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-head"><span class="step-no"></span><h3 class="step-title">任务拆解</h3><span class="step-who who-ai">AI 拆 · 人核</span></div>
+            <div class="step-body"><strong>把 spec 拆成"一个会话一个任务一个分支"，每个任务都有明确验收命令。</strong>只读任务可并行，写码任务串行。</div>
+        </div>
+
+        <div class="step">
+            <div class="step-head"><span class="step-no"></span><h3 class="step-title">会话生成</h3><span class="step-who who-ai">AI 执行</span></div>
+            <div class="step-body"><strong>AI 读宪法 → 生成代码 → 自动跑测试 → 失败自修复 → 全绿才停。</strong>验证不过会话不许结束，AI 必须出示测试证据。</div>
+        </div>
+
+        <div class="step">
+            <div class="step-head"><span class="step-no"></span><h3 class="step-title">审查合并</h3><span class="step-who who-h">人审查 · 不可绕过</span></div>
+            <div class="step-body"><strong>人只聚焦三类 diff 逐行审：安全敏感、不可逆（销毁/DDL）、跨边界（引擎/状态机）</strong>，其余页面样式快速扫过合并。</div>
+        </div>
+
+        <div class="step">
+            <div class="step-head"><span class="step-no"></span><h3 class="step-title">验收回放</h3><span class="step-who who-ai">AI 回放 · 人签字</span></div>
+            <div class="step-body"><strong>里程碑/UAT 不用人工点页面：验收用例在准生产环境全量机械回放，绿 = 通过，人签字验收。</strong>同时跑审计演练并归档度量与会话档案。</div>
+        </div>
+    </div>
+    <div class="note green"><b>六步 vs 传统五阶段：</b>需求结构化 + Spec 冻结 ≈ 传统"需求+架构"；任务拆解 + 会话生成 ≈ 传统"编码"（人从写代码变成管会话）；审查合并 + 验收回放 ≈ 传统"测试+交付"（但测试已前置嵌进生成循环）。<b>总人天 290 → 159（-45%），重心从编码移到规格——详见第 05 章。</b></div>
+
+    <h3 class="sub">3.1 六步骤的工具化：用 GitHub Spec Kit 跑同一套流程</h3>
+    <p style="font-size:.88rem;color:#334155;line-height:1.85;margin:.6rem 0 1rem;">六步骤不需要自建工具链。GitHub 官方开源的 <strong>Spec Kit</strong>（<span class="mono">github/spec-kit</span> · 129.6k star · MIT · 2026-08 核实）把"先定义要建什么，再动手建"的规格驱动开发（SDD）做成了现成 CLI，与 <strong>30+ AI 编码代理兼容</strong>（Claude Code / Copilot / Codex / Gemini CLI 等，含本仓库在用的 pi 类工具）。其核心主张：<strong>规格不再是写完即弃的脚手架，而是可执行的——直接驱动实现生成</strong>。安装两条命令即得与六步骤同构的流水线：</p>
+    <div class="step-eg"><span class="eg-t">安装与初始化</span><span class="mono">uv tool install specify-cli</span><br><span class="mono">specify init rims-decommission --integration copilot</span>&nbsp;&nbsp;<span style="color:#64748b;"># integration 可换 claude / codex / gemini 等 30+ 代理</span></div>
+
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:21%;">Spec Kit 命令</th><th style="width:29%;">干什么</th><th style="width:14%;" class="c">对应六步骤</th><th style="width:36%;">在 RIMS 怎么用</th></tr></thead>
+        <tbody>
+            <tr><td><span class="nm mono">/speckit.constitution</span></td><td>建立项目治理原则，<strong>此后每个生成步骤强制遵守</strong></td><td class="c"><span class="pill p-ai">STEP 2</span></td><td>把 AGENTS.md 七条 Do NOT + 三条红线 + 分层边界 + 状态机规则写入 constitution.md</td></tr>
+            <tr><td><span class="nm mono">/speckit.specify</span></td><td>生成需求与用户故事——<strong>只写 what/why，不写技术栈</strong></td><td class="c"><span class="pill p-ai">STEP 1</span></td><td>四条 Epic（登记→同步→查询→销毁）各生成一份 spec.md；验收语句内含</td></tr>
+            <tr><td><span class="nm mono">/speckit.clarify</span><span class="nm-sub">可选 · plan 前跑</span></td><td>AI 就模糊点<strong>反向提问</strong>，逼出歧义</td><td class="c"><span class="pill p-ai">STEP 1</span></td><td>"SAS 有效期几分钟？""销毁需几人确认？""LIMIT 上限多少？"——正补 NFR 量化表</td></tr>
+            <tr><td><span class="nm mono">/speckit.plan</span></td><td>技术实现计划——<strong>这一步才引入技术栈</strong></td><td class="c"><span class="pill p-ai">STEP 2</span></td><td>引擎抽象（SyncEngine/QueryEngine）、UC 治理、Flyway V19+ 平移策略</td></tr>
+            <tr><td><span class="nm mono">/speckit.tasks</span></td><td>从 plan 生成可执行任务清单</td><td class="c"><span class="pill p-ai">STEP 3</span></td><td>生成 60~80 张会话级任务卡；<span class="mono">/speckit.taskstoissues</span> 可直接转 GitHub Issues 跟踪</td></tr>
+            <tr><td><span class="nm mono">/speckit.analyze</span><span class="nm-sub">可选 · implement 前</span></td><td>spec ↔ plan ↔ tasks <strong>跨工件一致性与覆盖率核查</strong></td><td class="c"><span class="pill p-info">护栏 L4</span></td><td>规格冻结前跑一遍，防 spec 自相矛盾或任务漏覆盖（官方称之"给英文写的单元测试"）</td></tr>
+            <tr><td><span class="nm mono">/speckit.implement</span></td><td>按任务清单逐项执行实现</td><td class="c"><span class="pill p-ai">STEP 4</span></td><td>每个任务在验证循环内跑到全绿（配合第 04 章 Stop hook 门禁）</td></tr>
+            <tr><td><span class="nm mono">/speckit.converge</span><span class="nm-sub">★ 存量库专用</span></td><td>评估<strong>现有代码库与目标 spec 的差距</strong>，剩余工作自动转为新任务</td><td class="c"><span class="pill p-warn">POC→生产</span></td><td><strong>本项目最关键的一条</strong>：拿生产 spec 对照 POC 代码库，自动生成"重建任务清单"——Phase B 的工作来源</td></tr>
+        </tbody>
+    </table>
+    </div></div>
+
+    <div class="vs">
+        <div class="vs-col ai"><h4><span class="vs-tag" style="background:#059669;">WHY FIT</span>对 RIMS 的三个加分点</h4>
+            <ul><li><strong>converge 匹配 POC 场景</strong>：RIMS 是典型的"存量库演进"（Brownfield）——官方三阶段（新建/探索/迭代增强）中明确支持此形态，POC 代码不必推倒，差距自动转任务</li><li><strong>Presets 支持合规定制</strong>：可强制 spec 模板带监管可追溯性、给 plan 加安全审查门——正好承载等保/审计要求</li><li><strong>Bundles 角色包</strong>：PM / 业务分析 / 安全研究员 / 开发者各有一键配置，3.5 人团队按角色取用</li></ul></div>
+        <div class="vs-col trad"><h4><span class="vs-tag" style="background:#64748b;">BOUNDARY</span>它不覆盖什么（诚实边界）</h4>
+            <ul><li><strong>STEP 5 人工审查</strong>：三类 diff 强制人审是制度（CODEOWNERS + 分支保护），Spec Kit 不管</li><li><strong>STEP 6 验收回放</strong>：验收用例全量回放需自建测试基建，Spec Kit 只负责到任务执行</li><li><strong>七层护栏</strong>：jscpd 重复度、gitleaks、ArchUnitNET 等仍需第 04 章的 CI 配置——<strong>工具给流程骨架，护栏要自己立法</strong></li></ul></div>
+    </div>
+    <div class="note violet"><b>采用结论：</b>六步骤中 STEP 1–4 直接用 Spec Kit 命令驱动（不自建流程脚手架），STEP 5–6 与七层护栏由本项目的 CI 制度承接——<b>工具负责流程骨架，制度负责质量底线，两者合起来才是完整的交付轨。</b>第 05 章路线图 Phase A 已将 <span class="mono">specify init</span> 纳入首个交付动作。</div>
+</section>
+  </section>
+  <section class="slide" data-index="4">
+<section id="s4">
+    <div class="sec-head"><span class="sec-badge" style="background:#d97706;">04</span><h2 class="sec-title">人机分工与质量护栏</h2></div>
+    <p class="sec-lead">原则一句话：<strong>AI 负责 Draft（草稿），人负责 Decision（决策）与 Guard（护栏）</strong>。凡不可逆、涉密、触碰红线的，人守 A（最终负责）。</p>
+
+    <h3 class="sub">4.0 为什么 AI 代码不能直接使用？AI 的代价</h3>
+    <p style="font-size:.88rem;color:#334155;line-height:1.85;margin:.4rem 0 1rem;">AI 能"快速生成"，但<strong>生成的代码 ≠ 可交付的代码</strong>。它带着四类代价，直接拿来用会在生产环境付出更高学费——这正是必须有人审查 + 护栏的原因。</p>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:16%;">代价</th><th style="width:42%;">AI 生成的常见问题</th><th style="width:42%;">不处理会发生什么</th></tr></thead>
+        <tbody>
+            <tr><td><span class="nm">错误 / 幻觉</span></td><td>"看起来对、实则错"：API 用错、字段名编造、逻辑与需求不符（幻觉）</td><td>功能不达预期；错误逻辑上线后<strong>影响真实数据</strong>（如归档误删、查询结果错误）</td></tr>
+            <tr><td><span class="nm">安全漏洞</span></td><td>SQL 拼接绕过白名单、密钥写死、越权接口、SAS 过期不当</td><td>数据泄露、被越权访问；<strong>合规事故</strong>（等保/个保法）</td></tr>
+            <tr><td><span class="nm">缺少测试</span></td><td>只生成实现，不生成/不验证测试；"看着能跑"就提交</td><td>回归无保障，改动引入新 bug 无法及时发现；<strong>缺陷流到生产</strong></td></tr>
+            <tr><td><span class="nm">隐性技术债</span></td><td>重复代码（复制粘贴）、结构混乱、不遵守分层/命名规范</td><td>后续维护成本陡增；<strong>重复度债</strong>（jscpd 检测）拖慢迭代</td></tr>
+            <tr><td><span class="nm">边界缺失</span></td><td>没处理异常/并发/幂等/超时，只覆盖"正常路径"</td><td>真实环境下偶发崩溃、数据不一致；<strong>不可逆场景（销毁）后果致命</strong></td></tr>
+        </tbody>
+    </table>
+    </div></div>
+    <div class="note amber"><b>一句话：</b>AI 给的是<strong>高完成度的草稿（Draft）</strong>，不是经过验证的交付物。它的"错误、缺失的测试、隐藏的安全与边界问题"就是<strong>AI 的代价</strong>——抵消这些代价，靠的是第 4.1 的 RACI 分工、第 4.2 的七层护栏，以及下面 4.3 的三条红线。<strong>"直接使用 AI 代码"省下的审查时间，会在事故与返工里加倍还回去。</b></div>
+
+    <h3 class="sub">4.1 RACI 矩阵（A=最终负责 R=执行 C=咨询 I=知会）</h3>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:26%;">活动</th><th style="width:18%;">人（架构师/工程师）</th><th style="width:14%;" class="c">AI Agent</th><th style="width:42%;">说明</th></tr></thead>
+        <tbody>
+            <tr><td><span class="nm">业务目标与优先级</span></td><td class="raci-A">A + R</td><td class="c raci-I">I</td><td>人的领地，AI 只知会</td></tr>
+            <tr><td><span class="nm">验收语句（GWT）</span></td><td class="raci-A">A</td><td class="c raci-R">R</td><td>人定边界与量化指标，AI 展开为完整语句并追问歧义</td></tr>
+            <tr><td><span class="nm">项目宪法 / ADR</span></td><td class="raci-A">A</td><td class="c raci-R">R</td><td>AI 起草候选条款，<strong>人拍板立法</strong></td></tr>
+            <tr><td><span class="nm">任务拆解</span></td><td class="raci-A">A</td><td class="c raci-R">R</td><td>AI 拆解，人校验粒度与依赖</td></tr>
+            <tr><td><span class="nm">编码实现 + 常规测试</span></td><td class="raci-C">C（审查）</td><td class="c raci-R">R</td><td>AI 生成到全绿，人审 diff——人的产出 = 合并量</td></tr>
+            <tr><td><span class="nm">安全用例（脱敏/越权/审计）</span></td><td class="raci-A">A + R</td><td class="c raci-C">C</td><td><strong>生成者不能当裁判</strong>：AI 的代码由 AI 测试不可信</td></tr>
+            <tr><td><span class="nm">销毁链路（不可逆）</span></td><td class="raci-A">A + R</td><td class="c raci-C">C</td><td>双人确认制度本身也是人写人审</td></tr>
+            <tr><td><span class="nm">三类 diff 审查</span></td><td class="raci-A">A + R</td><td class="c raci-I">I</td><td>安全/不可逆/跨边界，无旁路</td></tr>
+            <tr><td><span class="nm">UAT 签字</span></td><td class="raci-A">A</td><td class="c raci-R">R</td><td>AI 机械回放全量验收用例，人看结果签字</td></tr>
+        </tbody>
+    </table>
+    </div></div>
+
+    <h3 class="sub">4.2 七层护栏（越往上越强制）</h3>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:6%;" class="c">层</th><th style="width:20%;">护栏</th><th style="width:44%;">内容（RIMS 具体化）</th><th style="width:14%;">拦截时机</th><th style="width:16%;">失败动作</th></tr></thead>
+        <tbody>
+            <tr><td class="c mono">L1</td><td><span class="nm">风格与静态检查</span></td><td>ESLint / StyleCop（.NET 代码规范）+ strict tsc</td><td>保存即检</td><td>阻断提交</td></tr>
+            <tr><td class="c mono">L2</td><td><span class="nm">类型 + 分层依赖</span></td><td>TS strict / C# 强类型 / .NET 分层约束（controller→service→mapper 单向、前端不跨界 import）</td><td>本地构建</td><td>阻断提交</td></tr>
+            <tr><td class="c mono">L3</td><td><span class="nm">单元测试</span></td><td>后端 xUnit（.NET）+ 前端 Vitest（React）；核心链路覆盖率 ≥70% 门槛</td><td>每次生成循环</td><td>AI 自动修复重试</td></tr>
+            <tr><td class="c mono">L4</td><td><span class="nm">契约校验</span></td><td>OpenAPI diff / schema_json 结构校验 / 验收用例全绿 / <strong>引擎双实现契约测试</strong></td><td>每次生成循环</td><td>AI 自动修复重试</td></tr>
+            <tr><td class="c mono">L5</td><td><span class="nm">安全扫描</span></td><td>gitleaks（密钥）/ 依赖漏洞 / SQL 拼接模式 / <strong>重复度检测（jscpd，防 AI 复制粘贴债）</strong></td><td>CI 流水线</td><td><b>阻断合并</b></td></tr>
+            <tr><td class="c mono">L6</td><td><span class="nm">集成验证</span></td><td>测试数据库集成测试 / EF Core Migrations 校验 / 脱敏越权用例 / 状态机非法跳转</td><td>CI 流水线</td><td>阻断合并</td></tr>
+            <tr><td class="c mono">L7</td><td><span class="nm">人工闸门</span></td><td>三类 diff（安全/不可逆/跨边界）强制人审，CODEOWNERS + 分支保护</td><td>合并前</td><td><b>无旁路</b></td></tr>
+        </tbody>
+    </table>
+    </div></div>
+    <div class="note red"><b>三条红线（AI 永不越线，恰好对应 POC 的三个 P0 差距）：</b>① <b>物理销毁与不可逆 DDL</b>——双人确认，AI 只咨询不执行；② <b>密钥凭据</b>——生成代码中不允许出现真实值，只允许引用 Key Vault / Secret Scope；③ <b>字段脱敏</b>——必须 UC COLUMN MASK 平台侧，任何应用层"等效实现"（如 POC 的 mask.ts）拒绝合并。<b>这三条不是工具问题，是立法问题——写进宪法，机器强制。</b></div>
+</section>
+  </section>
+  <section class="slide" data-index="5">
+<section id="s5">
+    <div class="sec-head"><span class="sec-badge" style="background:#b45309;">05</span><h2 class="sec-title">成本测算与路线图</h2></div>
+    <p class="sec-lead">口径：同等交付范围（15 系统归档平台 + RBAC + 动态查询 + 生命周期销毁 + 审计合规），传统自研 vs 六步 AI 流程。人天含评审；费率 ¥3,000/人天可替换，比例结论稳健。</p>
+
+    <div class="stats">
+        <div class="stat"><div class="n">-42%</div><div class="d">总人天 310 → 179<br>净省 ≈¥39 万</div></div>
+        <div class="stat"><div class="n">-60%</div><div class="d">编码人天 150 → 60<br>POC 资产平移加持</div></div>
+        <div class="stat"><div class="n">+50%</div><div class="d">规格人天 20 → 30<br>买保险，不是买工具</div></div>
+        <div class="stat"><div class="n">5个月</div><div class="d">交付周期（传统约 14 个月）<br>时间价值另计</div></div>
+    </div>
+
+    <h3 class="sub">5.1 分阶段人天对比（按第 03 章六步映射）</h3>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:22%;">阶段（六步映射）</th><th style="width:8%;" class="c">传统</th><th style="width:8%;" class="c">AI Vibe</th><th style="width:8%;" class="c">Δ</th><th style="width:13%;" class="c">传统金额</th><th style="width:13%;" class="c">AI Vibe 金额</th><th style="width:28%;">归因</th></tr></thead>
+        <tbody>
+            <tr><td><span class="nm">需求 + 验收语句</span><span class="nm-sub">STEP 1</span></td><td class="c mono">20</td><td class="c mono" style="color:#b45309;font-weight:700;">30</td><td class="c w">+10</td><td class="c mono">¥6.0 万</td><td class="c mono" style="color:#b45309;font-weight:700;">¥9.0 万</td><td>GWT 逐条量化 + NFR 表——<strong>故意加重</strong>，是下游 -60% 的前提</td></tr>
+            <tr><td><span class="nm">架构 + 宪法 + ADR</span><span class="nm-sub">STEP 2</span></td><td class="c mono">25</td><td class="c mono">12</td><td class="c g">-13</td><td class="c mono">¥7.5 万</td><td class="c mono">¥3.6 万</td><td>POC 已验证选型（12 天实证），仅补宪法固化与 ADR</td></tr>
+            <tr><td><span class="nm">任务拆解 + 编码</span><span class="nm-sub">STEP 3 + 4</span></td><td class="c mono">150</td><td class="c mono">60</td><td class="c g">-90</td><td class="c mono">¥45.0 万</td><td class="c mono">¥18.0 万</td><td>会话生成循环 + 人审合并；数据模型 V1–V18 与动态查询内核直接平移</td></tr>
+            <tr><td><span class="nm">测试（嵌进循环）</span><span class="nm-sub">STEP 4 内嵌</span></td><td class="c mono">50</td><td class="c mono">30</td><td class="c g">-20</td><td class="c mono">¥15.0 万</td><td class="c mono">¥9.0 万</td><td>验收语句靶子先行，AI 生成常规用例；人聚焦安全/不可逆用例</td></tr>
+            <tr><td><span class="nm">审查 + 验收回放</span><span class="nm-sub">STEP 5 + 6</span></td><td class="c mono">20</td><td class="c mono">12</td><td class="c g">-8</td><td class="c mono">¥6.0 万</td><td class="c mono">¥3.6 万</td><td>验收用例机械回放替代人工 UAT；审计演练脚本化</td></tr>
+            <tr><td><span class="nm">PM 与协调</span></td><td class="c mono">25</td><td class="c mono">15</td><td class="c g">-10</td><td class="c mono">¥7.5 万</td><td class="c mono">¥4.5 万</td><td>评审异步化（diff 审查替代会议）；会话档案自动留痕</td></tr>
+            <tr><td><span class="nm">文档工作（SLC 各阶段）</span><span class="nm-sub">传统 / AI Vibe 均需产出</span></td><td class="c mono">20</td><td class="c mono">20</td><td class="c" style="color:#64748b;">0</td><td class="c mono">¥6.0 万</td><td class="c mono">¥6.0 万</td><td>覆盖整个生命周期 SLC 各阶段文档（需求/设计/测试/运维/退役）；无论哪种方式都要做，不因 AI 减少</td></tr>
+            <tr class="grp"><td>合计</td><td class="c mono" style="text-align:center;">310</td><td class="c mono" style="text-align:center;color:#6d28d9;">179</td><td class="c" style="text-align:center;"><span class="pill p-ok">-42%</span></td><td class="c mono" style="text-align:center;">¥93.0 万</td><td class="c mono" style="text-align:center;color:#6d28d9;">¥53.7 万</td><td>净省 131 人天 ≈¥39.3 万；AI 订阅 5 个月 ≈¥1.5 万，不足节省额 4%</td></tr>
+        </tbody>
+    </table>
+    </div></div>
+    <div class="note blue"><b>金额口径：</b>¥3,000/人天（文档统一费率，可替换）；两种方式的合计均含「文档工作 20 人天」（SLC 各阶段都要产出，不因 AI 减少）。<strong>净省 131 人天 ≈¥39.3 万</strong>，其中约 ¥27 万来自编码阶段（150→60 人天）——这是 AI 会话生成 + POC 资产平移的直接结果；而需求阶段金额不降反升（¥6→9 万），是有意"买保险"，换来下游 -60%。</div>
+
+    <h3 class="sub">5.2 价值链重心迁移</h3>
+    <div class="legend-bar">
+        <span><span class="sw" style="background:#0891b2;"></span>需求+Spec</span>
+        <span><span class="sw" style="background:#2563eb;"></span>架构+设计</span>
+        <span><span class="sw" style="background:#7c3aed;"></span>编码</span>
+        <span><span class="sw" style="background:#d97706;"></span>测试</span>
+        <span><span class="sw" style="background:#059669;"></span>交付+PM</span>
+    </div>
+    <div class="chain">
+        <div class="lbl">传统模式</div>
+        <div class="bar"><span style="width:7%;background:#0891b2;">7%</span><span style="width:9%;background:#2563eb;">9%</span><span style="width:52%;background:#7c3aed;">52%</span><span style="width:17%;background:#d97706;">17%</span><span style="width:15%;background:#059669;">15%</span></div>
+        <div class="dlt" style="color:#64748b;">290 人天</div>
+        <div class="lbl">AI Vibe</div>
+        <div class="bar"><span style="width:19%;background:#0891b2;">19%</span><span style="width:8%;background:#2563eb;">8%</span><span style="width:38%;background:#7c3aed;">38%</span><span style="width:19%;background:#d97706;">19%</span><span style="width:16%;background:#059669;">16%</span></div>
+        <div class="dlt" style="color:#6d28d9;">159 人天</div>
+    </div>
+
+    <h3 class="sub">5.3 路线图：POC → 生产（13~16 周 · 3.5 人）</h3>
+    <p style="font-size:.86rem;color:#334155;">配置：1 架构师（宪法与规格 owner）+ 2 工程师（AI 会话驾驶员）+ 0.5 测试（安全用例）。每阶段挂接六步流程与退出准则。</p>
+    <div class="phases">
+        <div class="phase p1"><span class="ph-no">PHASE A · 2~3 周</span><h4>STEP 1+2 规格与宪法</h4>
+            <ul><li>四条 Epic 验收语句 + NFR 表</li><li>constitution.md（禁令+红线+边界）</li><li>specify-cli 初始化规格链（Spec Kit）</li><li>L1–L7 护栏脚本化（含 jscpd）</li><li>客观度量基线（耗时/返工率/占比/缺陷率）</li></ul>
+            <span class="wt" style="color:#0e7490;background:var(--cyan-bg);border:1px solid var(--cyan-bd);">退出：Spec 冻结评审通过</span></div>
+        <div class="phase p3"><span class="ph-no">PHASE B · 6~8 周</span><h4>STEP 3+4 生产内核重建</h4>
+            <ul><li>UC 权限 + COLUMN MASK（替换前端脱敏）</li><li>SyncEngine / QueryEngine 双实现</li><li>Key Vault 密钥链路（替换明文）</li><li>销毁双人确认链路</li><li>Flyway V19 起平移数据模型</li></ul>
+            <span class="wt" style="color:#6d28d9;background:var(--ai-bg);border:1px solid var(--ai-bd);">退出：P0 差距清零 + 验收核心场景绿</span></div>
+        <div class="phase p4"><span class="ph-no">PHASE C · 4~5 周</span><h4>STEP 5+6 质量与合规</h4>
+            <ul><li>覆盖率 ≥70% + 重复度达标</li><li>SBOM + 漏洞清零</li><li>审计演练（脱敏/SAS/越权）</li><li>UAT = 验收用例全量回放</li></ul>
+            <span class="wt" style="color:#b45309;background:var(--warn-bg);border:1px solid var(--warn-bd);">退出：UAT 签字</span></div>
+        <div class="phase p5"><span class="ph-no">PHASE D · 2 周</span><h4>上线移交</h4>
+            <ul><li>运行手册 + 会话档案归档</li><li>审查能力培训（防团队空心化）</li><li>新系统接入模板化（零代码）</li></ul>
+            <span class="wt" style="color:#047857;background:var(--ok-bg);border:1px solid var(--ok-bd);">退出：试运行 2 周无 P1 事件</span></div>
+    </div>
+    <div class="road-foot">Phase A（STEP 1+2）每投入 1 人天，为后续省 3~5 人天——<strong>规格是这个项目回报率最高的投资；POC 的 12 天证明了速度，生产的 5 个月要证明的是纪律。</strong></div>
+</section>
+  </section>
+  <section class="slide" data-index="6">
+<section id="s6">
+    <div class="sec-head"><span class="sec-badge" style="background:#0891b2;">06</span><h2 class="sec-title">AI 工具成本 + 云资源成本</h2></div>
+    <p class="sec-lead">四类成本性质不同，<strong>分开列、分开管</strong>：AI 工具费是<strong>建设期一次性支出</strong>；云资源费是<strong>运行期持续支出</strong>（逐月累加，与选型报告 B2 口径一致）；<strong>年度运维费</strong>是上线后的人力投入；<strong>新系统接入费</strong>是边际成本（一次性 4 小时配置 + 月度增量）。</p>
+
+    <div class="cost2">
+        <div class="stat"><div class="n">≈¥1.5万</div><div class="d">AI 工具总成本（5 个月建设期）<br>占人力节省额（¥39.3 万）的 <strong>&lt;4%</strong></div></div>
+        <div class="stat"><div class="n">¥1.47~1.98万/月</div><div class="d">生产云资源月费（15 系统/20TB）<br>另测试环境 ¥0.23~0.44 万/月（同构低配）</div></div>
+        <div class="stat"><div class="n">≈¥6~11万/年</div><div class="d">年度运维成本（0.1~0.2 FTE 兼职）<br>不含云资源与 AI 席位，见 6.4</div></div>
+        <div class="stat"><div class="n">4小时</div><div class="d">新系统接入配置（SQL 配置功能）<br>≈0.5 人天 ≈¥1,500/系统，见 6.3</div></div>
+    </div>
+
+    <h3 class="sub">6.1 AI 工具成本（建设期 · 一次性）</h3>
+    <p style="font-size:.88rem;color:#334155;">按 3.5 人团队 × 5 个月（Phase A–D）配置。当前 POC 已在用智谱 GLM Coding Plan（glm-5.1），生产期延续同一通道并补充海外模型作为宪法/审查的第二意见源（<strong>干活的不给自己打分</strong>）。</p>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:22%;">成本项</th><th style="width:20%;">配置</th><th style="width:15%;" class="c">单价</th><th style="width:13%;" class="c">人月</th><th style="width:14%;" class="c">小计</th><th style="width:16%;">用途</th></tr></thead>
+        <tbody>
+            <tr class="grp"><td colspan="6">① 订阅类（主力通道 · 按席位包月）</td></tr>
+            <tr><td><span class="nm">智谱 GLM Coding Plan</span><span class="nm-sub">Lite/Pro 档 · 本项目现有通道</span></td><td>2 工程师 × Pro 档</td><td class="c mono">¥500/人月</td><td class="c mono">2 × 5</td><td class="c mono">¥5,000</td><td>会话生成主力（STEP 3–4）</td></tr>
+            <tr><td><span class="nm">Claude Max（5x）</span><span class="nm-sub">或同档海外订阅</span></td><td>1 架构师</td><td class="c mono">$100 ≈ ¥710/月</td><td class="c mono">1 × 5</td><td class="c mono">¥3,550</td><td>宪法/spec 起草、复杂重构、第二意见审查</td></tr>
+            <tr><td><span class="nm">轻量订阅</span><span class="nm-sub">Copilot / GLM Lite</span></td><td>0.5 测试</td><td class="c mono">¥100~200/月</td><td class="c mono">0.5 × 5</td><td class="c mono">¥500</td><td>用例生成辅助、日常补全</td></tr>
+            <tr class="grp"><td colspan="6">② API 按量类（峰值补充 · 仅冲刺月）</td></tr>
+            <tr><td><span class="nm">GLM / Claude API</span><span class="nm-sub">批量任务与长上下文</span></td><td>Phase B 两个月冲刺</td><td class="c mono">~¥1,200/月</td><td class="c mono">2 个月</td><td class="c mono">~¥2,400</td><td>验收用例批量生成、converge 差距分析、并行只读会话</td></tr>
+            <tr class="grp"><td>合计（5 个月建设期）</td><td></td><td class="c">—</td><td class="c">—</td><td class="c mono" style="color:#6d28d9;">≈ ¥1.1~1.6 万</td><td>中位 ≈¥1.5 万</td></tr>
+        </tbody>
+    </table>
+    </div></div>
+    <div class="note blue"><b>AI 成本三个特征：</b>① 与数据量无关，只与人×月相关——<b>可精确预算，无峰谷惊喜</b>；② 不到人力节省额的 4%，<b>不是决策变量</b>，真正贵的是 Spec 质量差导致的返工（第 05 章敏感性）；③ 海外+国内双通道不是重复付费——第二模型审查（STEP 5 的 L4 级验证）需要模型多样性，单通道自审不可信。</div>
+
+    <h3 class="sub">6.2 云资源成本（运行期 · 按月持续）</h3>
+    <p style="font-size:.88rem;color:#334155;"><strong>测试环境与生产环境组件同构、只降配置</strong>——测试环境缺组件就测不出生产问题（如 Redis 缓存行为、独立数据库连接池），这是环境有效性的底线。下表按组件对齐列示，一眼可见"组件都要、配置不同"。生产口径与《归档架构选型对比报告》B2 方案一致（15 系统 / 20 TB / Azure 列表价）。</p>
+
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr>
+            <th style="width:17%;">组件</th>
+            <th style="width:21%;" class="c">测试环境（同构低配）</th>
+            <th style="width:21%;" class="c">生产环境</th>
+            <th style="width:41%;">说明</th>
+        </tr></thead>
+        <tbody>
+            <tr><td><span class="nm">前端服务器</span></td>
+                <td class="c mono">¥400~600/月<br><span class="nm-sub">低配 VM · Nginx + 静态资源</span></td>
+                <td class="c mono">¥1,500/月<br><span class="nm-sub">独立部署 · 用户直连入口</span></td>
+                <td>React 构建产物 + Nginx；生产按并发与带宽选型</td></tr>
+            <tr><td><span class="nm">后端服务器</span></td>
+                <td class="c mono">¥400~600/月<br><span class="nm-sub">低配 VM · 跑全套后端</span></td>
+                <td class="c mono">¥1,500/月<br><span class="nm-sub">.NET 后端 · 全量服务</span></td>
+                <td>元数据管理/鉴权/同步编排/SAS 签发；生产两台共 ≈¥3,000/月</td></tr>
+            <tr><td><span class="nm">Redis</span></td>
+                <td class="c mono">¥600/月<br><span class="nm-sub">独立实例 · 与生产同构</span></td>
+                <td class="c mono">¥600/月<br><span class="nm-sub">Token/会话缓存</span></td>
+                <td>生产、测试各一台，每台 ≈¥600；POC 阶段配置了未真用，生产正式启用</td></tr>
+            <tr><td><span class="nm">元数据库</span><span class="nm-sub">MySQL · 配置/Schema/RBAC/审计</span></td>
+                <td class="c mono">¥400~600/月<br><span class="nm-sub">低配 · 结构与生产一致</span></td>
+                <td class="c mono">¥1,200/月<br><span class="nm-sub">高可用 · 备份留痕</span></td>
+                <td>仅存元数据，不存归档业务数据（宪法红线）</td></tr>
+            <tr><td><span class="nm">归档存储</span><span class="nm-sub">湖存 + 附件</span></td>
+                <td class="c mono">¥100~300/月<br><span class="nm-sub">GB 级测试数据</span></td>
+                <td class="c mono">¥2,800~5,000/月<br><span class="nm-sub">ADLS 20TB + Blob 附件</span></td>
+                <td>生产：湖存 Hot/Cool 混合 ¥90~150/TB + 附件 Cool→Cold；测试仅少量样本数据</td></tr>
+            <tr><td><span class="nm">ETL 计算</span><span class="nm-sub">同步入湖 · 抽取加工</span></td>
+                <td class="c mono">¥300~800/月<br><span class="nm-sub">低配 Jobs · 少量任务</span></td>
+                <td class="c mono">¥1,000~3,500/月<br><span class="nm-sub">Databricks Jobs 按时长</span></td>
+                <td>同步、compaction、销毁作业；测试跑小表验证链路即可</td></tr>
+            <tr><td><span class="nm">查询引擎</span></td>
+                <td class="c mono">¥0~400/月<br><span class="nm-sub">本地 Spark / 极少量 Serverless</span></td>
+                <td class="c mono">≈¥5,900/月<br><span class="nm-sub">SQL Serverless · 空闲归零</span></td>
+                <td>生产读侧主力（X-Small 6DBU/h × 198h）；测试用本地 Spark 即可验证 SQL 语义</td></tr>
+            <tr><td><span class="nm">安全与监控</span><span class="nm-sub">Key Vault · Monitor · 日志</span></td>
+                <td class="c mono">¥100~200/月</td>
+                <td class="c mono">¥200~600/月</td>
+                <td>密钥托管、指标告警、审计日志摄入</td></tr>
+            <tr class="grp"><td>月费合计</td>
+                <td class="c mono" style="text-align:center;">≈¥2,300~4,400</td>
+                <td class="c mono" style="text-align:center;color:#6d28d9;">≈¥14,700~19,800</td>
+                <td>生产年费 ≈¥17.6~23.8 万；测试环境约为生产的 1/5，且可在非回归期停机再省</td></tr>
+        </tbody>
+    </table>
+    </div></div>
+
+    <div class="note green"><b>云成本四个特征：</b>① <b>测试同构原则</b>：测试环境组件一个不少（前端/后端/Redis/元数据库/存储/引擎全齐），只降配置——否则 Redis 行为、连接池、独立库隔离这些生产问题在测试期根本暴露不出来；② <b>存算分离结构</b>：生产存储仅 ¥0.28~0.50 万，算力另付——Serverless 空闲归零是读侧省钱关键；③ <b>弹性可调</b>：Phase A/B 期间用测试环境即可完成绝大部分开发验证，生产环境 Phase C（UAT）前再启用，建设期云支出大幅后置；④ <b>随规模线性</b>：新系统接入 ≈+1.3TB 存储 + 少量 ETL，月费增幅 ≈¥300~800/系统。标 ¥400~600 的低配项为估算区间，可按实际选型微调。</div>
+
+    <h3 class="sub">6.3 每加一个系统的费用（一次性接入 + 年度增量）</h3>
+    <p style="font-size:.88rem;color:#334155;">新系统接入采用<strong>元数据驱动、零代码</strong>（见 02/03 章），无需重新开发页面。增量费用分两块：<strong>一次性接入成本</strong>（人天 + 配置，随接入发生）与 <strong>年度持续增量</strong>（新增存储 + 少量 ETL，随数据量持续）。</p>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:26%;">增量项</th><th style="width:20%;" class="c">一次性接入</th><th style="width:20%;" class="c">年度持续</th><th style="width:34%;">说明</th></tr></thead>
+        <tbody>
+            <tr><td><span class="nm">配置接入人天</span></td><td class="c mono">≈4 人时<br><span class="nm-sub">0.5 人天</span></td><td class="c mono">—</td><td>核心是「<strong>SQL 配置</strong>」功能：源库连接 + Schema/查询配置 + 保留策略——零代码，配置即上线（02 章动态查询内核 + Schema Registry 的直接红利）</td></tr>
+            <tr><td><span class="nm">一次性接入成本</span><span class="nm-sub">¥3,000/人天 = ¥375/人时</span></td><td class="c mono" style="color:#6d28d9;font-weight:700;">4h ≈ ¥1,500</td><td class="c mono">—</td><td>对外报价建议按 <strong>1 人天（¥3,000）预留</strong>——含连接测试、抽样数据核对、isPii 脱敏抽查，更稳妥</td></tr>
+            <tr><td><span class="nm">新增存储</span><span class="nm-sub">≈+1.3 TB/系统</span></td><td class="c mono">—</td><td class="c mono">≈¥1,400~2,000/月</td><td>湖存 Hot/Cool 混合 ¥90~150/TB + 附件 Cool→Cold，按 20TB/15 系统均值推算</td></tr>
+            <tr><td><span class="nm">新增 ETL 计算</span><span class="nm-sub">同步 + 周期加工</span></td><td class="c mono">—</td><td class="c mono">≈¥300~800/月</td><td>新增同步 / compaction 作业按时长计费</td></tr>
+            <tr class="grp"><td>每系统合计</td><td class="c mono" style="text-align:center;">4h ≈ ¥1,500（对外预留 ¥3,000）</td><td class="c mono" style="text-align:center;color:#6d28d9;">≈¥1,700~2,800/月<br>≈¥2.0~3.4 万/年</td><td>与 6.2「月费增幅 ≈¥300~800/系统」口径一致并展开明细</td></tr>
+        </tbody>
+    </table>
+    </div></div>
+    <div class="note green"><b>增量规律：</b>① <strong>一次性接入只要 4 小时</strong>（SQL 配置功能），相比传统逐系统开发（3~21 人天/系统）<strong>降幅 95% 以上</strong>——零代码接入是本平台最大的成本拐点；② <strong>年度增量 ≈¥2~3.4 万/系统</strong>，主要是存储 + 少量 ETL；③ 后续系统复用同一套配置流程，第 N 个系统的 4 小时里剠练度还会提升。<b>规模越大，均摊越划算。</b></div>
+
+    <h3 class="sub">6.4 年度运维成本（上线后每年）</h3>
+    <p style="font-size:.88rem;color:#334155;">按建设团队<strong>兼职持维</strong>口径（约 0.1~0.2 FTE）。<strong>不含云资源与 AI 席位</strong>（已在 6.1/6.2 列示，避免双计）；不含新系统接入的 4h 配置（属 6.3 边际成本，向对应系统项目计费）；费率同口径 ¥3,000/人天。</p>
+    <div class="tbl-wrap"><div class="tbl-scroll">
+    <table class="t">
+        <thead><tr><th style="width:20%;">运维项</th><th style="width:44%;">内容</th><th style="width:16%;" class="c">人天/年</th><th style="width:20%;" class="c">费用/年</th></tr></thead>
+        <tbody>
+            <tr><td><span class="nm">日常监控与告警</span></td><td>平台/同步作业/审计链路健康巡检，告警跟进</td><td class="c mono">5~10</td><td class="c mono">¥1.5~3.0 万</td></tr>
+            <tr><td><span class="nm">故障响应与恢复</span></td><td>偶发故障定位重跑、SAS/权限问题处理、性能调优</td><td class="c mono">5~10</td><td class="c mono">¥1.5~3.0 万</td></tr>
+            <tr><td><span class="nm">例行变更</span></td><td>权限调整、同步批次调整、查询口径微调</td><td class="c mono">4~8</td><td class="c mono">¥1.2~2.4 万</td></tr>
+            <tr><td><span class="nm">合规与演练</span></td><td>季度审计日志导出、销毁双人演练、权限巡检比对</td><td class="c mono">3~5</td><td class="c mono">¥0.9~1.5 万</td></tr>
+            <tr><td><span class="nm">补丁与升级</span></td><td>依赖安全补丁、季度小版本升级验证</td><td class="c mono">3~5</td><td class="c mono">¥0.9~1.5 万</td></tr>
+            <tr class="grp"><td>年度合计</td><td>≈0.1~0.2 FTE（折合每月 2~3 人天，兼职可覆盖）</td><td class="c mono" style="text-align:center;">20~38</td><td class="c mono" style="text-align:center;color:#6d28d9;">≈¥6.0~11.4 万/年</td></tr>
+        </tbody>
+    </table>
+    </div></div>
+    <div class="note blue"><b>运维成本三个特征：</b>① <strong>人力是运维主体</strong>（云资源已在 6.2 另计）——归档系统负载平稳、无交易峰值，兼职可覆盖，无需专职运维岗；② 年度运维 ≈ 建设费（¥47.7 万）的 <strong>13~24%</strong>，落在行业健康区间（15~25%）内；③ 销毁演练与审计导出是合规刚需项——这部分不能省，是“合规举证”能力的年度保鲜成本。</div>
+</section>
+  </section>
+  <section class="slide" data-index="7">
+<section id="s7">
+    <div class="sec-head"><span class="sec-badge" style="background:#7c3aed;">07</span><h2 class="sec-title">AI 时代 · 前端框架选型（React vs Vue）</h2></div>
+    <p class="sec-lead">在 LLM AI 辅助编程（Copilot / Claude / ChatGPT 等）成为主流的当下，React 相比 Vue 在「与 AI 结合」的场景下展现出显著优势 —— 关键在于 <strong>JSX 即纯 JS 的表达方式</strong> 与 <strong>海量的开源训练数据</strong>。</p>
+
+    <div class="grid g2">
+        <div class="card">
+            <h3><span class="ic" style="background:rgba(52,120,246,.2)">①</span>JSX = 纯粹的 JS/TS，对 AI 更友好</h3>
+            <ul>
+                <li><b>React (JSX/TSX)</b>：JSX 本质是 JS 语法扩展，UI 与逻辑统一在 JS 函数中；LLM 擅长连贯逻辑 + 强类型 JS/TS</li>
+                <li><b>Vue (SFC Template)</b>：默认单文件组件（.vue），模板指令 / 插值 / 修饰符是「另一套 DSL」，AI 容易误用</li>
+                <li>结论：<b style="color:#1d4ed8">"Everything is JavaScript"</b> 让 AI 推理 / 重构 / 生成 React 代码的<b>准确率与成功率显著更高</b></li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3><span class="ic" style="background:rgba(16,185,129,.2)">②</span>训练数据量的绝对优势</h3>
+            <ul>
+                <li>LLM 能力高度依赖训练数据规模</li>
+                <li>React 全球市占率更大，GitHub / Stack Overflow / 开源库中<b>代码总量远超 Vue</b></li>
+                <li>AI 对 React 的模式、Hooks 边界情况（Edge Cases）、报错问题的<b>「记忆」更深刻</b></li>
+                <li>结果：AI 生成 React 代码质量更高、Bug 更少</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3><span class="ic" style="background:rgba(52,120,246,.2)">③</span>AI 原生生态 & 组件库几乎全在 React 领跑</h3>
+            <ul>
+                <li><b>AI SDK 首选支持</b>：Vercel AI SDK、LangChain 前端库等大多 React First</li>
+                <li><b>热门 AI UI 库</b>：shadcn/ui、Magic UI 等均为 React 原生构建</li>
+                <li>Vue 生态多为社区移植版（如 shadcn-vue），<b>更新维护往往落后一步</b></li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3><span class="ic" style="background:rgba(16,185,129,.2)">④</span>逻辑复用：Hooks vs Composition API</h3>
+            <ul>
+                <li><b>React Hooks</b>：将逻辑解耦为纯函数（如 <span class="mono">useChat</span> / <span class="mono">useCompletion</span>），AI 生成/组合自定义 Hook 非常精准</li>
+                <li><b>Vue 3 Composition API</b>：响应式追踪存在隐式陷阱 —— <span class="mono">ref.value</span> 拆包、<span class="mono">reactive</span> 解构丢失响应性</li>
+                <li>AI 极易在此类细节上犯错：<b style="color:#dc2626">忘记 .value、不当解构</b></li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3><span class="ic" style="background:rgba(52,120,246,.2)">⑤</span>跨端 & 全栈 AI 应用的统一性</h3>
+            <ul>
+                <li>很多 AI 产品（Copilot 助手、Agent 平台）需全栈能力，如<b>流式传输 SSE</b></li>
+                <li>React 生态的 <b>Next.js + React Server Components (RSC)</b> 可无缝生成「服务端 Stream → 客户端渲染」全链路代码</li>
+                <li>同一套逻辑可更容易迁移到 <b>React Native 移动端</b></li>
+            </ul>
+        </div>
+        <div class="card" style="background:rgba(245,158,11,.08); border-color:rgba(245,158,11,.35);">
+            <h3><span class="ic" style="background:rgba(245,158,11,.2)">💡</span>一句话结论</h3>
+            <p style="font-size:13px; color:#334155; line-height:1.7">
+                并不是 Vue 本身不够优秀，而是<b style="color:#1d4ed8">在 AI 辅助编程的新时代，React 的纯 JS 表达方式（JSX）与巨大的开源数据积淀，天然成为最契合 AI（LLM）的"编程语言"</b>。<br><br>
+                本项目前端即采用 <b style="color:#047857">React 19 + Vite 8 + TypeScript + Tailwind</b> —— 正是基于此选型考量。
+            </p>
+        </div>
+    </div>
+
+    <div class="divider" style="margin:22px 0"></div>
+    <div class="sec-title" style="margin-top:12px">📊 维度对比一览</div>
+    <div class="table-wrap">
+        <table class="t">
+            <thead>
+                <tr><th style="width:22%">维度</th><th style="width:39%">React（AI 视角）</th><th style="width:39%">Vue（AI 视角）</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><b style="color:var(--text-main)">AI 生成代码准确度</b></td><td>⭐⭐⭐⭐⭐ JSX 即 JS，AI 理解力极佳</td><td>⭐⭐⭐☆ 模板指令有时被 AI 误用</td></tr>
+                <tr><td><b style="color:var(--text-main)">LLM 训练数据量</b></td><td>⭐⭐⭐⭐⭐ 极其庞大，涵盖各种场景</td><td>⭐⭐⭐⭐ 较充足但弱于 React</td></tr>
+                <tr><td><b style="color:var(--text-main)">AI 相关 SDK & UI 生态</b></td><td>⭐⭐⭐⭐⭐ Vercel AI SDK / shadcn 原生支持</td><td>⭐⭐⭐☆ 多为社区移植版</td></tr>
+                <tr><td><b style="color:var(--text-main)">AI 犯错率（响应性陷阱）</b></td><td>较少（主要是 <span class="mono">useEffect</span> 依赖项问题）</td><td>较多（AI 易忘记 <span class="mono">.value</span> 或破坏响应性）</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+  </section>
+  </div>
+
+  <div class="nav-bar">
+    <button class="nav-btn" id="prev" aria-label="上一页">‹</button>
+    <div class="dots" id="dots"></div>
+    <span class="page-label" id="pageLabel">1 / 7</span>
+    <button class="nav-btn" id="next" aria-label="下一页">›</button>
+  </div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('#deck .slide'));
+  const dotsWrap = document.getElementById('dots');
+  const pageLabel = document.getElementById('pageLabel');
+  let cur = 0;
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot-s' + (i === 0 ? ' on' : '');
+    d.addEventListener('click', () => go(i));
+    dotsWrap.appendChild(d);
+  });
+  const dotEls = Array.from(dotsWrap.children);
+
+  function go(i) {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, idx) => s.classList.toggle('active', idx === cur));
+    dotEls.forEach((d, idx) => d.classList.toggle('on', idx === cur));
+    pageLabel.textContent = (cur + 1) + ' / ' + slides.length;
+    document.getElementById('prev').disabled = cur === 0;
+    document.getElementById('next').disabled = cur === slides.length - 1;
+  }
+  document.getElementById('next').addEventListener('click', () => go(cur + 1));
+  document.getElementById('prev').addEventListener('click', () => go(cur - 1));
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(cur - 1); }
+    if (e.key === 'Home') go(0);
+    if (e.key === 'End') go(slides.length - 1);
+  });
+  go(0);
+</script>
+</body>
+</html>
