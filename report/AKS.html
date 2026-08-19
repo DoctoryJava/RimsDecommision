@@ -126,7 +126,7 @@
     <tr class="row-p0"><td colspan="5"><b>P0 · 立即执行</b> <span class="small">纯 PDB 改动，不触碰业务 Pod、不重启、不影响运行中流量</span></td></tr>
     <tr>
       <td><span class="pill p0">P0</span></td>
-      <td><b>① PDB 统一用 maxUnavailable</b><br><span class="small">禁 minAvailable + HPA 组合</span></td>
+      <td><b>① PDB 统一用 maxUnavailable</b><br><span class="small">禁 minAvailable（绝对值）+ HPA 组合（百分比可用，但需校验）</span></td>
       <td><pre style="margin:0;padding:8px 10px;">maxUnavailable: 1
 unhealthyPodEvictionPolicy: AlwaysAllow
 selector:
@@ -172,7 +172,7 @@ limits:   { cpu: 1000m, memory: 512Mi }</pre><span class="small">memory.limits =
     <tr>
       <td><span class="pill p1">P1</span></td>
       <td><b>⑥ replicas ≥ 2（核心≥3）</b></td>
-      <td><span class="small">对外 ≥2；核心 ≥3；有状态 ≥3（奇数）<br>用 <code>kubectl get pod -o wide</code> 验证实际分散</span></td>
+      <td><span class="small">对外 ≥2；核心 ≥3；有状态 ≥3；<b>仅 quorum 类组件</b>（etcd/ZooKeeper/Redis Sentinel/Kafka Controller）<b>才需奇数</b><br>用 <code>kubectl get pod -o wide</code> 验证实际分散</span></td>
       <td>单副本 = 升级必然中断；同节点多副本 = 假冗余（CA072 实证）</td>
       <td>replicas 达标且实际跨节点</td>
     </tr>
@@ -202,9 +202,9 @@ limits:   { cpu: 1000m, memory: 512Mi }</pre><span class="small">memory.limits =
       <td><pre style="margin:0;padding:8px 10px;">topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: kubernetes.io/hostname
-    whenUnsatisfiable: ScheduleAnyway</pre><span class="small">核心服务用 DoNotSchedule；AZ 集群加 zone 级</span></td>
+    whenUnsatisfiable: DoNotSchedule   # 核心服务（前提：⑫容量N+1达标）</pre><span class="small">hostname 级核心服务用 DoNotSchedule（前提：⑫容量 N+1 已达标）；zone 级保留 ScheduleAnyway 防止跨 AZ 节点不足 Pending</span></td>
       <td>结果约束，Pod 均匀分布；preferred 反亲和会被稀释（CA072）</td>
-      <td>spread 已配置，Pod 实际分散</td>
+      <td>spread 已配置且实际分散；<b>若用 DoNotSchedule，需先确认 ⑫ 节点容量 N+1 达标</b></td>
     </tr>
     <tr>
       <td><span class="pill p2">P2</span></td>
@@ -349,7 +349,7 @@ spec:
             matchLabels: { app: corp-ca191-speakerapi-p }
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: ScheduleAnyway
+          whenUnsatisfiable: DoNotSchedule   # ⑨ 核心服务硬约束（前提：⑫容量N+1达标）
           labelSelector:
             matchLabels: { app: corp-ca191-speakerapi-p }
       affinity:                            # ⑨ 辅助（可选）
@@ -384,7 +384,7 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 2
             failureThreshold: 3
-          livenessProbe:                   # ⑧ 只查进程自身；确认 /api/Misc/Health 不查 DB/Redis
+          livenessProbe:                   # ⑧ ⚠️高风险：上线前必须代码走查，见下方专项说明
             httpGet: { path: /api/Misc/Health, port: 80 }
             initialDelaySeconds: 10
             periodSeconds: 10
@@ -426,7 +426,7 @@ metadata:
   name: corp-ca191-apihpa-p
   namespace: default
 spec:
-  maxReplicas: 6
+  maxReplicas: 6                        # 🔧示例值，需按该服务实际 P95 压测后确定，不可直接复用
   minReplicas: 3                           # 与 Deployment replicas 一致
   scaleTargetRef:
     apiVersion: apps/v1
@@ -447,6 +447,12 @@ spec:
       policies:
         - { type: Percent, value: 100, periodSeconds: 30 }</code></pre>
   <p class="small">注：① 启用 HPA 后 Helm/GitOps 不再管理 <code>spec.replicas</code>；② 移动端 <code>corp-ca191-speakerapi-m-p</code> 同构，复制本模板改 <code>app</code>/<code>name</code> 即可。</p>
+
+  <div class="callout danger">
+    <b>⚠️ 高风险修订专项说明：liveness/readiness 共用端点问题</b>
+    模板中 startupProbe / readinessProbe / livenessProbe 均指向同一个 <code>/api/Misc/Health</code> 端点。P1⑧ 要求 liveness 不能查外部依赖，但该端点的<b>具体实现</b>未经代码验证——若内部检测了 DB/Redis 连接（常见于 .NET <code>AddHealthChecks()</code> 默认写法），依赖一抖动会导致<b>全部副本同时 liveness 失败 → 同时重启 → 级联雪崩</b>，正是 P1⑧ 要防的最坏场景。<br>
+    <b>上线前必须完成（阻断项，不可跳过）：</b>① 由开发提供 <code>/api/Misc/Health</code> 源码实现，确认是否含外部依赖检查；② 若含依赖检查，必须拆分为 <code>/health/live</code>（仅进程存活）与 <code>/health/ready</code>（含依赖），liveness/startup 指向前者、readiness 指向后者；③ 若确认不含，书面记录存档备查，而非仅凭注释。<b>此项优先级等同 P1，应单列为发版 checklist 强制项。</b>
+  </div>
 </section>
 
 <footer>
