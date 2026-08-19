@@ -304,38 +304,38 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
             <ul><li><strong>每个阶段加速</strong>：文档起草、代码生成、用例编写、日志排查都更快</li><li><strong>人天下降</strong>：从 310 人天降到约 220~260（视 AI 参与度）</li><li><strong>局限</strong>：流程骨架没变，阶段间的等待与返工仍在；AI 的收益被"文档交接"和"评审门"部分抵消</li><li>本质是<strong>用 AI 给旧流程"提速"，而非"重塑"</strong></li></ul></div>
     </div>
 
-    <!-- 场景三：AI Native / Vibe Coding（Kiro Spec 模式） -->
-    <h3 class="sub">场景三 · AI Native / Vibe Coding（Kiro Spec 模式 · 从规格到生成一体化）</h3>
+    <!-- 场景三：AI Native / Vibe Coding（规格驱动模式） -->
+    <h3 class="sub">场景三 · AI Native / Vibe Coding（规格驱动模式 · 从规格到生成一体化）</h3>
     <div class="vibe">
-        <!-- ① 记忆库 + 需求（Kiro steering + requirements） -->
+        <!-- ① 项目记忆 + 需求规格 -->
         <div class="vibe-seg">
-            <div class="vibe-seg-tag">① 记忆库 + 需求定义 · 一次性 · 人主导（Kiro：steering → requirements.md）</div>
+            <div class="vibe-seg-tag">① 项目记忆 + 需求规格 · 一次性 · 人主导</div>
             <div class="vibe-row">
-                <div class="vibe-node blue">Steering 记忆库<small>product/tech/structure · 项目全局规则</small></div>
+                <div class="vibe-node blue">项目记忆库<small>产品/技术栈/代码组织 · 全局规则</small></div>
                 <div class="vibe-arrow">→</div>
-                <div class="vibe-node blue">requirements.md<small>用户故事 + 验收标准（EARS）</small></div>
+                <div class="vibe-node blue">需求规格<small>用户故事 + 验收标准 · 可验证语句</small></div>
             </div>
-            <div class="vibe-loop-note" style="margin-top:10px;">✔ 人工审批门：spec.json 置 <code>"requirements": true</code> 才放行 —— 需求锁定（对应"Spec 冻结"）</div>
+            <div class="vibe-loop-note" style="margin-top:10px;">✔ 人工审批门：需求规格评审通过后才放行 —— 需求锁定（对应"Spec 冻结"）</div>
         </div>
         <div class="vibe-down">▼</div>
-        <!-- ② 设计 + 任务（Kiro design + tasks） -->
+        <!-- ② 设计规格 + 任务清单 -->
         <div class="vibe-seg">
-            <div class="vibe-seg-tag">② 技术设计 + 任务拆解 · 一次性 · 人主导（Kiro：design.md → tasks.md）</div>
+            <div class="vibe-seg-tag">② 设计规格 + 任务清单 · 一次性 · 人主导</div>
             <div class="vibe-row">
-                <div class="vibe-node blue">design.md<small>技术方案 · 架构/数据/测试策略</small></div>
+                <div class="vibe-node blue">设计规格<small>技术方案 · 架构/数据/测试策略</small></div>
                 <div class="vibe-arrow">→</div>
-                <div class="vibe-node blue">tasks.md<small>拆到原子任务 · 与需求一一对应</small></div>
+                <div class="vibe-node blue">任务清单<small>拆到原子任务 · 与需求一一对应</small></div>
             </div>
-            <div class="vibe-loop-note" style="margin-top:10px;">✔ 人工审批门：spec.json 置 <code>"design": true</code>、<code>"tasks": true</code> 逐级放行</div>
+            <div class="vibe-loop-note" style="margin-top:10px;">✔ 人工审批门：设计与任务清单逐级评审放行，未放行不进入实现</div>
         </div>
         <div class="vibe-down">▼</div>
-        <!-- ③ 核心循环 + 验收（Kiro 钩子执行 + 审查） -->
+        <!-- ③ 实现循环 -->
         <div class="vibe-seg loop">
-            <div class="vibe-seg-tag">③ 实现循环 · 每个任务反复 · AI 执行 + 钩子验证（Kiro Agent Hooks）</div>
+            <div class="vibe-seg-tag">③ 实现循环 · 每个任务反复 · AI 执行 + 自动验证</div>
             <div class="vibe-row">
-                <div class="vibe-node plain">按 tasks 实现<small>AI 生成代码</small></div>
+                <div class="vibe-node plain">按任务实现<small>AI 生成代码</small></div>
                 <div class="vibe-arrow">→</div>
-                <div class="vibe-node amber">钩子自动验证<small>跑测试/lint · 不绿不停</small></div>
+                <div class="vibe-node amber">自动验证<small>跑测试/lint · 不绿不停</small></div>
                 <div class="vibe-arrow">→</div>
                 <div class="vibe-node plain">人工审查<small>审 diff · 通过才合并</small></div>
             </div>
@@ -351,10 +351,10 @@ footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-
         </div>
     </div>
     <div class="vs">
-        <div class="vs-col ai"><h4><span class="vs-tag">HOW</span>怎么实施（Kiro 规格驱动流程）</h4>
-            <ul><li><strong>Kiro 三步：requirements → design → tasks</strong>，每步有独立 md 文件 + 人工审批门</li><li><strong>steering/</strong> 记忆库（product/tech/structure）提供项目全局上下文，贯穿所有功能</li><li>requirements 用<strong>用户故事 + 验收标准（EARS）</strong>——把口语需求写成可验证语句</li><li>审批门（spec.json 置 true）= 规格冻结，未放行不进入下一步</li><li>实现由 Agent Hooks 自动跑测试验证，人审 diff 后部署</li></ul></div>
+        <div class="vs-col ai"><h4><span class="vs-tag">HOW</span>怎么实施（规格驱动流程）</h4>
+            <ul><li><strong>三步规格：需求 → 设计 → 任务</strong>，每步产出独立规格文档 + 人工审批门</li><li><strong>项目记忆库</strong>（产品/技术栈/代码组织）提供全局上下文，贯穿所有功能</li><li>需求规格用<strong>用户故事 + 验收标准</strong>——把口语需求写成可验证语句</li><li>审批门（评审通过）= 规格冻结，未放行不进入下一步</li><li>实现由自动验证钩子跑测试，人审 diff 后部署</li></ul></div>
         <div class="vs-col ai"><h4><span class="vs-tag">GAIN</span>收益</h4>
-            <ul><li><strong>彻底重塑</strong>：不再有 7 阶段等待与文档交接，规格直接驱动生成</li><li><strong>最大提速</strong>：本项目实证 12 天跑通 POC、总人天 310 → 179（-42%）</li><li><strong>错误前置</strong>：测试由钩子自动验证，错误在会话内拦截而非流到测试阶段</li><li>代价：需要人更懂"怎么写规格/怎么审"，且审批门必须认真把关</li></ul></div>
+            <ul><li><strong>彻底重塑</strong>：不再有 7 阶段等待与文档交接，规格直接驱动生成</li><li><strong>最大提速</strong>：本项目实证 12 天跑通 POC、总人天 310 → 179（-42%）</li><li><strong>错误前置</strong>：测试自动验证，错误在会话内拦截而非流到测试阶段</li><li>代价：需要人更懂"怎么写规格/怎么审"，且审批门必须认真把关</li></ul></div>
     </div>
 
     <!-- 三场景横向对比表 -->
