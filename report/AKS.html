@@ -81,551 +81,242 @@
   .item-head h3{margin:0;}
   .meta-row{font-size:12.5px;color:var(--c-muted);margin-bottom:8px;}
   .meta-row b{color:var(--c-text);}
+
+  /* ===== 汇总表分组行 ===== */
+  .row-p0 td{background:#57050b;color:#fff;font-size:14px;}
+  .row-p0 td .small{color:#f5c6cb;}
+  .row-p1 td{background:#ffebe9;color:#cf222e;font-size:14px;}
+  .row-p1 td .small{color:#a40e26;}
+  .row-p2 td{background:#fff8c5;color:#9a6700;font-size:14px;}
+  .row-p2 td .small{color:#7d5900;}
+  .row-p3 td{background:#ddf4ff;color:#0969da;font-size:14px;}
+  .row-p3 td .small{color:#0550ae;}
+  .row-p0 td,.row-p1 td,.row-p2 td,.row-p3 td{font-weight:700;}
+  table tr:not(.row-p0):not(.row-p1):not(.row-p2):not(.row-p3) td b{color:#0b3d91;}
+  table pre{margin:0;padding:8px 10px;font-size:11.5px;}
+  .tbl-scroll{overflow-x:auto;}
+
 </style>
 </head>
 <body>
 <div class="wrap">
-
 <!-- ================= HERO ================= -->
 <header class="hero">
   <h1>AKS 应用高可用统一整改方案</h1>
-  <p>整改项按优先级排列 · 标准模板 · 审计脚本 · 验收 Checklist · 落地路线</p>
-  <p><span class="pill w">P0 立即执行 ×3</span><span class="pill w">P1 核心必改 ×5</span><span class="pill w">P2 生产标准 ×6</span><span class="pill w">P3 成熟度 ×6</span></p>
+  <p>整改项按 P0→P3 优先级排列 · 完整汇总表 · 标准配置模板</p>
+  <p><span class="pill w">P0 立即执行 ×3</span><span class="pill w">P1 核心必改 ×5</span><span class="pill w">P2 生产标准 ×7</span><span class="pill w">P3 成熟度 ×6</span></p>
   <div class="meta">汇报版 ｜ 2026-08-17 ｜ 适用：AKS ≥ 1.27 全部业务集群</div>
 </header>
 
-<!-- ================= S0 : 总表 ================= -->
+<!-- ================= 汇总表 ================= -->
 <section class="card" id="s0">
-  <h2><span class="no">◎</span>AKS 高可用配置总表</h2>
-  <p class="small">按优先级从高到低排列，期望配置可直接复制使用。详细说明见后文对应章节。</p>
+  <h2><span class="no">◎</span>AKS 高可用整改总表（按优先级 P0→P3）</h2>
+  <p class="small">核心认知：AKS 只提供<b>基础设施</b>高可用，<b>不提供应用高可用</b>。应用高可用 = 冗余（活副本）× 流量正确性（不打给将死 Pod）× 调度可行性（被赶走的 Pod 有地方去）。业务中断 = Pod 被驱逐 + 没有冗余承接。<b>P0+P1 完成即覆盖 90% 的实际风险。</b></p>
+  <div class="tbl-scroll" style="overflow-x:auto;">
   <table>
-    <tr><th>高可用点</th><th>参数</th><th>期望配置</th><th>作用</th><th>影响（不配的后果）</th></tr>
     <tr>
-      <td><b>Pod副本</b><br><span class="pill p1">P1</span></td>
-      <td>replicas</td>
-      <td><pre style="margin:0;padding:8px 10px;">spec:
-  replicas: 3</pre>
-      <span class="small">对外服务 ≥2<br>核心业务 ≥3<br>有状态 ≥3（奇数）</span></td>
-      <td>应用高可用的基础冗余</td>
-      <td>单副本 AKS 升级必然中断</td>
+      <th style="width:7%;">优先级</th>
+      <th style="width:16%;">整改项</th>
+      <th style="width:34%;">期望配置（要点）</th>
+      <th style="width:27%;">作用 / 不配的后果</th>
+      <th style="width:16%;">验收标准</th>
     </tr>
-    <tr>
-      <td><b>PDB</b><br><span class="pill p0">P0</span></td>
-      <td>maxUnavailable</td>
-      <td><pre style="margin:0;padding:8px 10px;">apiVersion: policy/v1
-kind: PodDisruptionBudget
-spec:
-  maxUnavailable: 1
-  unhealthyPodEvictionPolicy: AlwaysAllow
-  selector:
-    matchLabels:
-      app: &lt;service-name&gt;</pre>
-      <span class="small">统一用 maxUnavailable<br>❌ 禁止 minAvailable + HPA 组合<br>❌ 单副本不配 PDB</span></td>
-      <td>防止维护期间同时驱逐全部 Pod；一次最多只能"少一个 Pod"</td>
-      <td>未配置：被一次性全部驱逐<br>配 minAvailable + HPA：缩容后 disruptionsAllowed=0，<b>节点升级永久卡死</b></td>
-    </tr>
-    <tr>
-      <td><b>优雅下线</b><br><span class="pill p1">P1</span></td>
-      <td>preStop /<br>terminationGracePeriodSeconds</td>
-      <td><pre style="margin:0;padding:8px 10px;">terminationGracePeriodSeconds: 45
-containers:
-  - lifecycle:
-      preStop:
-        exec:
-          command: ["/bin/sh","-c","sleep 15"]</pre>
-      <span class="small">应用同时要处理 SIGTERM</span></td>
-      <td>Pod 删除时 SIGTERM 与摘流是并行的；preStop 等摘除传播完成，实现真正"先切流量，再杀 Pod"</td>
-      <td>升级/发版必现 502 / 连接重置（readinessProbe 管不了下线）</td>
-    </tr>
-    <tr>
-      <td><b>资源预留</b><br><span class="pill p1">P1</span></td>
-      <td>resources.requests / limits</td>
-      <td><pre style="margin:0;padding:8px 10px;">resources:
-  requests:
-    cpu: 200m
-    memory: 512Mi
-  limits:
-    cpu: 1000m
-    memory: 512Mi</pre>
-      <span class="small">memory limit == requests<br>按 P95 实际用量设定</span></td>
-      <td>调度器据此计算容量，被驱逐的 Pod 才有落点；QoS 决定资源紧张时的驱逐顺序</td>
-      <td>驱逐后 Pod Pending 直接 downtime；BestEffort Pod 被优先杀；HPA 指标失真</td>
-    </tr>
-    <tr>
-      <td><b>探针</b><br><span class="pill p1">P1</span></td>
-      <td>readinessProbe（必须）<br>startupProbe（慢启动）<br>livenessProbe（可选）</td>
-      <td><pre style="margin:0;padding:8px 10px;">startupProbe:
-  httpGet: {path: /health/live, port: 8080}
-  periodSeconds: 5
-  failureThreshold: 30
-readinessProbe:
-  httpGet: {path: /health/ready, port: 8080}
-  periodSeconds: 5
-  timeoutSeconds: 2
-  failureThreshold: 3
-livenessProbe:
-  httpGet: {path: /health/live, port: 8080}
-  periodSeconds: 10
-  failureThreshold: 6</pre>
-      <span class="small">liveness 只查进程自身<br>❌ 绝不检查 DB/Redis 等外部依赖</span></td>
-      <td>readiness 防止未就绪切入流量；startup 保护慢启动应用；liveness 摘流快、重启慢</td>
-      <td>无 readiness：请求打到未就绪 Pod<br>liveness 查外部依赖：依赖抖动 → 全副本同时重启 → <b>级联雪崩</b></td>
-    </tr>
-    <tr>
-      <td><b>Pod分布约束</b><br><span class="pill p2">P2</span></td>
-      <td>topologySpreadConstraints<br>（主）+ podAntiAffinity（辅）</td>
-      <td><pre style="margin:0;padding:8px 10px;">topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: kubernetes.io/hostname
-    whenUnsatisfiable: ScheduleAnyway
-    labelSelector:
-      matchLabels:
-        app: &lt;service-name&gt;</pre>
-      <span class="small">核心服务可用 DoNotSchedule<br>启用 AZ 的集群再加 zone 级</span></td>
-      <td>同一应用的 Pod 均匀分布在不同 Node 上；spread 是"结果约束"，比反亲和"偏好"更可靠</td>
-      <td>多副本挤在同一 Node 会被一次性驱逐（CA072 实证：只配 preferred 反亲和照样挤一起）</td>
-    </tr>
-    <tr>
-      <td><b>发版策略</b><br><span class="pill p2">P2</span></td>
-      <td>strategy.rollingUpdate</td>
-      <td><pre style="margin:0;padding:8px 10px;">strategy:
-  rollingUpdate:
-    maxUnavailable: 0
-    maxSurge: 1
-minReadySeconds: 10</pre></td>
-      <td>发版先起新 Pod 再停旧的，零容量损失；<b>PDB 对发版不生效</b>，发版由 rollingUpdate 管</td>
-      <td>发版期间容量塌陷；"起来就崩"的版本雪崩式铺开</td>
-    </tr>
-    <tr>
-      <td><b>HPA弹性</b><br><span class="pill p2">P2</span></td>
-      <td>minReplicas / maxReplicas / behavior</td>
-      <td><pre style="margin:0;padding:8px 10px;">minReplicas: 2
-maxReplicas: 10
-metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 60
-behavior:
-  scaleDown:
-    stabilizationWindowSeconds: 600</pre>
-      <span class="small">启用 HPA 后 GitOps/Helm<br>不再管理 spec.replicas</span></td>
-      <td>动态调整 replicas 应对流量；HPA 是容量弹性方案，<b>不是高可用方案</b></td>
-      <td>流量高峰扛不住；GitOps 与 HPA 抢 replicas 造成副本抖动</td>
-    </tr>
-    <tr>
-      <td><b>Node调度</b><br><span class="pill p3">P3</span></td>
-      <td>nodeAffinity（仅 preferred）</td>
-      <td><pre style="margin:0;padding:8px 10px;">nodeAffinity:
-  preferredDuringSchedulingIgnoredDuringExecution:
-    - weight: 100
-      preference:
-        matchExpressions:
-          - key: agentpool
-            operator: In
-            values: ["pool-a"]</pre>
-      <span class="small">❌ 禁止 nodeSelector<br>⚠️ required 仅特殊场景</span></td>
-      <td>软偏好指定节点池，节点不满足时仍可调度</td>
-      <td>nodeSelector 硬绑定：AKS 节点经常重建变化，标签一变调度直接失败</td>
-    </tr>
-    <tr>
-      <td><b>调度优先级</b><br><span class="pill p3">P3</span></td>
-      <td>priorityClassName</td>
-      <td><pre style="margin:0;padding:8px 10px;">kind: PriorityClass
-value: 1000000
----
-spec:
-  priorityClassName: business-critical</pre>
-      <span class="small">核心 1000000 / 一般 100000<br>/ 批处理 0</span></td>
-      <td>资源紧张时核心服务可抢占低优先级负载</td>
-      <td>核心服务被日志采集、测试负载挤掉</td>
-    </tr>
-    <tr>
-      <td><b>集群容量</b><br><span class="pill p2">P2</span></td>
-      <td>节点数 / N+1 余量<br>（平台侧）</td>
-      <td><span class="small">生产最低 <b>3 Node</b> + 每 Node 放 1 个 Pod<br>保留 ≥1 节点空闲容量<br>多 Node pool + Cluster Autoscaler<br>节点池升级 --max-surge 33%</span></td>
-      <td>被驱逐的 Pod 必须有地方去；<b>配置解决不了容量问题</b></td>
-      <td>2 Node 集群任一节点升级 = 50% 容量损失且无处承接；驱逐后调度失败直接 downtime</td>
-    </tr>
-    <tr>
-      <td><b>存储</b><br><span class="pill p3">P3</span></td>
-      <td>StorageClass / PVC</td>
-      <td><span class="small">StorageClass 用 <code>WaitForFirstConsumer</code><br>每副本独立 PVC（volumeClaimTemplates）<br>❌ 禁止 hostPath/emptyDir 存持久数据</span></td>
-      <td>Azure Disk 是 zonal 资源，PV 先建会把 Pod 锁死在该 AZ</td>
-      <td>Pod 跨区无法调度；本地存储 Pod 迁移 = 数据丢失</td>
-    </tr>
-    <tr>
-      <td><b>验证闭环</b><br><span class="pill p3">P3</span></td>
-      <td>告警 + 演练</td>
-      <td><span class="small">告警：disruptionsAllowed==0 持续 15 分钟<br>／PDB currentHealthy==0／Pod Pending&gt;5min<br>演练：每季度 drain 一个节点观察错误率</span></td>
-      <td>配置正确 ≠ 高可用生效，drain 演练一次性暴露所有问题</td>
-      <td>问题在升级当天才暴露</td>
-    </tr>
-  </table>
-  <div class="callout tip">
-    <b>💡 执行顺序</b>
-    <span class="pill p0">P0</span>PDB 修正——纯配置改动、零风险、当天完成，直接解除升级卡死 →
-    <span class="pill p1">P1</span>preStop / requests / 副本与探针——随下次发版全量带上 →
-    <span class="pill p2">P2</span>分布约束 / 发版策略 / HPA / 容量——1~2 个迭代 →
-    <span class="pill p3">P3</span>其余成熟度项按季度推进。<b>P0+P1 完成即覆盖 90% 的实际风险。</b>
-  </div>
-</section>
 
-<!-- ================= TOC ================= -->
-<nav class="toc">
-  <b>目录</b>
-  <ol>
-    <li><a href="#s1">1. 结论</a></li>
-    <li><a href="#s2">2. 背景：什么会打断业务</a></li>
-    <li><a href="#s3">3. P0 — 立即执行（零风险止血）</a></li>
-    <li><a href="#s4">4. P1 — 核心必改（随发版带上）</a></li>
-    <li><a href="#s5">5. P2 — 生产标准</a></li>
-    <li><a href="#s6">6. P3 — 成熟度建设</a></li>
-    <li><a href="#s7">7. 标准配置模板（直接复用）</a></li>
-    <li><a href="#s8">8. StatefulSet 差异要点</a></li>
-    <li><a href="#s9">9. 全集群审计脚本</a></li>
-    <li><a href="#s10">10. 验收 Checklist</a></li>
-    <li><a href="#s11">11. 落地路线与分工</a></li>
-  </ol>
-</nav>
-
-<!-- ================= S1 ================= -->
-<section class="card" id="s1">
-  <h2><span class="no">1</span>结论</h2>
-
-  <div class="callout info">
-    <b>核心认知</b>
-    AKS 提供的是<b>基础设施</b>的高可用（控制平面 SLA、节点自动修复），<b>不提供应用的高可用</b>。应用高可用 = <b>冗余</b>（活着的副本）× <b>流量正确性</b>（不把流量打给要死的 Pod）× <b>调度可行性</b>（被赶走的 Pod 有地方去）。三者缺一，节点升级就是一次事故。
-  </div>
-
-  <h3>责任边界</h3>
-  <table>
-    <tr><th>层</th><th>责任方</th><th>要求</th></tr>
-    <tr><td>控制平面</td><td>Azure</td><td>生产集群必须使用 <b>Standard tier</b>（Free 层无 SLA）；启用 AZ 后 SLA 99.95%</td></tr>
-    <tr><td>节点层</td><td>平台/BTS</td><td>节点 ≥3、跨可用区、N+1 容量余量、升级 maxSurge 调优</td></tr>
-    <tr><td>Pod 层</td><td>应用团队</td><td>本方案 P0~P3 整改项</td></tr>
-  </table>
-
-  <h3>整改总表（按优先级）</h3>
-  <table>
-    <tr><th>级别</th><th>定位</th><th>整改项</th><th>成本/风险</th></tr>
+    <!-- ============ P0 ============ -->
+    <tr class="row-p0"><td colspan="5"><b>P0 · 立即执行（不改就升级失败 · 零风险 · 当天完成）</b> <span class="small">纯 PDB 改动，不触碰业务 Pod、不重启、不影响运行中流量</span></td></tr>
     <tr>
       <td><span class="pill p0">P0</span></td>
-      <td><b>不改就升级失败</b><br>立即执行</td>
-      <td>① PDB 统一改用 maxUnavailable（禁 minAvailable+HPA 组合）<br>② 消除所有 disruptionsAllowed = 0<br>③ 修正 PDB selector 不命中 / 单副本乱配 PDB</td>
-      <td><b>零风险</b>：纯 PDB 改动，不重启任何 Pod，当天完成</td>
+      <td><b>① PDB 统一用 maxUnavailable</b><br><span class="small">禁 minAvailable + HPA 组合</span></td>
+      <td><pre style="margin:0;padding:8px 10px;">maxUnavailable: 1
+unhealthyPodEvictionPolicy: AlwaysAllow
+selector:
+  matchLabels: { app: &lt;svc&gt; }</pre><span class="small">HPA 波动大用 <code>"25%"</code>（向上取整）<br>❌ minAvailable 绝对值 + HPA 缩容 → disruptionsAllowed=0</span></td>
+      <td>防止维护期一次驱逐全部 Pod。<br><b>不配</b>：被一次驱逐 / 配错则节点升级<b>永久卡死</b></td>
+      <td>PDB 全用 maxUnavailable；<code>disruptionsAllowed ≥ 1</code></td>
+    </tr>
+    <tr>
+      <td><span class="pill p0">P0</span></td>
+      <td><b>② 消除 disruptionsAllowed==0</b></td>
+      <td><span class="small">稳态 <code>ALLOWED ≥ 1</code>；用一条命令排查：<code>kubectl get pdb -A</code></span></td>
+      <td>ALLOWED=0 会 drain 永久阻塞，升级超时失败。<b>现象误导</b>：Pod 全 Running、健康全绿但升级失败</td>
+      <td>全集群 PDB ALLOWED ≥ 1</td>
+    </tr>
+    <tr>
+      <td><span class="pill p0">P0</span></td>
+      <td><b>③ PDB selector 命中 / 单副本 / 重叠</b></td>
+      <td><span class="small">selector 必须与 Pod 标签完全一致；单副本<b>不配 PDB</b>；禁止多 PDB 命中同组 Pod</span></td>
+      <td>不命中 = 保护形同虚设；单副本+PDB = 锁死驱逐；多 PDB = Eviction 直接失败</td>
+      <td><code>currentHealthy == 实际副本数</code></td>
+    </tr>
+
+    <!-- ============ P1 ============ -->
+    <tr class="row-p1"><td colspan="5"><b>P1 · 核心必改（不改就升级掉请求 · 随下次发版全量带上）</b></td></tr>
+    <tr>
+      <td><span class="pill p1">P1</span></td>
+      <td><b>④ 优雅下线</b><br><span class="small">preStop + terminationGracePeriod</span></td>
+      <td><pre style="margin:0;padding:8px 10px;">terminationGracePeriodSeconds: 45
+lifecycle:
+  preStop:
+    exec: { command: ["/bin/sh","-c","sleep 15"] }</pre><span class="small">AGIC 场景 15~30s；应用处理 SIGTERM</span></td>
+      <td>SIGTERM 与摘流并行无顺序；preStop 等摘除传播。<b>不配</b>：升级/发版必现 <b>502</b></td>
+      <td>对外服务均有 preStop，drain 演练无 502</td>
     </tr>
     <tr>
       <td><span class="pill p1">P1</span></td>
-      <td><b>不改就升级掉请求</b><br>随下次发版</td>
-      <td>④ preStop + 优雅终止（502 根源）<br>⑤ resources.requests（调度地基）<br>⑥ replicas ≥ 2 且验证实际分散<br>⑦ readinessProbe 规范<br>⑧ liveness 禁查外部依赖</td>
-      <td>低风险：需滚动重启，随发版窗口带上</td>
+      <td><b>⑤ resources.requests 全量</b></td>
+      <td><pre style="margin:0;padding:8px 10px;">requests: { cpu: 200m, memory: 512Mi }
+limits:   { cpu: 1000m, memory: 512Mi }</pre><span class="small">memory.limits == requests</span></td>
+      <td>调度地基：驱逐后 Pod 才有落点；QoS 决定驱逐顺序。<b>不配</b>：驱逐后 Pending、HPA 指标失真</td>
+      <td>所有容器有 requests</td>
+    </tr>
+    <tr>
+      <td><span class="pill p1">P1</span></td>
+      <td><b>⑥ replicas ≥ 2（核心≥3）</b></td>
+      <td><span class="small">对外 ≥2；核心 ≥3；有状态 ≥3（奇数）<br>用 <code>kubectl get pod -o wide</code> 验证实际分散</span></td>
+      <td>单副本 = 升级必然中断；同节点多副本 = 假冗余（CA072 实证）</td>
+      <td>replicas 达标且实际跨节点</td>
+    </tr>
+    <tr>
+      <td><span class="pill p1">P1</span></td>
+      <td><b>⑦ readinessProbe 规范</b></td>
+      <td><pre style="margin:0;padding:8px 10px;">readinessProbe:
+  httpGet: { path: /health/ready, port: 8080 }
+  periodSeconds: 5
+  failureThreshold: 3</pre><span class="small">端点真实反映能否处理请求</span></td>
+      <td>防止未就绪切入流量。<b>不配</b>：请求打到未就绪 Pod</td>
+      <td>readiness 已配置且真实</td>
+    </tr>
+    <tr>
+      <td><span class="pill p1">P1</span></td>
+      <td><b>⑧ liveness 禁查外部依赖</b></td>
+      <td><span class="small">liveness 只查进程自身；❌ 不查 DB/Redis/下游</span></td>
+      <td>查外部依赖 → 依赖抖动 → 全副本重启 → <b>级联雪崩</b></td>
+      <td>liveness 不查外部依赖</td>
+    </tr>
+
+    <!-- ============ P2 ============ -->
+    <tr class="row-p2"><td colspan="5"><b>P2 · 生产标准（1~2 个迭代内补齐）</b></td></tr>
+    <tr>
+      <td><span class="pill p2">P2</span></td>
+      <td><b>⑨ topologySpread 分布约束</b></td>
+      <td><pre style="margin:0;padding:8px 10px;">topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway</pre><span class="small">核心服务用 DoNotSchedule；AZ 集群加 zone 级</span></td>
+      <td>结果约束，Pod 均匀分布；preferred 反亲和会被稀释（CA072）</td>
+      <td>spread 已配置，Pod 实际分散</td>
     </tr>
     <tr>
       <td><span class="pill p2">P2</span></td>
-      <td><b>生产标准</b><br>1~2 个迭代内</td>
-      <td>⑨ topologySpreadConstraints<br>⑩ 发版策略 maxUnavailable: 0<br>⑪ HPA 规范化（min≥2、behavior、GitOps 交权）<br>⑫ 集群容量 N+1<br>⑬ startupProbe（慢启动应用）<br>⑭ LimitRange 兜底</td>
-      <td>中等：涉及容量评估与发版流程</td>
+      <td><b>⑩ 发版策略 maxUnavailable:0</b></td>
+      <td><pre style="margin:0;padding:8px 10px;">rollingUpdate:
+  maxUnavailable: 0
+  maxSurge: 1
+minReadySeconds: 10</pre></td>
+      <td>发版先起新再停旧，零容量损失；PDB 对发版<b>不生效</b>，由 rollingUpdate 管</td>
+      <td>对外服务 rollingUpdate=0</td>
+    </tr>
+    <tr>
+      <td><span class="pill p2">P2</span></td>
+      <td><b>⑪ HPA 规范化</b></td>
+      <td><pre style="margin:0;padding:8px 10px;">minReplicas: 2
+maxReplicas: 10
+behavior:
+  scaleDown: { stabilizationWindowSeconds: 600 }</pre><span class="small">GitOps 不再管理 replicas；HPA 是容量弹性，非高可用</span></td>
+      <td>峰值扛不住 / 扩缩抖动；HPA 必须配 PDB（maxUnavailable 天然兼容）</td>
+      <td>min ≥2 + 稳定窗口 + GitOps 交权</td>
+    </tr>
+    <tr>
+      <td><span class="pill p2">P2</span></td>
+      <td><b>⑪+ 节点调度规范</b></td>
+      <td><span class="small">nodeAffinity 仅 preferred；❌ 禁 nodeSelector；required 仅特殊场景</span></td>
+      <td>AKS 节点随升级重建变化，硬绑定会调度失败</td>
+      <td>无 nodeSelector</td>
+    </tr>
+    <tr>
+      <td><span class="pill p2">P2</span></td>
+      <td><b>⑫ 集群容量 N+1</b></td>
+      <td><span class="small">生产 ≥3 Node + 1 节点空闲余量；多 Node pool + Cluster Autoscaler；升级 --max-surge 33%</span></td>
+      <td>配置解决不了容量；被驱逐 Pod 必须有落位空间</td>
+      <td>节点≥3、有 N+1</td>
+    </tr>
+    <tr>
+      <td><span class="pill p2">P2</span></td>
+      <td><b>⑬ startupProbe（慢启动）</b></td>
+      <td><pre style="margin:0;padding:8px 10px;">startupProbe:
+  httpGet: { path: /health/live, port: 8080 }
+  failureThreshold: 30</pre><span class="small">限启动 &gt; 30s 的应用</span></td>
+      <td>Java/.NET 冷启动被 liveness 误杀 → CrashLoopBackOff</td>
+      <td>慢启动应用配 startup</td>
+    </tr>
+    <tr>
+      <td><span class="pill p2">P2</span></td>
+      <td><b>⑭ LimitRange 兜底</b></td>
+      <td><span class="small">namespace 默认 requests/limits；有条件用 Gatekeeper/Kyverno 强制</span></td>
+      <td>防新服务漏配 requests</td>
+      <td>namespace 有默认限制</td>
+    </tr>
+
+    <!-- ============ P3 ============ -->
+    <tr class="row-p3"><td colspan="5"><b>P3 · 成熟度建设（季度规划 · 防止配置退化）</b></td></tr>
+    <tr>
+      <td><span class="pill p3">P3</span></td>
+      <td><b>⑮ PriorityClass</b></td>
+      <td><span class="small">核心 1000000 / 一般 100000 / 批处理 0</span></td>
+      <td>资源紧张时保核心服务不被日志采集、测试负载挤掉</td>
+      <td>核心服务已设置</td>
     </tr>
     <tr>
       <td><span class="pill p3">P3</span></td>
-      <td><b>成熟度建设</b><br>季度规划</td>
-      <td>⑮ PriorityClass ⑯ 跨 AZ 与存储 ⑰ 平台组件自身 HA<br>⑱ 节点池 maxSurge ⑲ 监控告警 ⑳ 季度 drain 演练</td>
-      <td>持续投入，防配置退化</td>
+      <td><b>⑯ 跨 AZ 与存储</b></td>
+      <td><span class="small">StorageClass <code>WaitForFirstConsumer</code>；跨 AZ 用 Files/ZRS；❌ hostPath/emptyDir 存持久数据</span></td>
+      <td>Azure Disk 是 zonal 资源，PV 先建会锁死 Pod 到某 AZ</td>
+      <td>存储配置正确</td>
+    </tr>
+    <tr>
+      <td><span class="pill p3">P3</span></td>
+      <td><b>⑰ 平台组件自身 HA</b></td>
+      <td><span class="small">CoreDNS / Ingress(AGIC) / metrics-server 多副本 + PDB + 分散</span></td>
+      <td>业务全配齐、Ingress 单副本照样全站中断</td>
+      <td>平台组件达标</td>
+    </tr>
+    <tr>
+      <td><span class="pill p3">P3</span></td>
+      <td><b>⑱ 节点池 maxSurge</b></td>
+      <td><span class="small">生产建议 <code>--max-surge 33%</code> + 计划维护窗口</span></td>
+      <td>升级更快，新节点先就绪、被驱逐 Pod 有落点</td>
+      <td>maxSurge 调优 + 窗口</td>
+    </tr>
+    <tr>
+      <td><span class="pill p3">P3</span></td>
+      <td><b>⑲ 监控告警</b></td>
+      <td><span class="small">disruptionsAllowed==0 持续15min（最高价值）；PDB currentHealthy==0；replicas&lt;2；Pod Pending&gt;5min</span></td>
+      <td>问题在升级当天才暴露</td>
+      <td>核心告警已上线</td>
+    </tr>
+    <tr>
+      <td><span class="pill p3">P3</span></td>
+      <td><b>⑳ 季度 drain 演练</b></td>
+      <td><span class="small">drain 单节点观察错误率；删 Pod 验证 preStop；关停一 AZ 验证容灾</span></td>
+      <td>配置正确 ≠ 高可用生效，演练一次性暴露所有问题</td>
+      <td>季度演练有记录</td>
     </tr>
   </table>
+  </div>
 
   <div class="callout tip">
-    <b>💡 给决策者的一句话</b>
-    先做 P0（10 分钟、零风险、直接解除节点升级失败）→ P1 随下次发版全量带上（解决升级期 502）→ P2 补齐生产标准 → P3 建验证闭环。<b>P0+P1 完成即解决 90% 的实际风险。</b>
+    <b>💡 执行顺序</b>
+    <span class="pill p0">P0</span>PDB 修正——纯配置、零风险、当天完成，直接解除升级卡死 →
+    <span class="pill p1">P1</span>preStop / requests / 副本 / 探针——随下次发版全量带上 →
+    <span class="pill p2">P2</span>分布约束 / 发版 / HPA / 容量——1~2 个迭代 →
+    <span class="pill p3">P3</span>其余按季度推进。<b>P0+P1 完成即覆盖 90% 的实际风险。</b>
   </div>
 </section>
 
-<!-- ================= S2 ================= -->
-<section class="card" id="s2">
-  <h2><span class="no">2</span>背景：什么会打断业务（为什么要按这个优先级改）</h2>
-
-  <h3>最高频场景：节点池滚动升级</h3>
-  <div class="flow">drain node（节点封锁）
-   ↓
-evict pods（按 Eviction API 驱逐，受 PDB 约束）
-   ↓
-重新调度到新节点（需要有容量承接）</div>
-  <p>控制平面升级<b>不影响</b> Pod 运行（仅 API Server 短暂抖动）；节点池滚动升级<b>必然触发驱逐</b>。此时应用如果存在以下短板，中断就是必然的：</p>
-  <table>
-    <tr><th>应用状态</th><th>结果</th><th>对应整改项</th></tr>
-    <tr><td>单副本</td><td>❌ 必然中断</td><td>⑥ replicas ≥ 2</td></tr>
-    <tr><td>没有 readinessProbe / 优雅下线</td><td>❌ 摘流失败，请求打到将死 Pod</td><td>④⑦</td></tr>
-    <tr><td>没有 PDB / PDB 配错</td><td>❌ 被一次性全部驱逐 或 升级卡死</td><td>①②③</td></tr>
-    <tr><td>节点资源不足</td><td>❌ 驱逐后调度失败，直接 downtime</td><td>⑤⑫</td></tr>
-    <tr><td>使用本地存储（hostPath/emptyDir）</td><td>❌ Pod 迁移 = 数据丢失</td><td>⑯</td></tr>
-  </table>
-  <div class="callout info">
-    <b>ℹ️ 一句话本质</b>
-    业务中断 = <b>Pod 被驱逐 + 没有冗余承接</b>。所有整改项都在消除这个等式的一侧。
-  </div>
-
-  <h3>完整事件清单与防护覆盖</h3>
-  <p>业务中断的完整事件清单，以及各防护机制的覆盖范围——<b>PDB 只对走 Eviction API 的事件生效</b>：</p>
-  <table>
-    <tr><th>事件</th><th>走 Eviction API？</th><th>PDB 生效？</th><th>靠什么防护</th></tr>
-    <tr><td>节点池滚动升级 / 镜像升级</td><td>✅</td><td>✅</td><td>PDB + preStop + 多副本分散</td></tr>
-    <tr><td>Cluster Autoscaler 缩容（日常高频）</td><td>✅</td><td>✅</td><td>同上</td></tr>
-    <tr><td>手动 kubectl drain / 节点自动修复</td><td>✅</td><td>✅</td><td>同上</td></tr>
-    <tr><td>Spot 节点抢占</td><td>⚠️ 部分</td><td>⚠️ 不可靠</td><td>多副本 + 30s 内快速下线</td></tr>
-    <tr><td><b>Deployment 发版</b></td><td>❌</td><td><b>❌ 不生效</b></td><td><b>rollingUpdate 策略</b> + preStop</td></tr>
-    <tr><td>节点硬故障 / VM 宕机</td><td>❌</td><td>❌</td><td>多副本 + 跨节点/跨 AZ 分布</td></tr>
-    <tr><td>kubelet 资源压力驱逐（OOM/DiskPressure）</td><td>❌</td><td>❌</td><td>requests/limits + QoS</td></tr>
-    <tr><td>控制平面升级</td><td>—</td><td>—</td><td>Pod 不受影响；API 短暂抖动，HPA/Webhook 瞬时暂停</td></tr>
-  </table>
-  <div class="callout warn">
-    <b>⚠️ 由此推出优先级逻辑</b>
-    PDB 配置错误 → 升级<b>确定性失败</b>（P0）；缺优雅下线 → 升级/发版<b>必然掉请求</b>（P1）；缺分布约束/发版策略 → <b>概率性</b>容量塌陷（P2）；其余是长期保障（P3）。
-  </div>
-</section>
-
-<!-- ================= S3 : P0 ================= -->
-<section class="card p0edge" id="s3">
-  <h2><span class="no">3</span><span class="pill p0">P0</span>立即执行 — 不改就升级失败（零风险，当天完成）</h2>
-  <p class="small">共同特征：纯 PDB 对象改动，<b>不触碰业务 Pod、不重启、不影响运行中流量</b>，是唯一可以直接在生产执行的整改。</p>
-
-  <div class="item-head"><span class="num-badge">1</span><h3>PDB 统一改用 maxUnavailable，禁止 minAvailable 与 HPA 组合</h3></div>
-  <div class="meta-row"><b>后果等级：</b>节点池升级超时失败（确定性）｜<b>成本：</b>10 分钟/服务</div>
-  <p><b>问题机制：</b><code>minAvailable</code> 是绝对值。HPA 低峰缩容到下限时（如 minReplicas: 2 + minAvailable: 2），<code>disruptionsAllowed</code> 恒为 0 → drain 永久阻塞 → 节点池升级卡住直至超时。<b>现象极具误导性：升级失败，但所有 Pod 都 Running、健康检查全绿。</b>这是 AKS 节点池升级失败最常见的单一原因。</p>
-  <h4>统一规则（三条）</h4>
-  <table>
-    <tr><th>规则</th><th>说明</th></tr>
-    <tr><td><b>① 只要配了 HPA，一律用 maxUnavailable</b></td><td><code>maxUnavailable</code> 是相对值，随副本数自动伸缩，官方文档亦推荐。无 HPA 的服务也统一用 maxUnavailable 保持一致</td></tr>
-    <tr><td><b>② 副本数波动大的服务可用百分比</b></td><td>HPA 从 3 扩到 10 的服务用 <code>maxUnavailable: "25%"</code>（3 副本允许 1 个、10 副本允许 3 个）。百分比<b>向上取整</b>，不会锁死驱逐。⚠️ 百分比只在 maxUnavailable 上安全，<code>minAvailable: "90%"</code> 小副本时取整后等于副本数、照样死锁</td></tr>
-    <tr><td><b>③ 若遗留系统必须保留 minAvailable</b></td><td>则 HPA 的 <code>minReplicas</code> 必须<b>严格大于</b> minAvailable，且两值任何一方变更时必须联动评审——因此仍强烈建议直接迁移到 maxUnavailable，让该约束自动消失</td></tr>
-  </table>
-  <pre><code>apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: my-service-pdb
-spec:
-  maxUnavailable: 1                         # 固定小副本用整数；HPA 波动大用 "25%"
-  unhealthyPodEvictionPolicy: AlwaysAllow   # 1.27+，防不健康 Pod 反向阻塞运维
-  selector:
-    matchLabels:
-      app: my-service                       # 必须与 Pod 实际标签完全一致</code></pre>
-
-  <h4>PDB 基础语义（团队须知）</h4>
-  <table>
-    <tr><th>字段</th><th>语义</th><th>注意</th></tr>
-    <tr><td><code>spec.minAvailable</code></td><td>任何时候至少要有 X 个 Pod 存活</td><td>不能 ≥ replicas（否则锁死）；本方案原则上弃用</td></tr>
-    <tr><td><code>spec.maxUnavailable</code></td><td>同一时间最多允许 X 个 Pod 不可用</td><td><b>本方案统一采用</b>；两字段二选一，不能同时存在</td></tr>
-    <tr><td><code>status.disruptionsAllowed</code></td><td>当前还能安全驱逐几个 Pod</td><td>&gt; 0 ✅ 可安全驱逐；= 0 ❌ drain 被阻止</td></tr>
-  </table>
-  <p class="small">PDB 不是绑定 Deployment 的，是通过 selector 绑定 Pod 的——这就是 selector 命中问题（整改项 3）存在的原因。</p>
-
-  <h4>按工作负载类型的 PDB 推荐值（速查表）</h4>
-  <table>
-    <tr><th>工作负载类型</th><th>replicas</th><th>PDB</th><th>升级时的效果</th></tr>
-    <tr><td>无状态应用（Web API、Java、.NET、Python、Nginx）</td><td>3</td><td><code>maxUnavailable: 1</code></td><td>一次驱逐 1 个，2 个继续服务，业务不中断</td></tr>
-    <tr><td>核心业务无状态（支付/订单/认证/用户中心）</td><td>5</td><td><code>maxUnavailable: 1</code></td><td>始终有 4 个 Pod 提供服务</td></tr>
-    <tr><td>StatefulSet（Redis、Mongo、ES、Kafka）</td><td>3</td><td><code>maxUnavailable: 1</code></td><td>升级一次只动 1 个节点，保持 2 节点在线</td></tr>
-    <tr><td>强一致性集群（etcd/ZooKeeper/Consul）</td><td>5（奇数仲裁）</td><td><code>maxUnavailable: 1</code>（硬上限）</td><td>始终保住仲裁多数</td></tr>
-    <tr><td>单实例</td><td>1</td><td><b>不配置 PDB</b></td><td>配了（尤其 <code>maxUnavailable: 0</code>）= 彻底锁死节点升级</td></tr>
-  </table>
-
-  <div class="item-head"><span class="num-badge">2</span><h3>消除所有 disruptionsAllowed == 0（升级前必查）</h3></div>
-  <div class="meta-row"><b>后果等级：</b>升级阻塞元凶｜<b>成本：</b>一条命令排查 + 逐个修复</div>
-  <pre><code># 找出所有正在阻塞节点升级的 PDB
-kubectl get pdb -A -o custom-columns=`
-'NS:.metadata.namespace,NAME:.metadata.name,MIN:.spec.minAvailable,MAXUNAVAIL:.spec.maxUnavailable,ALLOWED:.status.disruptionsAllowed,CURRENT:.status.currentHealthy'</code></pre>
-  <p>稳态下 <code>ALLOWED</code> 必须 ≥ 1。为 0 的常见原因及处理：</p>
-  <table>
-    <tr><th>原因</th><th>处理</th></tr>
-    <tr><td>minAvailable = 当前副本数（含 HPA 缩容所致）</td><td>改 maxUnavailable（整改项 1）</td></tr>
-    <tr><td><code>maxUnavailable: 0</code> / <code>minAvailable: 100%</code></td><td>等于禁止一切驱逐，删除或改为 1</td></tr>
-    <tr><td>Pod 自身不健康导致预算耗尽</td><td>修应用 + 设置 <code>unhealthyPodEvictionPolicy: AlwaysAllow</code></td></tr>
-  </table>
-
-  <div class="item-head"><span class="num-badge">3</span><h3>修正 PDB selector 命中问题 / 单副本与重叠 PDB</h3></div>
-  <div class="meta-row"><b>后果等级：</b>保护形同虚设 或 反向锁死｜<b>成本：</b>脚本自动检出</div>
-  <ul>
-    <li><b>selector 必须与 Pod 标签一致</b>：PDB 创建成功不代表命中。验收标准：<code>status.currentHealthy == 实际副本数</code></li>
-    <li><b>单副本服务不配 PDB</b>：单副本 + 任何限制性 PDB = 永久锁死节点驱逐（CA 也无法缩容）。单副本要么接受中断，要么先扩到 2 副本</li>
-    <li><b>禁止多个 PDB 命中同一组 Pod</b>：Eviction 会直接失败（不是取最严格的），必须去重</li>
-  </ul>
-</section>
-
-<!-- ================= S4 : P1 ================= -->
-<section class="card p1edge" id="s4">
-  <h2><span class="no">4</span><span class="pill p1">P1</span>核心必改 — 不改就升级掉请求（随下次发版全量带上）</h2>
-
-  <div class="item-head"><span class="num-badge">4</span><h3>优雅下线：preStop + terminationGracePeriodSeconds + 应用处理 SIGTERM</h3></div>
-  <div class="meta-row"><b>后果等级：</b>升级/发版必现 502（对外服务）｜<b>成本：</b>YAML 两行 + 应用侧配置</div>
-  <p><b>问题机制</b>——Pod 被删除的瞬间，两条路径<b>并行发生、没有顺序保证</b>：</p>
-  <div class="flow">     ┌─ 路径1（同步、快）: kubelet 收到删除 → 立刻发 SIGTERM → 进程开始退出
-DELETE
-     └─ 路径2（异步、慢）: EndpointSlice 摘除 → kube-proxy / Ingress 更新规则  ← 需 1~10 秒！</div>
-  <p>进程已退出但流量还在进来 → 502 / Connection Reset。节点升级批量驱逐时被放大为错误率尖刺。<b>readinessProbe 管不了这个场景</b>（Pod 删除时探针即停止执行），必须用 preStop 等待摘除传播完成：</p>
-  <pre><code>spec:
-  template:
-    spec:
-      terminationGracePeriodSeconds: 45      # 必须 &gt; preStop + 存量请求处理时间
-      containers:
-        - name: app
-          lifecycle:
-            preStop:
-              exec:
-                command: ["/bin/sh", "-c", "sleep 15"]   # 期间进程仍正常服务</code></pre>
-  <ul>
-    <li>sleep 时长：AKS + Application Gateway/AGIC 场景 <b>15~30s</b>；纯 ClusterIP 场景 5~10s</li>
-    <li>distroless 镜像无 shell → 用 <code>httpGet</code> 型 preStop 或应用内 SIGTERM handler</li>
-    <li>应用侧配套：SIGTERM 后停止接新连接、处理完存量请求再退出（Spring Boot <code>server.shutdown=graceful</code>；.NET <code>IHostApplicationLifetime</code>；Nginx <code>nginx -s quit</code>）</li>
-    <li>长连接/gRPC/WebSocket：sleep 不会断开已有连接，需应用发 GOAWAY / 主动关闭空闲连接，grace 时间相应加长</li>
-  </ul>
-  <p class="small">范围界定：对外 HTTP/API 服务为强制项；内部有重试机制的异步/消费类服务为建议项。</p>
-
-  <div class="item-head"><span class="num-badge">5</span><h3>resources.requests 全量补齐（memory.limits == requests）</h3></div>
-  <div class="meta-row"><b>后果等级：</b>驱逐后 Pending / 节点压力时被优先杀 / HPA 指标失真｜<b>成本：</b>按 P95 用量测算</div>
-  <p><b>为什么是地基：</b>① 不设 requests，调度器认为 Pod 不占资源 → 节点超卖 → 被驱逐的 Pod 无处落位（PDB 保得了驱逐节奏、保不了"驱逐后起不来"）；② QoS 决定驱逐顺序：<b>BestEffort → Burstable → Guaranteed</b>，这类驱逐不走 Eviction API、PDB 无效；③ HPA 的 <code>averageUtilization</code> 是相对 requests 的百分比——requests 不准，HPA 就是错的。</p>
-  <pre><code>resources:
-  requests: { cpu: 200m, memory: 512Mi }    # 必填，按 P95 实际用量
-  limits:
-    memory: 512Mi          # == requests：内存不可压缩，避免 OOMKill 抽奖
-    cpu: 1000m             # CPU limit 可放宽；延迟敏感服务警惕 CFS throttling</code></pre>
-
-  <div class="item-head"><span class="num-badge">6</span><h3>replicas ≥ 2（核心 ≥3），并验证 Pod 实际分散</h3></div>
-  <div class="meta-row"><b>后果等级：</b>单副本 = 升级必然中断；同节点多副本 = 假冗余｜<b>成本：</b>改数字 + 一条验证命令</div>
-  <table>
-    <tr><th>服务类型</th><th>replicas 最低要求</th></tr>
-    <tr><td>对外 HTTP/API 服务</td><td>≥ 2</td></tr>
-    <tr><td>核心业务</td><td>≥ 3</td></tr>
-    <tr><td>有状态服务（仲裁集群）</td><td>≥ 3，取奇数（3/5）</td></tr>
-  </table>
-  <div class="callout warn">
-    <b>⚠️ 真实案例 CA072：配置 ≠ 结果</b>
-    replicas = 2 ✅、集群 2 个 Node ✅、配了 podAntiAffinity (preferred) ✅ —— 结果 Pod 还是全在一个 Node 上 ❌。原因：preferred 是打分阶段的<b>软偏好</b>，会被镜像本地性、资源余量等其他打分插件稀释，两副本落同一节点完全合法。教训有二：① 必须用 <code>kubectl get pod -o wide</code> 验证<b>实际分布</b>（Anti-Affinity 是"关系偏好"，topologySpread 才是"结果约束"，见整改项 ⑨）；② 2 节点集群本身就是容量瓶颈——任一节点升级 = 50% 容量损失且无第三节点承接，配置解决不了容量问题（见整改项 ⑫）。
-  </div>
-
-  <div class="item-head"><span class="num-badge">7</span><h3>readinessProbe 规范化</h3></div>
-  <div class="meta-row"><b>后果等级：</b>流量打给未就绪 Pod｜<b>成本：</b>低（多数服务已有，重点是查漏 + 校准）</div>
-  <pre><code>readinessProbe:
-  httpGet: { path: /health/ready, port: 8080 }
-  periodSeconds: 5
-  timeoutSeconds: 2
-  failureThreshold: 3        # 摘流要快</code></pre>
-  <p class="small">端点必须真实反映"能否处理请求"（依赖初始化完成、连接池就绪），不能只返回 200。</p>
-
-  <div class="item-head"><span class="num-badge">8</span><h3>livenessProbe 禁止检查任何外部依赖</h3></div>
-  <div class="meta-row"><b>后果等级：</b>级联雪崩（一旦发生为全局性事故）｜<b>成本：</b>规范约束，逐步排查</div>
-  <div class="callout danger">
-    <b>🔥 雪崩场景</b>
-    liveness 检查数据库 → DB 抖动 10 秒 → 所有副本、所有服务的 liveness 同时失败 → 全部重启 → DB 恢复后被冷启动流量再次打挂。比原本的 DB 抖动严重得多。
-  </div>
-  <table>
-    <tr><th>探针</th><th>应检查</th><th>绝对不能检查</th></tr>
-    <tr><td>readinessProbe</td><td>自身能否处理请求；可选检查强依赖</td><td>—</td></tr>
-    <tr><td>livenessProbe</td><td><b>仅进程自身存活</b>（纯内存判断）</td><td>❌ DB / Redis / 下游 API</td></tr>
-  </table>
-  <p class="small">liveness 本身定为可选：配错的 liveness 比没有 liveness 危害更大。配置时 <code>failureThreshold</code> 要比 readiness 宽松得多（重启要慢，摘流要快）。</p>
-</section>
-
-<!-- ================= S5 : P2 ================= -->
-<section class="card p2edge" id="s5">
-  <h2><span class="no">5</span><span class="pill p2">P2</span>生产标准 — 1~2 个迭代内补齐</h2>
-
-  <div class="item-head"><span class="num-badge">9</span><h3>topologySpreadConstraints（hostname 级为主，AZ 集群加 zone 级）</h3></div>
-  <div class="meta-row"><b>解决：</b>副本挤在同一节点的假冗余（P1-⑥ 验证不通过时的修复手段）</div>
-  <p>反亲和 preferred 是"关系偏好"，topologySpread 是"结果约束"——它不选择跑哪台机器，而是控制"Pod 在机器之间怎么分布"（Node / AZ 等拓扑维度的均匀程度）。标准模板两者并用（模板见第 7 节）；追求精简可只保留 topologySpread。</p>
-  <p class="small">配置位置固定：写在 Pod Template 里（<code>spec.template.spec.topologySpreadConstraints</code>），与 containers、affinity、resources 同级；labelSelector 必须与 Pod 标签一致。</p>
-  <table>
-    <tr><th>whenUnsatisfiable</th><th>行为</th><th>适用</th></tr>
-    <tr><td><code>ScheduleAnyway</code></td><td>尽力均匀，不满足也调度（软）</td><td><b>默认</b>，安全</td></tr>
-    <tr><td><code>DoNotSchedule</code></td><td>不满足则 Pending（硬）</td><td>核心服务；节点数 &lt; replicas 时会卡发版，先确认容量</td></tr>
-  </table>
-  <p class="small">zone 级约束的前提是集群真的启用了 AZ：先 <code>kubectl get nodes -L topology.kubernetes.io/zone</code> 确认，未启用则不配（纯摆设）。</p>
-
-  <div class="item-head"><span class="num-badge">10</span><h3>发版策略：rollingUpdate.maxUnavailable: 0 + minReadySeconds</h3></div>
-  <div class="meta-row"><b>解决：</b>发版期间容量塌陷 —— <b>PDB 对发版不生效</b>，发版由 rollingUpdate 管</div>
-  <pre><code>strategy:
-  type: RollingUpdate
-  rollingUpdate:
-    maxUnavailable: 0      # 先起新的再停旧的，发版零容量损失
-    maxSurge: 1
-minReadySeconds: 10        # 新 Pod Ready 后再观察 10s，防"起来就崩"雪崩式发版
-progressDeadlineSeconds: 600</code></pre>
-  <p class="small">对外服务强制；内部服务默认值可接受。maxUnavailable: 0 需要 maxSurge 份额外容量 → 关联整改项 ⑫。</p>
-
-  <div class="item-head"><span class="num-badge">11</span><h3>HPA 规范化</h3></div>
-  <div class="meta-row"><b>解决：</b>峰值扛不住 / 反复扩缩抖动 / GitOps 与 HPA 抢副本数</div>
-  <ul>
-    <li><code>minReplicas ≥ 2</code>（建议与基线 replicas 一致）；maxReplicas 按业务峰值设定 + Cluster Autoscaler 承接，用 ResourceQuota 兜成本</li>
-    <li>配置 <code>behavior</code>：scaleDown 稳定窗口 600s 防抖动，scaleUp 放开应对突发</li>
-    <li><b>启用 HPA 后，Helm/GitOps 不再管理 spec.replicas</b>：否则每次同步与 HPA 抢控制权造成副本抖动。Helm 用 <code>{{- if not .Values.autoscaling.enabled }}</code> 条件渲染，ArgoCD 对该字段 ignoreDifferences</li>
-    <li>定位澄清：<b>HPA 是容量弹性方案，不是高可用方案</b>——它解决"扛不扛得住"，不解决"挂不挂"</li>
-    <li><b>配了 HPA 必须同时有 PDB</b>：HPA 只管副本数量，管不了驱逐节奏，两者是配套关系（PDB 用 maxUnavailable 即天然兼容，见整改项 ①）</li>
-  </ul>
-  <div class="callout info">
-    <b>ℹ️ 怎么知道一个服务有没有 HPA</b>
-    Deployment 从来不感知 HPA——HPA 是"外部控制器"，看 Deployment YAML 是看不出来的，<b>只能 <code>kubectl get hpa</code></b>。会产生 HPA 的三种来源：Helm Chart 包含 HPA、CI/CD 中 apply 了 HPA、<code>kubectl autoscale</code> 命令。审计时必须以集群实际状态为准（第 9 节脚本已按 scaleTargetRef 自动关联）。
-  </div>
-
-  <div class="item-head"><span class="num-badge">11+</span><h3>节点调度约束使用规范（nodeSelector / nodeAffinity）</h3></div>
-  <div class="meta-row"><b>解决：</b>调度僵化——AKS 节点本来就会随升级频繁重建变化</div>
-  <table>
-    <tr><th>选项</th><th>态度</th><th>原因</th></tr>
-    <tr><td><code>nodeSelector</code></td><td>❌ 禁止</td><td>硬匹配，节点标签变化即调度失败</td></tr>
-    <tr><td><code>nodeAffinity: preferred</code></td><td>✅ 推荐</td><td>软偏好，节点不满足时仍可调度</td></tr>
-    <tr><td><code>nodeAffinity: required</code></td><td>⚠️ 仅特殊场景</td><td>与 nodeSelector 同等僵化，节点不够即 Pending</td></tr>
-  </table>
-  <pre><code>affinity:
-  nodeAffinity:
-    preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        preference:
-          matchExpressions:
-            - key: agentpool
-              operator: In
-              values: ["pool-a"]</code></pre>
-
-  <div class="item-head"><span class="num-badge">12</span><h3>集群容量 N+1（节点 ≥3 + 一个节点的空闲余量）</h3></div>
-  <div class="meta-row"><b>解决：</b>驱逐/发版时 Pod 无处落位 —— <b>配置解决不了容量问题</b></div>
-  <p>Node 数量至关重要，它决定了上层所有配置能发挥的上限：</p>
-  <table>
-    <tr><th>集群规模</th><th>可行做法</th><th>说明</th></tr>
-    <tr><td>单 Node</td><td>replicas 1~3，<b>不配置 PDB</b></td><td>无冗余可言，配 PDB 只会锁死升级；仅限开发/测试</td></tr>
-    <tr><td>2 Node</td><td>replicas 3 + <code>maxUnavailable: 1</code></td><td>勉强可用但脆弱：任一节点升级 = 50% 容量损失、无第三节点承接（CA072 的根因）</td></tr>
-    <tr><td><b>3 Node（生产推荐）</b></td><td>replicas 3 + <code>maxUnavailable: 1</code> + topologySpread 每节点 1 个 Pod</td><td>升级时始终 2 副本在线且有落位空间，是生产最低标准</td></tr>
-  </table>
-  <p>在此之上保持 ≥1 节点的空闲容量（N+1），配合多 Node pool 与 Cluster Autoscaler 从平台侧兜底。属于预算决策，需平台侧与管理层确认。</p>
-
-  <div class="item-head"><span class="num-badge">13</span><h3>startupProbe（限慢启动应用）</h3></div>
-  <div class="meta-row"><b>解决：</b>Java/.NET 冷启动 60~120s 被 liveness 误杀 → CrashLoopBackOff 死循环</div>
-  <pre><code>startupProbe:
-  httpGet: { path: /health/live, port: 8080 }
-  periodSeconds: 5
-  failureThreshold: 30       # 允许 150s 启动窗口；配置后 readiness/liveness 不再需要 initialDelaySeconds</code></pre>
-  <p class="small">只对启动 &gt; 30s 的应用配置，其余服务不需要。</p>
-
-  <div class="item-head"><span class="num-badge">14</span><h3>LimitRange 兜底（配合整改项 ⑤）</h3></div>
-  <p>防止新服务漏配 requests，在每个业务 namespace 设置默认值；有条件的用 Gatekeeper/Kyverno 强制。</p>
-</section>
-
-<!-- ================= S6 : P3 ================= -->
-<section class="card p3edge" id="s6">
-  <h2><span class="no">6</span><span class="pill p3">P3</span>成熟度建设 — 季度规划，防止配置退化</h2>
-  <table>
-    <tr><th>#</th><th>整改项</th><th>要点</th></tr>
-    <tr><td>15</td><td><b>PriorityClass</b></td><td>核心 1000000 / 一般 100000 / 批处理 0；资源紧张时保核心服务不被日志采集、测试负载挤掉</td></tr>
-    <tr><td>16</td><td><b>跨 AZ 与存储</b></td><td>Azure Disk 是 zonal 资源：PVC 绑定 AZ-1 后 Pod 永远无法调度到 AZ-2。有状态服务 StorageClass 必须 <code>WaitForFirstConsumer</code>；跨 AZ 共享用 Azure Files / ZRS 盘；禁用 hostPath/emptyDir 存持久数据。注意 AZ 只能在 node pool 创建时启用</td></tr>
-    <tr><td>17</td><td><b>平台组件自身 HA</b></td><td>CoreDNS（≥2 副本 + 反亲和 + proportional autoscaler）、Ingress Controller / AGIC、metrics-server（挂了 HPA 全停）——业务 Pod 全配齐、Ingress 单副本照样全站中断。平台组件按同一标准（多副本 + PDB + 分散）配置</td></tr>
-    <tr><td>18</td><td><b>节点池 maxSurge</b></td><td>默认值小（1 或 10%），生产建议 <code>--max-surge 33%</code>：升级更快，新节点先就绪、被驱逐 Pod 有落点；同时设置计划维护窗口，把自动升级固定到业务低峰</td></tr>
-    <tr><td>19</td><td><b>监控告警</b></td><td>核心规则：<code>disruptions_allowed == 0</code> 持续 15 分钟（最高价值，预警升级阻塞）；PDB currentHealthy == 0（selector 打空）；available replicas &lt; 2；Pod Pending &gt; 5 分钟；同 Deployment Pod 集中单节点</td></tr>
-    <tr><td>20</td><td><b>季度 drain 演练</b></td><td>非生产先行：① drain 单节点观察错误率（一次性暴露 P0/P1 所有问题）② 删单个 Pod 验证 preStop ③ 关停一个 AZ 验证容灾 ④ 完整节点池升级记录耗时与错误率。<b>配置正确 ≠ 高可用生效，没有演练闭环的方案只是纸面方案</b></td></tr>
-  </table>
-</section>
-
-<!-- ================= S7 ================= -->
+<!-- ================= 标准配置模板 ================= -->
 <section class="card" id="s7">
-  <h2><span class="no">7</span>标准配置模板（无状态对外服务，直接复用）</h2>
-  <p class="small">已内置全部 P0~P2 整改项，注释标注对应整改编号。</p>
+  <h2><span class="no">7</span>标准配置模板（无状态对外服务 · 直接复用）</h2>
+  <p class="small">已内置全部 P0~P3 整改项，注释标注对应整改编号。</p>
   <pre><code>apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -654,21 +345,18 @@ spec:
         - maxSkew: 1
           topologyKey: topology.kubernetes.io/zone      # 集群启用 AZ 时才加
           whenUnsatisfiable: ScheduleAnyway
-          labelSelector:
-            matchLabels: { app: my-service }
+          labelSelector: { matchLabels: { app: my-service } }
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname
           whenUnsatisfiable: ScheduleAnyway             # 核心服务可用 DoNotSchedule
-          labelSelector:
-            matchLabels: { app: my-service }
+          labelSelector: { matchLabels: { app: my-service } }
 
       affinity:                            # ⑨ 辅助（可选，追求精简可省略）
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
               podAffinityTerm:
-                labelSelector:
-                  matchLabels: { app: my-service }
+                labelSelector: { matchLabels: { app: my-service } }
                 topologyKey: kubernetes.io/hostname
 
       containers:
@@ -708,8 +396,7 @@ metadata:
 spec:
   maxUnavailable: 1                        # 与 HPA 兼容；波动大用 "25%"
   unhealthyPodEvictionPolicy: AlwaysAllow
-  selector:
-    matchLabels: { app: my-service }
+  selector: { matchLabels: { app: my-service } }
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler              # ⑪
@@ -717,10 +404,7 @@ metadata:
   name: my-service-hpa
   namespace: my-ns
 spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: my-service
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: my-service }
   minReplicas: 3                           # ≥2，建议与基线一致
   maxReplicas: 10
   metrics:
@@ -731,12 +415,10 @@ spec:
   behavior:
     scaleDown:
       stabilizationWindowSeconds: 600
-      policies:
-        - { type: Percent, value: 50, periodSeconds: 60 }
+      policies: [ { type: Percent, value: 50, periodSeconds: 60 } ]
     scaleUp:
       stabilizationWindowSeconds: 0
-      policies:
-        - { type: Percent, value: 100, periodSeconds: 30 }
+      policies: [ { type: Percent, value: 100, periodSeconds: 30 } ]
 ---
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass                        # ⑮
@@ -756,317 +438,6 @@ spec:
     - type: Container
       defaultRequest: { cpu: 100m, memory: 128Mi }
       default:        { cpu: 500m, memory: 512Mi }</code></pre>
-</section>
-
-<!-- ================= S8 ================= -->
-<section class="card" id="s8">
-  <h2><span class="no">8</span>StatefulSet 差异要点（有状态服务不能直接套用第 7 节模板）</h2>
-  <pre><code>spec:
-  serviceName: my-sts-headless
-  replicas: 3                          # 仲裁集群取奇数 3/5
-  podManagementPolicy: OrderedReady    # 强一致集群；无依赖可用 Parallel
-  updateStrategy:
-    type: RollingUpdate
-    rollingUpdate:
-      partition: 0                     # 灰度：设为 N 则仅更新序号 ≥ N 的副本
-  template:
-    spec:
-      terminationGracePeriodSeconds: 120   # 需更长时间落盘/转移 leader
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule # 有状态服务建议强约束
-          labelSelector:
-            matchLabels: { app: my-sts }
-  volumeClaimTemplates:                # 每副本独立 PVC，不共享
-    - metadata: { name: data }
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        storageClassName: managed-csi-premium   # 必须 WaitForFirstConsumer
-        resources: { requests: { storage: 100Gi } }</code></pre>
-  <ul>
-    <li>强一致集群（etcd/ZK/Kafka/ES）PDB 硬上限：<code>maxUnavailable: 1</code></li>
-    <li>StorageClass 必须 <code>volumeBindingMode: WaitForFirstConsumer</code>，否则 PV 先落某 AZ、Pod 被永久锁死在该 AZ</li>
-    <li>preStop 中做 leader 转移 / 安全下线（ES 先关分片分配、Kafka controlled shutdown）</li>
-  </ul>
-</section>
-
-<!-- ================= S9 ================= -->
-<section class="card" id="s9">
-  <h2><span class="no">9</span>全集群审计脚本（PowerShell，摸底 + 验收共用）</h2>
-  <p class="small">单脚本一次性输出全维度：探针 / preStop / requests / 分布约束 / 发版策略 / PDB 有效性与死锁检测 / HPA / Pod 实际落点，按 P1~P3 风险分级，可导出 CSV。</p>
-  <pre><code># ============================================================
-# AKS 应用高可用审计 —— 全维度单脚本版
-# 用法: .\Audit-AksHa.ps1 -Namespaces @("wiki","cdp","default")
-#       .\Audit-AksHa.ps1 -AllNamespaces -CsvPath report.csv
-# ============================================================
-param(
-  [string[]]$Namespaces,
-  [switch]$AllNamespaces,
-  [string]$CsvPath
-)
-
-if ($AllNamespaces) {
-  $Namespaces = kubectl get ns -o json | ConvertFrom-Json |
-    Select-Object -ExpandProperty items |
-    ForEach-Object { $_.metadata.name } |
-    Where-Object { $_ -notin @("kube-system","kube-public","kube-node-lease","gatekeeper-system") }
-}
-if (-not $Namespaces) { Write-Error "请指定 -Namespaces 或 -AllNamespaces"; return }
-
-# --- 预取全集群 PDB / HPA / Pod，避免逐 namespace 反复调用 ---
-$allPdb  = kubectl get pdb  -A -o json | ConvertFrom-Json | Select-Object -ExpandProperty items
-$allHpa  = kubectl get hpa  -A -o json | ConvertFrom-Json | Select-Object -ExpandProperty items
-$allPods = kubectl get pods -A -o json | ConvertFrom-Json | Select-Object -ExpandProperty items
-
-function Test-SelectorMatch($selector, $podLabels) {
-  if (-not $selector -or -not $selector.matchLabels) { return $false }
-  foreach ($k in $selector.matchLabels.PSObject.Properties.Name) {
-    if ($podLabels.$k -ne $selector.matchLabels.$k) { return $false }
-  }
-  return $true
-}
-
-$report = foreach ($ns in $Namespaces) {
-
-  $workloads = kubectl get deploy,sts -n $ns -o json 2&gt;$null |
-    ConvertFrom-Json | Select-Object -ExpandProperty items -ErrorAction SilentlyContinue
-  if (-not $workloads) { continue }
-
-  foreach ($w in $workloads) {
-    $name = $w.metadata.name
-    $kind = $w.kind
-    $pspec = $w.spec.template.spec
-    $podLabels = $w.spec.template.metadata.labels
-    $containers = $pspec.containers
-    $replicas = [int]$w.spec.replicas
-    $ready = [int]$w.status.readyReplicas
-
-    $hasReadiness = [bool]($containers | Where-Object { $_.readinessProbe })
-    $hasStartup   = [bool]($containers | Where-Object { $_.startupProbe })
-    $hasLiveness  = [bool]($containers | Where-Object { $_.livenessProbe })
-    $hasPreStop   = [bool]($containers | Where-Object { $_.lifecycle.preStop })
-    $grace        = $pspec.terminationGracePeriodSeconds
-
-    $missingReq = @($containers | Where-Object {
-        -not $_.resources.requests.cpu -and -not $_.resources.requests.memory
-      }).Count
-    $hasRequests = ($missingReq -eq 0)
-
-    $aff = $pspec.affinity
-    $hasAntiAff  = [bool]($aff -and $aff.podAntiAffinity)
-    $hasNodeSel  = [bool]$pspec.nodeSelector
-    $spreadKeys  = @($pspec.topologySpreadConstraints | ForEach-Object { $_.topologyKey })
-    $hasSpreadHost = $spreadKeys -contains "kubernetes.io/hostname"
-    $hasSpreadZone = $spreadKeys -contains "topology.kubernetes.io/zone"
-
-    $rollingMaxUnavail = if ($kind -eq "Deployment") {
-      "$($w.spec.strategy.rollingUpdate.maxUnavailable)"
-    } else { "n/a" }
-
-    # PDB：按 selector 实际匹配，而非靠命名猜测
-    $pdb = $allPdb | Where-Object {
-      $_.metadata.namespace -eq $ns -and (Test-SelectorMatch $_.spec.selector $podLabels)
-    }
-    $pdbCount = @($pdb).Count
-    if ($pdbCount -ge 1) {
-      $p = @($pdb)[0]
-      $pdbName    = $p.metadata.name
-      $pdbPolicy  = if ($null -ne $p.spec.maxUnavailable) { "maxUnavailable=$($p.spec.maxUnavailable)" }
-                    else { "minAvailable=$($p.spec.minAvailable)" }
-      $pdbAllowed = $p.status.disruptionsAllowed
-      $pdbHealthy = $p.status.currentHealthy
-    } else {
-      $pdbName = "-"; $pdbPolicy = "-"; $pdbAllowed = "-"; $pdbHealthy = "-"
-    }
-
-    $hpa = $allHpa | Where-Object {
-      $_.metadata.namespace -eq $ns -and
-      $_.spec.scaleTargetRef.name -eq $name -and
-      $_.spec.scaleTargetRef.kind -eq $kind
-    }
-    if ($hpa) {
-      $h = @($hpa)[0]
-      $hpaRange = "$($h.spec.minReplicas)-$($h.spec.maxReplicas)"
-      $hpaMin = [int]$h.spec.minReplicas
-    } else { $hpaRange = "-"; $hpaMin = 0 }
-
-    # Pod 实际分布（验证分散是否真的生效）
-    $myPods = $allPods | Where-Object {
-      $_.metadata.namespace -eq $ns -and
-      $_.metadata.ownerReferences -and
-      (Test-SelectorMatch $w.spec.selector $_.metadata.labels)
-    }
-    $nodes = @($myPods | ForEach-Object { $_.spec.nodeName } | Sort-Object -Unique)
-    $nodeSpread = "$($nodes.Count)N/$(@($myPods).Count)P"
-
-    # ---------- 风险判定 ----------
-    $risks = [System.Collections.Generic.List[string]]::new()
-    if ($replicas -lt 2)                       { $risks.Add("P1:单副本") }
-    if (-not $hasReadiness)                    { $risks.Add("P1:无readiness") }
-    if (-not $hasPreStop -and $replicas -ge 2) { $risks.Add("P1:无preStop") }
-    if (-not $hasRequests)                     { $risks.Add("P1:无requests") }
-    if ($pdbPolicy -like "minAvailable*" -and $hpaRange -ne "-") {
-      $risks.Add("P0:PDB-HPA死锁风险")
-    }
-    if ($pdbAllowed -eq 0)                     { $risks.Add("P0:disruptions=0阻塞升级") }
-    if ($pdbCount -gt 1)                       { $risks.Add("P0:多PDB重叠") }
-    if ($replicas -lt 2 -and $pdbCount -ge 1)  { $risks.Add("P0:单副本配PDB") }
-    if ($replicas -ge 2 -and $pdbCount -eq 0)  { $risks.Add("P2:无PDB") }
-    if ($replicas -ge 2 -and -not $hasSpreadHost -and -not $hasAntiAff) {
-      $risks.Add("P2:无分布约束")
-    }
-    if ($replicas -ge 2 -and $nodes.Count -eq 1) { $risks.Add("P2:Pod集中单节点") }
-    if ($kind -eq "Deployment" -and $rollingMaxUnavail -notin @("0","0%")) {
-      $risks.Add("P3:rollingUpdate非0")
-    }
-    if ($hpaRange -ne "-" -and $hpaMin -lt 2)  { $risks.Add("P2:HPA下限&lt;2") }
-    if ($hasNodeSel)                           { $risks.Add("P3:用了nodeSelector") }
-    if ($hasLiveness -and -not $hasStartup)    { $risks.Add("P3:有liveness无startup") }
-    if ($ready -lt $replicas)                  { $risks.Add("P2:副本未就绪") }
-
-    [PSCustomObject]@{
-      NS            = $ns
-      NAME          = $name
-      KIND          = $kind
-      REPLICAS      = $replicas
-      READY         = $ready
-      NodeSpread    = $nodeSpread
-      Readiness     = if ($hasReadiness) {"Y"} else {"N"}
-      Startup       = if ($hasStartup)   {"Y"} else {"N"}
-      Liveness      = if ($hasLiveness)  {"Y"} else {"N"}
-      PreStop       = if ($hasPreStop)   {"Y"} else {"N"}
-      Grace         = $grace
-      Requests      = if ($hasRequests)  {"Y"} else {"N"}
-      SpreadHost    = if ($hasSpreadHost){"Y"} else {"N"}
-      SpreadZone    = if ($hasSpreadZone){"Y"} else {"N"}
-      AntiAff       = if ($hasAntiAff)   {"Y"} else {"N"}
-      NodeSel       = if ($hasNodeSel)   {"Y"} else {"N"}
-      RollingMaxUnav= $rollingMaxUnavail
-      PDB           = $pdbName
-      PDBPolicy     = $pdbPolicy
-      PDBAllowed    = $pdbAllowed
-      PDBHealthy    = $pdbHealthy
-      HPA           = $hpaRange
-      RiskLevel     = if ($risks -match "P0") {"P0"}
-                      elseif ($risks -match "P1") {"P1"}
-                      elseif ($risks -match "P2") {"P2"}
-                      elseif ($risks.Count) {"P3"} else {"OK"}
-      Risks         = ($risks -join "; ")
-    }
-  }
-}
-
-# ---------- 输出 ----------
-Write-Host "`n===== 阻塞升级（P0）=====" -ForegroundColor Magenta
-$report | Where-Object RiskLevel -eq "P0" |
-  Select-Object NS,NAME,KIND,PDBPolicy,PDBAllowed,HPA,Risks | Format-Table -AutoSize -Wrap
-
-Write-Host "`n===== 高危（P1）=====" -ForegroundColor Red
-$report | Where-Object RiskLevel -eq "P1" |
-  Select-Object NS,NAME,KIND,REPLICAS,NodeSpread,Risks | Format-Table -AutoSize -Wrap
-
-Write-Host "`n===== 需改进（P2）=====" -ForegroundColor Yellow
-$report | Where-Object RiskLevel -eq "P2" |
-  Select-Object NS,NAME,REPLICAS,NodeSpread,Risks | Format-Table -AutoSize -Wrap
-
-Write-Host "`n===== 全量明细 =====" -ForegroundColor Cyan
-$report | Sort-Object RiskLevel,NS,NAME |
-  Select-Object NS,NAME,KIND,REPLICAS,READY,NodeSpread,
-                Readiness,PreStop,Requests,SpreadHost,
-                PDBPolicy,PDBAllowed,HPA,RiskLevel | Format-Table -AutoSize
-
-Write-Host "`n===== 汇总 =====" -ForegroundColor Green
-$report | Group-Object RiskLevel |
-  Select-Object @{n="Level";e={$_.Name}}, Count | Sort-Object Level | Format-Table -AutoSize
-Write-Host "工作负载总数: $($report.Count)"
-
-if ($CsvPath) {
-  $report | Export-Csv -Path $CsvPath -NoTypeInformation -Encoding UTF8
-  Write-Host "已导出: $CsvPath" -ForegroundColor Green
-}</code></pre>
-
-  <h3>快速单点排查命令</h3>
-  <pre><code># PDB 健康速查：ALLOWED 必须 ≥1，CURRENT 必须等于实际副本数
-kubectl get pdb -A -o custom-columns=`
-'NS:.metadata.namespace,NAME:.metadata.name,MIN:.spec.minAvailable,MAXUNAVAIL:.spec.maxUnavailable,ALLOWED:.status.disruptionsAllowed,CURRENT:.status.currentHealthy'
-
-# 找出所有缺 preStop 的多副本 Deployment
-kubectl get deploy -A -o json | ConvertFrom-Json |
-  Select-Object -ExpandProperty items |
-  Where-Object { $_.spec.replicas -ge 2 -and
-    -not ($_.spec.template.spec.containers | Where-Object { $_.lifecycle.preStop }) } |
-  ForEach-Object { "$($_.metadata.namespace)/$($_.metadata.name)" }
-
-# 找出所有缺 requests 的容器
-kubectl get pods -A -o json | ConvertFrom-Json |
-  Select-Object -ExpandProperty items |
-  ForEach-Object { $p=$_; $_.spec.containers | Where-Object { -not $_.resources.requests } |
-    ForEach-Object { "$($p.metadata.namespace)/$($p.metadata.name)/$($_.name)" } }
-
-# 集群 AZ 分布（确认是否真的跨区）
-kubectl get nodes -L topology.kubernetes.io/zone,agentpool
-
-# 某应用 Pod 实际落点（验证分散）
-kubectl get pods -n &lt;ns&gt; -l app=&lt;svc&gt; -o wide</code></pre>
-</section>
-
-<!-- ================= S10 ================= -->
-<section class="card" id="s10">
-  <h2><span class="no">10</span>验收 Checklist</h2>
-
-  <h3><span class="pill p0">P0</span> 升级不失败（当天）</h3>
-  <ul class="checklist">
-    <li>所有 PDB 使用 maxUnavailable（有 HPA 时禁用 minAvailable）</li>
-    <li>稳态下所有 PDB 的 disruptionsAllowed ≥ 1</li>
-    <li>PDB selector 命中验证：currentHealthy == 实际副本数</li>
-    <li>单副本服务未配 PDB；无多 PDB 命中同一组 Pod</li>
-  </ul>
-
-  <h3><span class="pill p1">P1</span> 升级不掉请求（随发版）</h3>
-  <ul class="checklist">
-    <li>对外服务全部配置 preStop + terminationGracePeriodSeconds，应用处理 SIGTERM</li>
-    <li>所有容器有 resources.requests；memory.limits == memory.requests</li>
-    <li>replicas ≥ 2（核心 ≥3），并用 -o wide 验证实际分散在不同节点</li>
-    <li>readinessProbe 已配置且真实反映服务状态</li>
-    <li>livenessProbe 不检查任何外部依赖（或不配）</li>
-  </ul>
-
-  <h3><span class="pill p2">P2</span> 生产标准（1~2 迭代）</h3>
-  <ul class="checklist">
-    <li>topologySpreadConstraints（hostname 级）已配置；启用 AZ 的集群加 zone 级</li>
-    <li>对外服务 rollingUpdate.maxUnavailable: 0 + minReadySeconds ≥ 10</li>
-    <li>HPA minReplicas ≥ 2 + behavior.scaleDown 稳定窗口；GitOps 不再管理 replicas</li>
-    <li>集群节点 ≥3 且有 N+1 空闲容量</li>
-    <li>慢启动应用配置 startupProbe；namespace 有 LimitRange 兜底</li>
-  </ul>
-
-  <h3><span class="pill p3">P3</span> 成熟度（季度）</h3>
-  <ul class="checklist">
-    <li>核心服务设置 priorityClassName；不使用 nodeSelector，nodeAffinity 仅用 preferred</li>
-    <li>有状态服务 StorageClass 为 WaitForFirstConsumer；无持久数据写 hostPath/emptyDir</li>
-    <li>CoreDNS / Ingress Controller / metrics-server 多副本 + PDB</li>
-    <li>节点池 maxSurge 已调优 + 计划维护窗口已设置</li>
-    <li>disruptionsAllowed == 0 等核心告警已上线</li>
-    <li>每季度 drain 演练并记录错误率</li>
-  </ul>
-</section>
-
-<!-- ================= S11 ================= -->
-<section class="card" id="s11">
-  <h2><span class="no">11</span>落地路线与分工</h2>
-  <table>
-    <tr><th>阶段</th><th>动作</th><th>责任方</th><th>说明</th></tr>
-    <tr><td><span class="num-badge">1</span>摸底</td><td>跑第 9 节脚本，导出 CSV</td><td>平台</td><td>拿到全集群 P0/P1/P2 清单，不做任何改动</td></tr>
-    <tr><td><span class="num-badge">2</span>止血</td><td>完成全部 P0 项</td><td>平台 + 应用</td><td><b>纯 PDB 改动，零风险、不重启，当天完成</b>，直接解除升级阻塞</td></tr>
-    <tr><td><span class="num-badge">3</span>补下线与资源</td><td>P1 项随下次发版全量带上</td><td>应用团队</td><td>preStop / requests / 探针规范，需滚动重启</td></tr>
-    <tr><td><span class="num-badge">4</span>补标准</td><td>P2 项 1~2 个迭代内完成</td><td>应用 + 平台</td><td>分布约束先用 ScheduleAnyway 观察；容量 N+1 需预算确认</td></tr>
-    <tr><td><span class="num-badge">5</span>建闭环</td><td>P3 项进季度规划</td><td>平台</td><td>告警 + 演练，防止配置退化</td></tr>
-  </table>
-  <div class="callout ok">
-    <b>✅ 汇报收尾建议</b>
-    P0 是唯一"改配置不影响运行中 Pod"且直接解决节点池升级失败的项，应当最先做、当天做完；P0+P1 完成即覆盖 90% 的实际风险；P2/P3 按迭代和季度节奏推进，用第 9 节脚本做每次验收的统一标尺。
-  </div>
 </section>
 
 <footer>
