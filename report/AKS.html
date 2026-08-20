@@ -135,10 +135,10 @@
     <tr class="row-crit"><td colspan="5"><b>🔴 关键（决定高可用能否成立）</b></td></tr>
 <tr>
       <td><span class="pill p0">关键</span></td>
-      <td><b>⑯ 跨 AZ 与存储</b></td>
-      <td><span class="small">StorageClass <code>WaitForFirstConsumer</code>；跨 AZ 用 Files/ZRS；❌ hostPath/emptyDir 存持久数据</span></td>
-      <td>Azure Disk 是 zonal 资源，PV 先建会锁死 Pod 到某 AZ</td>
-      <td>存储配置正确</td>
+      <td><b>⑯ 跨可用区（AZ）冗余</b></td>
+      <td><span class="small">节点池跨多个可用区(AZ)；多副本分布到不同 AZ；<code>topologySpreadConstraints</code> 加 zone 级约束</span></td>
+      <td>单 AZ 故障 = 该区全部节点/副本同时宕机；跨 AZ 才真正确保"单点故障不断服"</td>
+      <td>节点跨 ≥2 AZ；副本分布到不同 AZ</td>
     </tr>
 <tr>
       <td><span class="pill p0">关键</span></td>
