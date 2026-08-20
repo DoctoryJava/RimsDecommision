@@ -114,7 +114,7 @@
 <!-- ================= HERO ================= -->
 <header class="hero">
   <h1>AKS 应用高可用统一整改方案</h1>
-  <p>整改项按 P0→P3 优先级排列 · 完整汇总表 · 标准配置模板</p>
+  <p>整改项按重要等级（关键 → 重要 → 增强 → 完善）排列 · 完整汇总表 · 标准配置模板</p>
   <p><span class="pill w">🔴 关键 ×5</span><span class="pill w">🟠 重要 ×6</span><span class="pill w">🔵 增强 ×5</span><span class="pill w">🟢 完善 ×4</span></p>
   <div class="meta">汇报版 ｜ 2026-08-17 ｜ 适用：AKS ≥ 1.27 全部业务集群</div>
 </header>
@@ -135,38 +135,38 @@
     <tr class="row-crit"><td colspan="5"><b>🔴 关键（决定高可用能否成立）</b></td></tr>
 <tr>
       <td><span class="pill p0">关键</span></td>
-      <td><b>⑯ 跨可用区（AZ）冗余</b></td>
+      <td><b>① 跨可用区（AZ）冗余</b></td>
       <td><span class="small">节点池跨多个可用区(AZ)；多副本分布到不同 AZ；<code>topologySpreadConstraints</code> 加 zone 级约束</span></td>
       <td>单 AZ 故障 = 该区全部节点/副本同时宕机；跨 AZ 才真正确保"单点故障不断服"</td>
       <td>节点跨 ≥2 AZ；副本分布到不同 AZ</td>
     </tr>
 <tr>
       <td><span class="pill p0">关键</span></td>
-      <td><b>⑥ replicas ≥ 2（核心≥3）</b></td>
+      <td><b>② replicas ≥ 2（核心≥3）</b></td>
       <td><span class="small">对外 ≥2；核心 ≥3；有状态 ≥3；<b>仅 quorum 类组件</b>（etcd/ZooKeeper/Redis Sentinel/Kafka Controller）<b>才需奇数</b><br>用 <code>kubectl get pod -o wide</code> 验证实际分散</span></td>
       <td>单副本 = 升级必然中断；同节点多副本 = 假冗余（CA072 实证）</td>
       <td>replicas 达标且实际跨节点</td>
     </tr>
 <tr>
       <td><span class="pill p0">关键</span></td>
-      <td><b>⑫ 集群容量 N+1</b></td>
+      <td><b>③ 集群容量 N+1</b></td>
       <td><span class="small">生产 ≥3 Node + 1 节点空闲余量；多 Node pool + Cluster Autoscaler；升级 --max-surge 33%</span></td>
       <td>配置解决不了容量；被驱逐 Pod 必须有落位空间</td>
       <td>节点≥3、有 N+1</td>
     </tr>
 <tr>
       <td><span class="pill p0">关键</span></td>
-      <td><b>⑨ topologySpread 分布约束</b></td>
+      <td><b>④ topologySpread 分布约束</b></td>
       <td><pre style="margin:0;padding:8px 10px;">topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: kubernetes.io/hostname
-    whenUnsatisfiable: DoNotSchedule   # 核心服务（前提：⑫容量N+1达标）</pre><span class="small">hostname 级核心服务用 DoNotSchedule（前提：⑫容量 N+1 已达标）；zone 级保留 ScheduleAnyway 防止跨 AZ 节点不足 Pending</span></td>
+    whenUnsatisfiable: DoNotSchedule   # 核心服务（前提：③容量N+1达标）</pre><span class="small">hostname 级核心服务用 DoNotSchedule（前提：③容量 N+1 已达标）；zone 级保留 ScheduleAnyway 防止跨 AZ 节点不足 Pending</span></td>
       <td>结果约束，Pod 均匀分布；preferred 反亲和会被稀释（CA072）</td>
-      <td>spread 已配置且实际分散；<b>若用 DoNotSchedule，需先确认 ⑫ 节点容量 N+1 达标</b></td>
+      <td>spread 已配置且实际分散；<b>若用 DoNotSchedule，需先确认 ③ 节点容量 N+1 达标</b></td>
     </tr>
 <tr>
       <td><span class="pill p0">关键</span></td>
-      <td><b>⑰ 平台组件自身 HA</b></td>
+      <td><b>⑤ 平台组件自身 HA</b></td>
       <td><span class="small">CoreDNS / Ingress(AGIC) / metrics-server 多副本 + PDB + 分散</span></td>
       <td>业务全配齐、Ingress 单副本照样全站中断</td>
       <td>平台组件达标</td>
@@ -174,7 +174,7 @@
     <tr class="row-imp"><td colspan="5"><b>🟠 重要（决定升级/发版是否中断）</b></td></tr>
 <tr>
       <td><span class="pill p1">重要</span></td>
-      <td><b>① PDB 统一用 maxUnavailable</b><br><span class="small">禁 minAvailable（绝对值）+ HPA 组合（百分比可用，但需校验）</span></td>
+      <td><b>⑥ PDB 统一用 maxUnavailable</b><br><span class="small">禁 minAvailable（绝对值）+ HPA 组合（百分比可用，但需校验）</span></td>
       <td><pre style="margin:0;padding:8px 10px;">maxUnavailable: 1
 unhealthyPodEvictionPolicy: AlwaysAllow
 selector:
@@ -184,21 +184,21 @@ selector:
     </tr>
 <tr>
       <td><span class="pill p1">重要</span></td>
-      <td><b>② 消除 disruptionsAllowed==0</b></td>
+      <td><b>⑦ 消除 disruptionsAllowed==0</b></td>
       <td><span class="small">稳态 <code>ALLOWED ≥ 1</code>；用一条命令排查：<code>kubectl get pdb -A</code></span></td>
       <td>ALLOWED=0 会 drain 永久阻塞，升级超时失败。<b>现象误导</b>：Pod 全 Running、健康全绿但升级失败</td>
       <td>全集群 PDB ALLOWED ≥ 1</td>
     </tr>
 <tr>
       <td><span class="pill p1">重要</span></td>
-      <td><b>③ PDB selector 命中 / 单副本 / 重叠</b></td>
+      <td><b>⑧ PDB selector 命中 / 单副本 / 重叠</b></td>
       <td><span class="small">selector 必须与 Pod 标签完全一致；单副本<b>不配 PDB</b>；禁止多 PDB 命中同组 Pod</span></td>
       <td>不命中 = 保护形同虚设；单副本+PDB = 锁死驱逐；多 PDB = Eviction 直接失败</td>
       <td><code>currentHealthy == 实际副本数</code></td>
     </tr>
 <tr>
       <td><span class="pill p1">重要</span></td>
-      <td><b>④ 优雅下线</b><br><span class="small">preStop + terminationGracePeriod</span></td>
+      <td><b>⑨ 优雅下线</b><br><span class="small">preStop + terminationGracePeriod</span></td>
       <td><pre style="margin:0;padding:8px 10px;">terminationGracePeriodSeconds: 45
 lifecycle:
   preStop:
@@ -208,7 +208,7 @@ lifecycle:
     </tr>
 <tr>
       <td><span class="pill p1">重要</span></td>
-      <td><b>⑦ readinessProbe 规范</b></td>
+      <td><b>⑩ readinessProbe 规范</b></td>
       <td><pre style="margin:0;padding:8px 10px;">readinessProbe:
   httpGet: { path: /health/ready, port: 8080 }
   periodSeconds: 5
@@ -218,7 +218,7 @@ lifecycle:
     </tr>
 <tr>
       <td><span class="pill p1">重要</span></td>
-      <td><b>⑧ liveness 禁查外部依赖</b></td>
+      <td><b>⑪ liveness 禁查外部依赖</b></td>
       <td><span class="small">liveness 只查进程自身；❌ 不查 DB/Redis/下游</span></td>
       <td>查外部依赖 → 依赖抖动 → 全副本重启 → <b>级联雪崩</b></td>
       <td>liveness 不查外部依赖</td>
@@ -226,7 +226,7 @@ lifecycle:
     <tr class="row-enh"><td colspan="5"><b>🔵 增强（生产质量）</b></td></tr>
 <tr>
       <td><span class="pill p2">增强</span></td>
-      <td><b>⑤ resources.requests 全量</b></td>
+      <td><b>⑫ resources.requests 全量</b></td>
       <td><pre style="margin:0;padding:8px 10px;">requests: { cpu: 200m, memory: 512Mi }
 limits:   { cpu: 1000m, memory: 512Mi }</pre><span class="small">memory.limits == requests</span></td>
       <td>调度地基：驱逐后 Pod 才有落点；QoS 决定驱逐顺序。<b>不配</b>：驱逐后 Pending、HPA 指标失真</td>
@@ -234,7 +234,7 @@ limits:   { cpu: 1000m, memory: 512Mi }</pre><span class="small">memory.limits =
     </tr>
 <tr>
       <td><span class="pill p2">增强</span></td>
-      <td><b>⑩ 发版策略 maxUnavailable:0</b></td>
+      <td><b>⑬ 发版策略 maxUnavailable:0</b></td>
       <td><pre style="margin:0;padding:8px 10px;">rollingUpdate:
   maxUnavailable: 0
   maxSurge: 1
@@ -244,7 +244,7 @@ minReadySeconds: 10</pre></td>
     </tr>
 <tr>
       <td><span class="pill p2">增强</span></td>
-      <td><b>⑪ HPA 规范化</b></td>
+      <td><b>⑭ HPA 规范化</b></td>
       <td><pre style="margin:0;padding:8px 10px;">minReplicas: 2
 maxReplicas: 10
 behavior:
@@ -254,7 +254,7 @@ behavior:
     </tr>
 <tr>
       <td><span class="pill p2">增强</span></td>
-      <td><b>⑬ startupProbe（慢启动）</b></td>
+      <td><b>⑮ startupProbe（慢启动）</b></td>
       <td><pre style="margin:0;padding:8px 10px;">startupProbe:
   httpGet: { path: /health/live, port: 8080 }
   failureThreshold: 30</pre><span class="small">限启动 &gt; 30s 的应用</span></td>
@@ -263,7 +263,7 @@ behavior:
     </tr>
 <tr>
       <td><span class="pill p2">增强</span></td>
-      <td><b>⑭ LimitRange 兜底</b></td>
+      <td><b>⑯ LimitRange 兜底</b></td>
       <td><span class="small">namespace 默认 requests/limits；有条件用 Gatekeeper/Kyverno 强制</span></td>
       <td>防新服务漏配 requests</td>
       <td>namespace 有默认限制</td>
@@ -271,7 +271,7 @@ behavior:
     <tr class="row-mature"><td colspan="5"><b>🟢 完善（长期保障）</b></td></tr>
 <tr>
       <td><span class="pill p3">完善</span></td>
-      <td><b>⑮ PriorityClass</b></td>
+      <td><b>⑰ PriorityClass</b></td>
       <td><span class="small">核心 1000000 / 一般 100000 / 批处理 0</span></td>
       <td>资源紧张时保核心服务不被日志采集、测试负载挤掉</td>
       <td>核心服务已设置</td>
@@ -319,15 +319,15 @@ metadata:
   name: corp-ca191-speakerapi-p
   namespace: default
 spec:
-  replicas: 3                              # ⑥ 核心业务建议 ≥3（原 2 → 3，对外至少 ≥2）
+  replicas: 3                              # ② 核心业务建议 ≥3（原 2 → 3，对外至少 ≥2）
   revisionHistoryLimit: 5
-  minReadySeconds: 10                      # ⑩
+  minReadySeconds: 10                      # ⑬
   progressDeadlineSeconds: 600
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 0                    # ⑩ 发版零容量损失
-      maxSurge: 1                          # ⑩ 原 2 → 1，避免 2 副本集群容量翻倍
+      maxUnavailable: 0                    # ⑬ 发版零容量损失
+      maxSurge: 1                          # ⑬ 原 2 → 1，避免 2 副本集群容量翻倍
   selector:
     matchLabels:
       app: corp-ca191-speakerapi-p
@@ -336,8 +336,8 @@ spec:
       labels:
         app: corp-ca191-speakerapi-p
     spec:
-      terminationGracePeriodSeconds: 45    # ④ 优雅下线
-      topologySpreadConstraints:           # ⑨ 结果约束，替代仅靠 preferred 反亲和
+      terminationGracePeriodSeconds: 45    # ⑨ 优雅下线
+      topologySpreadConstraints:           # ④ 结果约束，替代仅靠 preferred 反亲和
         - maxSkew: 1
           topologyKey: topology.kubernetes.io/zone      # 集群启用 AZ 时才加
           whenUnsatisfiable: ScheduleAnyway
@@ -345,10 +345,10 @@ spec:
             matchLabels: { app: corp-ca191-speakerapi-p }
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule   # ⑨ 核心服务硬约束（前提：⑫容量N+1达标）
+          whenUnsatisfiable: DoNotSchedule   # ④ 核心服务硬约束（前提：③容量N+1达标）
           labelSelector:
             matchLabels: { app: corp-ca191-speakerapi-p }
-      affinity:                            # ⑨ 辅助（可选）
+      affinity:                            # ④ 辅助（可选）
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -367,32 +367,32 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 80
-          resources:                       # ⑤ 调度地基（按 P95 实际用量填）
+          resources:                       # ⑫ 调度地基（按 P95 实际用量填）
             requests: { cpu: 200m, memory: 512Mi }
             limits:   { cpu: 1000m, memory: 512Mi }
-          startupProbe:                    # ⑬ 慢启动保护
+          startupProbe:                    # ⑮ 慢启动保护
             httpGet: { path: /api/Misc/Health, port: 80 }
             failureThreshold: 30
             periodSeconds: 5
-          readinessProbe:                  # ⑦
+          readinessProbe:                  # ⑩
             httpGet: { path: /api/Misc/Health, port: 80 }
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 2
             failureThreshold: 3
-          livenessProbe:                   # ⑧ ⚠️高风险：上线前必须代码走查，见下方专项说明
+          livenessProbe:                   # ⑪ ⚠️高风险：上线前必须代码走查，见下方专项说明
             httpGet: { path: /api/Misc/Health, port: 80 }
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 6
-          lifecycle:                       # ④ 优雅下线核心
+          lifecycle:                       # ⑨ 优雅下线核心
             preStop:
               exec:
                 command: ["/bin/sh", "-c", "sleep 15"]
 ---
 apiVersion: policy/v1
-kind: PodDisruptionBudget                  # ①②③ 新增：P0
+kind: PodDisruptionBudget                  # ⑥⑦⑧ 新增：P0
 metadata:
   name: corp-ca191-speakerapi-p-pdb
   namespace: default
@@ -417,7 +417,7 @@ spec:
       targetPort: 80
 ---
 apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler              # ⑪（建议补配）
+kind: HorizontalPodAutoscaler              # ⑭（建议补配）
 metadata:
   name: corp-ca191-apihpa-p
   namespace: default
@@ -433,7 +433,7 @@ spec:
       resource:
         name: cpu
         target: { type: Utilization, averageUtilization: 80 }
-  behavior:                                # ⑪ 防缩容抖动
+  behavior:                                # ⑭ 防缩容抖动
     scaleDown:
       stabilizationWindowSeconds: 600
       policies:
@@ -442,12 +442,12 @@ spec:
       stabilizationWindowSeconds: 0
       policies:
         - { type: Percent, value: 100, periodSeconds: 30 }</code></pre>
-  <p class="small">注：① 启用 HPA 后 Helm/GitOps 不再管理 <code>spec.replicas</code>；② 移动端 <code>corp-ca191-speakerapi-m-p</code> 同构，复制本模板改 <code>app</code>/<code>name</code> 即可。</p>
+  <p class="small">注：⑥ 启用 HPA 后 Helm/GitOps 不再管理 <code>spec.replicas</code>；⑦ 移动端 <code>corp-ca191-speakerapi-m-p</code> 同构，复制本模板改 <code>app</code>/<code>name</code> 即可。</p>
 
   <div class="callout danger">
     <b>⚠️ 高风险修订专项说明：liveness/readiness 共用端点问题</b>
-    模板中 startupProbe / readinessProbe / livenessProbe 均指向同一个 <code>/api/Misc/Health</code> 端点。P1⑧ 要求 liveness 不能查外部依赖，但该端点的<b>具体实现</b>未经代码验证——若内部检测了 DB/Redis 连接（常见于 .NET <code>AddHealthChecks()</code> 默认写法），依赖一抖动会导致<b>全部副本同时 liveness 失败 → 同时重启 → 级联雪崩</b>，正是 ⑧（重要级）要防的最坏场景。<br>
-    <b>上线前必须完成（阻断项，不可跳过）：</b>① 由开发提供 <code>/api/Misc/Health</code> 源码实现，确认是否含外部依赖检查；② 若含依赖检查，必须拆分为 <code>/health/live</code>（仅进程存活）与 <code>/health/ready</code>（含依赖），liveness/startup 指向前者、readiness 指向后者；③ 若确认不含，书面记录存档备查，而非仅凭注释。<b>此项优先级等同 P1，应单列为发版 checklist 强制项。</b>
+    模板中 startupProbe / readinessProbe / livenessProbe 均指向同一个 <code>/api/Misc/Health</code> 端点。⑪ 要求 liveness 不能查外部依赖，但该端点的<b>具体实现</b>未经代码验证——若内部检测了 DB/Redis 连接（常见于 .NET <code>AddHealthChecks()</code> 默认写法），依赖一抖动会导致<b>全部副本同时 liveness 失败 → 同时重启 → 级联雪崩</b>，正是 ⑪（重要级）要防的最坏场景。<br>
+    <b>上线前必须完成（阻断项，不可跳过）：</b>⑥ 由开发提供 <code>/api/Misc/Health</code> 源码实现，确认是否含外部依赖检查；⑦ 若含依赖检查，必须拆分为 <code>/health/live</code>（仅进程存活）与 <code>/health/ready</code>（含依赖），liveness/startup 指向前者、readiness 指向后者；⑧ 若确认不含，书面记录存档备查，而非仅凭注释。<b>此项优先级等同 P1，应单列为发版 checklist 强制项。</b>
   </div>
 </section>
 
