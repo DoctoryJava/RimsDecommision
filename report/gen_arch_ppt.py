@@ -608,14 +608,18 @@ def slide_app(prs):
         xx += 0.32 + (len(t) * 0.082 + 0.5)
 
 # ============================================ SLIDE 3 · LAKEHOUSE (存算分离) =
-def stage_head(sl, x, y, sid, col, t, en, sub=None, w=3.0):
-    oval(sl, x + 0.12, y + 0.10, 0.34, 0.34, 'FFFFFF', col, 1.8)
-    txt(sl, x + 0.12, y + 0.10, 0.34, 0.34, sid, sz=6.5 if len(sid) <= 2 else 5.6, b=True, c=col,
-        align='c', anchor='m', mono=True)
-    txt(sl, x + 0.56, y + 0.07, w, 0.2, t, sz=9.2, b=True, c=INK)
-    txt(sl, x + 0.56, y + 0.27, w, 0.13, en, sz=5.6, b=True, c=col, spc=120, mono=True)
-    if sub:
-        txt(sl, x + 0.12, y + 0.46, w, 0.15, sub, sz=6.2, c=MUT)
+def vstage(sl, y, h, sid, col, t, en, subs, fill, bl, lw=1.2):
+    """竖向流水线的单个阶段卡：左侧脊柱圆点 + 标题块，右侧内容区（x2.44–8.45）。"""
+    rect(sl, 0.78, y, 7.77, h, fill, bl, lw, 0.08)
+    oval(sl, 0.38, y + h / 2 - 0.17, 0.34, 0.34, 'FFFFFF', col, 1.8)
+    txt(sl, 0.38, y + h / 2 - 0.17, 0.34, 0.34, sid, sz=6.5 if len(sid) <= 2 else 5.3,
+        b=True, c=col, align='c', anchor='m', mono=True)
+    txt(sl, 0.90, y + 0.06, 1.46, 0.18, t, sz=9.2, b=True, c=INK)
+    txt(sl, 0.90, y + 0.25, 1.46, 0.12, en, sz=5.2, b=True, c=col, spc=110, mono=True)
+    yy = y + 0.40
+    for s, strong, cc in subs:
+        txt(sl, 0.90, yy, 1.48, 0.125, s, sz=5.9, c=cc or MUT, b=strong)
+        yy += 0.13
 
 def slide_lake(prs):
     sl = prs.slides.add_slide(prs.slide_layouts[6]); _cur['i'] = 3
@@ -623,211 +627,196 @@ def slide_lake(prs):
     title_bar(sl, '方案 B · 湖仓一体 · 存算分离架构',
               '对象存储冷湖（Iceberg）· Databricks 写侧 + Trino 读侧 · PB 级从容', PUR, '03 / 03')
 
-    PY, PH = 0.78, 3.64   # pipeline row
+    # ================= 左侧：竖向主管道 =================
+    seg(sl, 0.55, 0.74, 0.55, 6.90, 'E2E8F0', 2.5, arrow=False)   # 脊柱
 
-    # ---- S1 源系统 ----
-    x, w = 0.22, 1.78
-    rect(sl, x, PY, w, PH, 'F6F8FA', 'CBD5E1', 1.2, 0.08)
-    stage_head(sl, x, PY, '01', SLA, '源系统', 'SOURCE', None, w - 0.2)
-    rect(sl, x + 0.12, 1.44, 1.54, 1.04, 'FFFFFF', SLA, 1.3, 0.05)
-    rect(sl, x + 0.14, 1.50, 0.04, 0.92, SLA, rad=0.02)
-    txt(sl, x + 0.18, 1.52, 1.42, 0.15, '结构化数据', sz=7.6, b=True, c=INK, align='c')
-    txt(sl, x + 0.18, 1.74, 1.42, 0.68,
-        [dict(runs=[('Oracle · MySQL · DB2', {'c': INK, 'sz': 7.0, 'b': True})], ls=1.2, align='c'),
-         dict(runs=[('业务库 · JDBC 读取', {'c': MUT, 'sz': 6.0})], ls=1.3, align='c'),
-         dict(runs=[('约 100 张表', {'c': FAINT, 'sz': 6.0})], ls=1.3, align='c')])
-    rect(sl, x + 0.12, 2.62, 1.54, 1.04, L_AMB, AMB, 1.3, 0.05)
-    rect(sl, x + 0.14, 2.68, 0.04, 0.92, AMB, rad=0.02)
-    txt(sl, x + 0.18, 2.70, 1.42, 0.15, '非结构化附件', sz=7.6, b=True, c=AMBD, align='c')
-    txt(sl, x + 0.18, 2.92, 1.42, 0.68,
-        [dict(runs=[('NFS · S3 · Blob', {'c': AMBD, 'sz': 7.0, 'b': True})], ls=1.2, align='c'),
-         dict(runs=[('PDF / 图片 / 影像件', {'c': '78350F', 'sz': 6.0})], ls=1.3, align='c'),
-         dict(runs=[('文件服务器 · 对象存储', {'c': 'A16207', 'sz': 6.0})], ls=1.3, align='c')])
-    rect(sl, x + 0.12, 3.80, 1.54, 0.44, 'FFFFFF', 'CBD5E1', 1.0, 0.05)
-    txt(sl, x + 0.18, 3.80, 1.42, 0.44, '退役 · 只读\n15 套系统待归档', sz=6.0, c=SUB, align='c', anchor='m', leading=1.25)
+    # ---- 01 源系统 ----
+    vstage(sl, 0.62, 0.68, '01', SLA, '源系统', 'SOURCE',
+           [('退役 · 只读', False, None), ('15 套待归档', False, None)], 'F6F8FA', 'CBD5E1')
+    chip(sl, 2.44, 0.70, 2.94, 0.52, '结构化数据',
+         'Oracle · MySQL · DB2 / 其他 · JDBC 读取 · 约 100 张表',
+         'FFFFFF', SLA, 1.3, 0.05, tc=INK, tsz=7.4, sc=MUT, ssz=6.0)
+    chip(sl, 5.51, 0.70, 2.94, 0.52, '非结构化附件',
+         'NFS · S3 · Azure Blob · PDF / 图片 / 影像件',
+         L_AMB, AMB, 1.3, 0.05, tc=AMBD, tsz=7.4, sc='78350F', ssz=6.0)
+    seg(sl, 5.45, 1.30, 5.45, 1.41, '94A3B8', 1.6)
 
-    # ---- S2 接入配置 ----
-    x, w = 2.18, 2.42
-    rect(sl, x, PY, w, PH, L_CYN, B_CYNB, 1.2, 0.08)
-    stage_head(sl, x, PY, 'B-00', CYN, '接入配置', 'CONFIGURE', '页面操作 · 零代码 · 配置存元数据库', w - 0.2)
-    steps = [
-        ('① 录入连接信息', ['主机 / 端口 / 账号', '凭据存 Key Vault', '「测试连接」校验连通 + 权限']),
-        ('② 自动读取表清单', ['扫描 information_schema', '表名 · 行数 · 大小', '共发现 10 张表（含类型 / 主键）']),
+    # ---- B-00 接入配置 ----
+    vstage(sl, 1.42, 0.92, 'B-00', CYN, '接入配置', 'CONFIGURE',
+           [('页面操作 · 零代码', False, None), ('配置存元数据库', False, None),
+            ('新系统接入复用', True, CYN)], L_CYN, B_CYNB)
+    b00 = [
+        ('① 录入连接信息', ['主机 / 端口 / 账号 · 凭据存 Key Vault', '「测试连接」校验连通与权限']),
+        ('② 自动读取表清单', ['扫描 information_schema · 表名 / 行数 / 大小', '共发现 10 张表（含类型与主键）']),
+        ('③ 勾选待迁移表', ['☑ 订单主表 · 明细 · 客户 · 商品 · 支付', '☐ 临时 / 日志 / 中间 / 缓存 / 备份']),
     ]
-    sy = 1.44
-    for t, lines in steps:
-        rect(sl, x + 0.12, sy, w - 0.24, 0.86, 'FFFFFF', CYN, 1.3, 0.05)
-        rect(sl, x + 0.12, sy + 0.06, 0.04, 0.74, CYN, rad=0.02)
-        txt(sl, x + 0.26, sy + 0.07, w - 0.44, 0.15, t, sz=7.4, b=True, c=INK)
-        for i, l in enumerate(lines):
-            txt(sl, x + 0.26, sy + 0.27 + i * 0.185, w - 0.44, 0.16, l, sz=6.0,
-                c=CYN if i == len(lines) - 1 else MUT)
-        sy += 0.98
-    seg(sl, x + w / 2, 2.30, x + w / 2, 2.42, CYN, 1.5)
-    seg(sl, x + w / 2, 3.28, x + w / 2, 3.40, CYN, 1.5)
-    # step 3 checklist
-    rect(sl, x + 0.12, 3.42, w - 0.24, 0.88, 'ECFEFF', CYN, 1.6, 0.05)
-    rect(sl, x + 0.12, 3.48, 0.04, 0.76, CYN, rad=0.02)
-    txt(sl, x + 0.26, 3.49, w - 0.44, 0.15, '③ 勾选待迁移表（10 选 5）', sz=7.4, b=True, c=CYND)
-    checks = [('☑', '订单主表'), ('☑', '订单明细'), ('☑', '客户信息'), ('☑', '商品档案'), ('☑', '支付记录')]
-    for i, (m, t) in enumerate(checks):
-        cx = x + 0.26 + (i % 3) * 0.72; cy = 3.72 + (i // 3) * 0.20
-        txt(sl, cx, cy, 0.72, 0.15, [dict(runs=[(m + ' ', {'c': GRN, 'sz': 6.0, 'b': True}),
-                                               (t, {'c': '065F46', 'sz': 6.0})])])
-    txt(sl, x + 0.26, 4.12, w - 0.44, 0.13, '☐ 临时 / 日志 / 中间 / 缓存 / 备份表 不入湖', sz=5.8, c=FAINT)
+    bx = 2.44
+    for t, lines in b00:
+        rect(sl, bx, 1.48, 1.85, 0.64, 'FFFFFF', CYN, 1.3, 0.05)
+        rect(sl, bx, 1.54, 0.035, 0.52, CYN, rad=0.017)
+        txt(sl, bx + 0.10, 1.54, 1.68, 0.13, t, sz=6.8, b=True, c=INK)
+        yy = 1.70
+        for l in lines:
+            txt(sl, bx + 0.10, yy, 1.68, 0.22, l, sz=5.7, c=MUT, leading=1.1)
+            yy += 0.21
+        bx += 2.08
+    seg(sl, 4.30, 1.80, 4.50, 1.80, CYN, 1.5)
+    seg(sl, 6.38, 1.80, 6.58, 1.80, CYN, 1.5)
+    txt(sl, 2.44, 2.15, 6.01, 0.13, '按配置生成 SeaTunnel 任务 · 仅入湖勾选的 5 张表（10 选 5）',
+        sz=6.2, b=True, c=CYN, align='c')
+    seg(sl, 5.45, 2.34, 5.45, 2.45, '94A3B8', 1.6)
 
-    # ---- S3 数据抽取 ----
-    x, w = 4.78, 2.00
-    rect(sl, x, PY, w, PH, 'FFF7ED', 'FED7AA', 1.2, 0.08)
-    stage_head(sl, x, PY, '02', ORG, '数据抽取', 'INGEST', '批量 · 由 Airflow / ADF 编排', w - 0.2)
-    rect(sl, x + 0.12, 1.44, 1.76, 1.32, 'FFFFFF', ORG, 1.3, 0.05)
-    rect(sl, x + 0.12, 1.50, 0.04, 1.20, ORG, rad=0.02)
-    txt(sl, x + 0.20, 1.52, 1.62, 0.52,
-        [dict(runs=[('结构化 · SeaTunnel', {'c': INK, 'sz': 7.4, 'b': True})], align='c'),
-         dict(runs=[('200+ 连接器 · 批量抽取', {'c': MUT, 'sz': 6.0})], align='c', sb=2),
-         dict(runs=[('JDBC · 类型映射 · 对账', {'c': FAINT, 'sz': 6.0})], align='c')])
-    txt(sl, x + 0.20, 2.52, 1.62, 0.15, '→ 写入 Iceberg 表', sz=6.2, b=True, c=ORG, align='c')
-    rect(sl, x + 0.12, 2.90, 1.76, 1.32, L_AMB, AMB, 1.5, 0.05)
-    rect(sl, x + 0.12, 2.96, 0.04, 1.20, AMB, rad=0.02)
-    txt(sl, x + 0.20, 2.98, 1.62, 0.52,
-        [dict(runs=[('附件 · Storage Mover', {'c': AMBD, 'sz': 7.4, 'b': True})], align='c'),
-         dict(runs=[('PDF / 图片 / Office 影像', {'c': '78350F', 'sz': 6.0})], align='c', sb=2),
-         dict(runs=[('NFS · S3 · Blob · 服务免费', {'c': 'A16207', 'sz': 6.0})], align='c')])
-    txt(sl, x + 0.20, 3.98, 1.62, 0.15, '→ ADLS 附件容器', sz=6.2, b=True, c=AMB, align='c')
+    # ---- 02 数据抽取 ----
+    vstage(sl, 2.46, 0.68, '02', ORG, '数据抽取', 'INGEST',
+           [('批量 · 全量 + 增量', False, None), ('Airflow / ADF 编排', False, None)], 'FFF7ED', 'FED7AA')
+    chip(sl, 2.44, 2.54, 2.94, 0.52, '结构化 · SeaTunnel',
+         '200+ 连接器 · JDBC · 类型映射 · 对账 → Iceberg 表',
+         'FFFFFF', ORG, 1.3, 0.05, tc=INK, tsz=7.4, sc=MUT, ssz=6.0)
+    chip(sl, 5.51, 2.54, 2.94, 0.52, '附件 · Storage Mover',
+         'PDF / 图片 / Office 影像 · 服务免费 → ADLS 附件容器',
+         L_AMB, AMB, 1.5, 0.05, tc=AMBD, tsz=7.4, sc='78350F', ssz=6.0)
+    seg(sl, 5.45, 3.14, 5.45, 3.25, '94A3B8', 1.6)
 
-    # ---- S4 Iceberg 冷湖 ----
-    x, w = 6.96, 2.86
-    rect(sl, x, PY, w, PH, 'FAF9FF', B_PUR, 1.2, 0.08)
-    stage_head(sl, x, PY, 'B-03', PUR, 'Iceberg 冷湖 · 存储侧', 'COLD LAKE · STORAGE', None, w - 0.2)
-    txt(sl, x + 0.12, 0.46 + PY, w - 0.24, 0.15,
-        [dict(runs=[('ADLS Gen2 · Parquet + ZSTD · 100 张表 1:1 原样 · ', {'c': MUT, 'sz': 6.0}),
-                    ('≈¥90–150/TB·月', {'c': PUR, 'sz': 6.0, 'b': True})])])
+    # ---- B-03 Iceberg 冷湖 ----
+    vstage(sl, 3.26, 1.24, 'B-03', PUR, 'Iceberg 冷湖', 'COLD LAKE · STORAGE',
+           [('ADLS Gen2 · Parquet + ZSTD', False, None), ('≈¥90–150/TB·月 · PB 级', True, PUR),
+            ('100 张表 · 1:1 原样', False, None), ('Hot / Cool 分层 · ZRS', False, None)], 'FAF9FF', B_PUR)
+    txt(sl, 2.44, 3.32, 6.01, 0.14, 'Iceberg 表 · 四层分层（RAW → SERVE 逐层升温，越往下越热）',
+        sz=6.4, b=True, c=PUR)
     layers = [
         ('RAW · 原始落地（最冷）', 'SeaTunnel 全量 1:1 保真 · 分区 sys_id / ingest_date', 'EEF2FF', 'C7D2FE', '818CF8', '4338CA'),
         ('CURATED · 清洗规整', '类型统一 · 缺失值处理 · SHA-256 台账 · 分区归约', 'EDE9FE', 'C4B5FD', 'A78BFA', '6D28D9'),
         ('LAKE · 建模归档', '业务维度建模 · 生命周期分区（销毁友好）', 'F5F3FF', 'A78BFA', '7C3AED', '5B21B6'),
         ('SERVE · 加速服务（最热）', '热表物化 · Z-Order · 供 Trino 直接查询', 'FEF3C7', 'FCD34D', 'D97706', 'B45309'),
     ]
-    ly = 1.44
+    ly = 3.50
     for t, s, f, bl, ac, tc in layers:
-        rect(sl, x + 0.12, ly, w - 0.24, 0.62, f, bl, 1.0, 0.05)
-        rect(sl, x + 0.14, ly + 0.04, 0.04, 0.54, ac, rad=0.02)
-        txt(sl, x + 0.26, ly + 0.07, w - 0.42, 0.15, t, sz=7.4, b=True, c=tc)
-        txt(sl, x + 0.26, ly + 0.26, w - 0.42, 0.3, s, sz=5.9, c=MUT, leading=1.15)
-        ly += 0.70
-    txt(sl, x + 0.12, 4.22, w - 0.24, 0.14, 'RAW → SERVE 逐层升温 · 供上层直查', sz=6.0, b=True, c=PUR, align='c')
+        rect(sl, 2.44, ly, 6.01, 0.225, f, bl, 1.0, 0.04)
+        rect(sl, 2.46, ly + 0.025, 0.035, 0.175, ac, rad=0.017)
+        txt(sl, 2.58, ly, 5.80, 0.225,
+            [dict(runs=[(t, {'c': tc, 'sz': 7.0, 'b': True}),
+                        ('　' + s, {'c': MUT, 'sz': 6.0})])], anchor='m')
+        ly += 0.245
+    # 存算分离边界
+    seg(sl, 0.78, 4.65, 8.55, 4.65, '94A3B8', 1.6, MSO_LINE_DASH_STYLE.DASH, arrow=False)
+    rect(sl, 4.62, 4.55, 1.76, 0.20, 'FFFFFF', 'CBD5E1', 1.0, 0.06)
+    txt(sl, 4.62, 4.55, 1.76, 0.20, '━━ 存算分离边界 ━━', sz=6.8, b=True, c=SLA, align='c', anchor='m')
+    seg(sl, 3.40, 4.50, 3.40, 4.80, PUR, 1.8)          # 湖 -> Trino 读
+    txt(sl, 3.52, 4.51, 1.00, 0.12, 'Trino 外表直查', sz=5.6, b=True, c=PUR)
+    seg(sl, 7.80, 4.80, 7.80, 4.50, GRN, 1.8)          # Databricks ETL 写回
+    txt(sl, 6.45, 4.67, 1.28, 0.12, 'ETL 写入 · Databricks', sz=5.6, b=True, c=GRN, align='r')
 
-    # ---- 存算分离边界 ----
-    bx = 10.10
-    seg(sl, bx, 0.66, bx, 4.42, '94A3B8', 1.6, MSO_LINE_DASH_STYLE.DASH, arrow=False)
-    rect(sl, bx - 0.15, 0.96, 0.30, 1.14, 'FFFFFF', 'CBD5E1', 1.0, 0.06)
-    txt(sl, bx - 0.15, 0.96, 0.30, 1.14, '存算分离边界', sz=7.0, b=True, c=SLA, align='c', anchor='m', vert=True)
-    txt(sl, 6.98, 4.47, 2.2, 0.14, '↑ 存储侧 · 对象存储常驻', sz=6.0, b=True, c=PUR, align='l')
-    txt(sl, bx + 0.10, 4.46, 1.6, 0.14, '↓ 计算侧 · 按需拉起计费', sz=6.0, b=True, c=GRN)
-    # crossing arrows
-    seg(sl, 9.84, 2.14, 10.28, 2.14, PUR, 1.8)      # lake -> trino read
-    rect(sl, 9.83, 2.24, 0.46, 0.32, 'FFFFFF', rad=0.04)
-    txt(sl, 9.83, 2.24, 0.46, 0.32, 'Trino\n外表直查', sz=5.6, b=True, c=PUR, align='c', anchor='m', leading=1.15)
-    seg(sl, 10.28, 3.02, 9.84, 3.02, GRN, 1.8)      # databricks writes
-    rect(sl, 9.83, 3.12, 0.46, 0.32, 'FFFFFF', rad=0.04)
-    txt(sl, 9.83, 3.12, 0.46, 0.32, 'ETL\n逐层写入', sz=5.6, b=True, c=GRN, align='c', anchor='m', leading=1.15)
-
-    # ---- S5 统一计算层 ----
-    x, w = 10.30, 1.66
-    rect(sl, x, PY, w, PH, L_GRNB, 'A7F3D0', 1.2, 0.08)
-    stage_head(sl, x, PY, 'B-04', GRN, '统一计算层', 'COMPUTE', '写侧 · 读侧并列 · 弹性', w - 0.2)
+    # ---- B-04 统一计算层 ----
+    vstage(sl, 4.80, 0.84, 'B-04', GRN, '统一计算层', 'COMPUTE',
+           [('写侧 · 读侧并列', False, None), ('弹性 · 按量计费', False, None)], L_GRNB, 'A7F3D0')
     comp = [
-        (1.44, 'Databricks · 写侧 ETL',
-         ['RAW → CURATED → LAKE → SERVE', 'Spark 批处理 · Iceberg 写入', 'Z-Order · Compaction · Vacuum',
-          '按 DBU 计费 · 按需拉起', '≈¥0.4–0.8 万/月']),
-        (2.90, 'Trino · 读侧查询引擎',
-         ['Iceberg 外表 · MPP 分布式', '首屏 2–5 s · SERVE 层加速', 'RLS 行级权限 · 查询网关',
-          '常驻小集群 · 弹性扩缩', '≈¥0.4–0.6 万/月']),
+        (2.44, 'Databricks · 写侧 ETL',
+         ['RAW → CURATED → LAKE → SERVE', 'Spark 批处理 · Iceberg 写入 · Z-Order',
+          'Compaction · VACUUM · 到期销毁', '按 DBU 计费 · 按需拉起 ≈¥0.4–0.8 万/月']),
+        (5.51, 'Trino · 读侧查询引擎',
+         ['Iceberg 外表 · MPP 分布式', '首屏 2–5 s · SERVE 层加速',
+          'RLS 行级权限 · 查询网关', '常驻小集群 · 弹性扩缩 ≈¥0.4–0.6 万/月']),
     ]
-    for cy0, t, lines in comp:
-        rect(sl, x + 0.08, cy0, w - 0.16, 1.36, 'FFFFFF', GRN, 1.3, 0.05, shadow=True)
-        rect(sl, x + 0.10, cy0 + 0.06, 0.04, 1.24, GRN, rad=0.02)
-        txt(sl, x + 0.16, cy0 + 0.07, w - 0.30, 0.15, t, sz=7.2, b=True, c=INK, align='c')
-        yy = cy0 + 0.28
+    for cx0, t, lines in comp:
+        rect(sl, cx0, 4.86, 2.94, 0.72, 'FFFFFF', GRN, 1.3, 0.05)
+        rect(sl, cx0, 4.92, 0.035, 0.60, GRN, rad=0.017)
+        txt(sl, cx0 + 0.10, 4.92, 2.76, 0.13, t, sz=7.2, b=True, c=INK, align='c')
+        yy = 5.08
         for i, l in enumerate(lines):
-            last = (i == len(lines) - 1)
-            txt(sl, x + 0.12, yy, w - 0.26, 0.16, l, sz=5.9 if last else 6.0,
-                c=FAINT if last else (GRN if i == 3 else MUT), b=(i == 3), align='c', leading=1.05)
-            yy += 0.205
+            hot = (i == 3)
+            txt(sl, cx0 + 0.08, yy, 2.80, 0.115, l, sz=5.9, c=GRN if hot else MUT, b=hot, align='c')
+            yy += 0.125
+    seg(sl, 5.45, 5.64, 5.45, 5.75, '94A3B8', 1.6)
 
-    # ---- S6 消费入口 ----
-    x, w = 12.08, 1.04
-    rect(sl, x, PY, w, PH, L_CYN, 'A5F3FC', 1.2, 0.08)
-    oval(sl, x + 0.10, PY + 0.10, 0.30, 0.30, 'FFFFFF', CYN, 1.8)
-    txt(sl, x + 0.10, PY + 0.10, 0.30, 0.30, 'B-05', sz=5.2, b=True, c=CYN, align='c', anchor='m', mono=True)
-    txt(sl, x + 0.06, PY + 0.44, w - 0.12, 0.18, '消费入口', sz=8.6, b=True, c=INK, align='c')
-    txt(sl, x + 0.02, PY + 0.63, w - 0.04, 0.12, 'CONSUME', sz=5.2, b=True, c=CYN, align='c', spc=100, mono=True)
-    rect(sl, x + 0.10, 1.56, w - 0.20, 2.70, 'FFFFFF', CYN, 1.4, 0.05, shadow=True)
-    txt(sl, x + 0.16, 1.66, w - 0.32, 2.56,
-        [dict(runs=[('元数据驱动\n配置化查询平台', {'c': INK, 'sz': 7.6, 'b': True})], ls=1.35, align='c'),
-         dict(runs=[('JSON 配置定义\n查询 · 筛选 · 列 · 权限\n前端动态渲染', {'c': MUT, 'sz': 5.9})], ls=1.35, align='c', sb=6),
-         dict(runs=[('新系统接入零代码\n边际 +3~6 人天 / 系统', {'c': CYN, 'sz': 5.9, 'b': True})], ls=1.35, align='c', sb=6),
-         dict(runs=[('首期 60 人天\n≥15 系统场景适用', {'c': FAINT, 'sz': 5.7})], ls=1.35, align='c', sb=5)])
-    seg(sl, x - 0.12, 2.60, x - 0.01, 2.60, CYN, 1.8)
-
-    # pipeline flow arrows
-    seg(sl, 2.00, 2.60, 2.16, 2.60, '94A3B8', 1.6)
-    seg(sl, 4.60, 2.60, 4.76, 2.60, '94A3B8', 1.6)
-    seg(sl, 6.78, 2.60, 6.94, 2.60, '94A3B8', 1.6)
-    txt(sl, 1.86, 2.32, 0.46, 0.13, '接入', sz=5.6, c=FAINT, align='c')
-    txt(sl, 4.44, 2.32, 0.50, 0.13, '生成任务', sz=5.6, c=FAINT, align='c')
-    txt(sl, 6.66, 2.32, 0.42, 0.13, '入湖', sz=5.6, c=FAINT, align='c')
-
-    # ---- 附件对象存储 rail ----
-    rect(sl, 4.78, 4.74, 4.84, 0.72, L_AMB, AMB, 1.0, 0.07, dash=MSO_LINE_DASH_STYLE.DASH)
-    txt(sl, 4.94, 4.80, 4.5, 0.15,
-        [dict(runs=[('附件对象存储 · ', {'c': AMB, 'sz': 7.4, 'b': True}),
-                    ('独立存储账户 · 与湖分开', {'c': AMBD, 'sz': 7.4, 'b': True})])])
-    txt(sl, 4.94, 4.99, 4.56, 0.4,
-        [dict(runs=[('平面命名空间 FNS（非 HNS）· 写按次计费 · Cool→Cold 生命周期分层', {'c': '78350F', 'sz': 6.0})], ls=1.2),
-         dict(runs=[('SHA-256 台账 · 前缀 sysXX/yyyy-mm/ · 后端签 SAS · 前端直连下载', {'c': 'A16207', 'sz': 6.0})], ls=1.2)])
-    seg(sl, 5.78, 4.42, 5.78, 4.72, AMB, 1.3, MSO_LINE_DASH_STYLE.DASH)
-    txt(sl, 4.86, 4.52, 0.9, 0.13, '附件入池 ↘', sz=5.6, b=True, c=AMB)
-    poly(sl, [(9.62, 5.10), (12.56, 5.10), (12.56, 4.46)], AMB, 1.3, MSO_LINE_DASH_STYLE.DASH)
-    txt(sl, 10.1, 5.18, 2.4, 0.14, '附件 URL 直连消费（SAS）', sz=6.0, b=True, c=AMB)
+    # ---- B-05 消费入口 ----
+    vstage(sl, 5.76, 0.72, 'B-05', CYN, '消费入口', 'CONSUME',
+           [('元数据驱动', False, None), ('零代码接入', False, None)], L_CYN, 'A5F3FC')
+    rect(sl, 2.44, 5.82, 6.01, 0.60, 'FFFFFF', CYN, 1.4, 0.05, shadow=True)
+    txt(sl, 2.56, 5.88, 5.77, 0.50,
+        [dict(runs=[('元数据驱动 · 动态配置化查询平台', {'c': INK, 'sz': 7.6, 'b': True})], align='c'),
+         dict(runs=[('JSON 配置定义查询 / 筛选 / 列 / 权限 · 前端动态渲染 · 一次研发处处复用',
+                     {'c': MUT, 'sz': 6.0})], align='c', sb=3),
+         dict(runs=[('新系统接入零代码 · 边际 +3~6 人天 / 系统 · 首期 60 人天 · ≥15 系统适用',
+                     {'c': CYN, 'sz': 6.0, 'b': True})], align='c', sb=2)])
 
     # ---- Retention 销毁回路 ----
-    rect(sl, 0.22, 5.62, 12.90, 0.94, L_ROS, ROS, 1.2, 0.08, dash=MSO_LINE_DASH_STYLE.DASH)
-    oval(sl, 0.40, 5.76, 0.36, 0.36, 'FFFFFF', ROS, 1.8)
-    txt(sl, 0.40, 5.76, 0.36, 0.36, '↺', sz=10, b=True, c=ROS, align='c', anchor='m')
-    txt(sl, 0.86, 5.72, 3.6, 0.18, 'Retention · Iceberg 合规销毁回路', sz=9, b=True, c=ROS)
-    txt(sl, 0.86, 5.92, 7.6, 0.14, '作用于 B-03 冷湖分区 · Databricks 定时触发 · 结果回写元数据台账 · 附件同步删除',
-        sz=6.2, c=SUB)
+    rect(sl, 0.78, 6.58, 7.77, 0.72, L_ROS, ROS, 1.2, 0.08, dash=MSO_LINE_DASH_STYLE.DASH)
+    oval(sl, 0.38, 6.77, 0.34, 0.34, 'FFFFFF', ROS, 1.8)
+    txt(sl, 0.38, 6.77, 0.34, 0.34, '↺', sz=10, b=True, c=ROS, align='c', anchor='m')
+    txt(sl, 0.90, 6.66, 1.46, 0.16, 'Retention', sz=8.4, b=True, c=ROS)
+    txt(sl, 0.90, 6.84, 1.46, 0.11, 'RETENTION', sz=5.2, b=True, c=ROS, spc=110, mono=True)
+    txt(sl, 0.90, 6.99, 1.48, 0.24, '作用于 B-03 分区\n回写台账 · 附件同步删', sz=5.8, c=MUT, leading=1.15)
     rsteps = [
-        (0.94, 1.92, '① 到期扫描', '扫描 Iceberg meta'),
-        (3.06, 2.12, '② DROP PARTITION', '秒级 · Iceberg 原生'),
-        (5.38, 1.86, '③ VACUUM', '物理清除快照与文件'),
-        (7.44, 1.96, '④ 附件 + 审计', '同步删除 · 留痕'),
+        ('① 到期扫描', '扫描 Iceberg meta'), ('② DROP PARTITION', '秒级 · Iceberg 原生'),
+        ('③ VACUUM', '物理清除快照'), ('④ 附件 + 审计', '同步删除 · 留痕'),
     ]
-    for sx, sw, t, s in rsteps:
-        chip(sl, sx, 6.10, sw, 0.36, t, s, 'FFFFFF', ROS, 1.2, 0.05, tc=INK, tsz=7.0, sc=MUT, ssz=5.9)
-    seg(sl, 2.88, 6.28, 3.04, 6.28, ROS, 1.5)
-    seg(sl, 5.20, 6.28, 5.36, 6.28, ROS, 1.5)
-    seg(sl, 7.26, 6.28, 7.42, 6.28, ROS, 1.5)
-    rect(sl, 9.54, 6.10, 3.44, 0.36, 'FFFFFF', 'FECDD3', 1.0, 0.05)
-    txt(sl, 9.62, 6.10, 3.3, 0.36, '元数据与审计独立备份 · 不随业务数据销毁 · 年度销毁演练',
-        sz=6.2, b=True, c='9F1239', align='c', anchor='m')
-    poly(sl, [(9.72, 5.62), (9.72, 4.46)], ROS, 1.2, MSO_LINE_DASH_STYLE.DASH)
-    txt(sl, 9.82, 4.90, 1.4, 0.13, '作用于冷湖分区', sz=6.0, b=True, c=ROS)
+    rx = 2.44
+    for t, s in rsteps:
+        chip(sl, rx, 6.68, 1.30, 0.42, t, s, 'FFFFFF', ROS, 1.2, 0.05, tc=INK, tsz=6.6, sc=MUT, ssz=5.6)
+        rx += 1.36
+    for ax in (3.76, 5.12, 6.48):
+        seg(sl, ax, 6.89, ax + 0.10, 6.89, ROS, 1.5)
+    txt(sl, 2.44, 7.14, 6.01, 0.13, '审计与元数据独立备份 · 不随业务数据销毁 · 纳入年度销毁演练',
+        sz=5.8, b=True, c='9F1239', align='c')
+    # 回路箭头：从 Retention 左侧绕到 B-03 左缘
+    poly(sl, [(0.78, 7.12), (0.30, 7.12), (0.30, 4.20), (0.76, 4.20)], ROS, 1.2, MSO_LINE_DASH_STYLE.DASH)
+    txt(sl, 0.10, 4.85, 0.20, 1.30, '作用于冷湖分区', sz=5.6, b=True, c=ROS, align='c', anchor='m', vert=True)
 
-    # ---- bottom takeaways ----
-    takes = [
-        ('存算分离', '对象存储常驻承载冷湖，Databricks / Trino 按需拉起 · 按量计费', PUR),
-        ('到期即毁', 'DROP PARTITION + VACUUM 物理清除 · 附件与审计同步处理', ROS),
-        ('零代码接入', '元数据驱动前端 · 新系统接入边际仅 +3~6 人天', CYN),
+    # ================= 右侧：附件轨道 / 成本 / 要点 =================
+    # R1 附件对象存储
+    rect(sl, 8.75, 0.62, 4.36, 1.58, L_AMB, AMB, 1.1, 0.07, dash=MSO_LINE_DASH_STYLE.DASH)
+    txt(sl, 8.89, 0.70, 4.1, 0.16, [dict(runs=[
+        ('附件对象存储 · ', {'c': AMB, 'sz': 8.2, 'b': True}),
+        ('独立存储账户（与湖分开）', {'c': AMBD, 'sz': 8.2, 'b': True})])])
+    txt(sl, 8.89, 0.88, 4.1, 0.13, '贯穿 02 抽取 → B-03 存储 · 供 B-05 直接消费', sz=5.9, c='A16207')
+    r1chips = [('FNS 平面命名空间', '非 HNS · 按次计费（不按 4MB 切块）'), ('Cool → Cold 分层', '生命周期自动降档'),
+               ('SHA-256 台账', '前缀 sysXX/yyyy-mm/'), ('后端签 SAS', '前端直连下载')]
+    for i, (t, s) in enumerate(r1chips):
+        cx = 8.87 + (i % 2) * 2.12; cy = 1.06 + (i // 2) * 0.50
+        chip(sl, cx, cy, 2.05, 0.44, t, s, 'FFFFFF', 'FDE68A', 1.0, 0.05, tc=INK, tsz=6.8, sc='A16207', ssz=5.8)
+    seg(sl, 8.75, 2.80, 8.57, 2.80, AMB, 1.3, MSO_LINE_DASH_STYLE.DASH)      # 入池
+    seg(sl, 8.75, 3.88, 8.57, 3.88, AMB, 1.3, MSO_LINE_DASH_STYLE.DASH)      # 台账共池
+    poly(sl, [(10.93, 2.20), (10.93, 2.34), (8.66, 2.34), (8.66, 6.12), (8.57, 6.12)],
+         AMB, 1.3, MSO_LINE_DASH_STYLE.DASH)                                  # URL 直连消费
+    txt(sl, 8.82, 2.38, 2.1, 0.12, '附件 URL 直连消费（SAS）', sz=5.9, b=True, c=AMB)
+
+    # R2 存算分离 · 成本结构
+    rect(sl, 8.75, 2.56, 4.36, 1.34, 'FFFFFF', B_PUR, 1.2, 0.07)
+    txt(sl, 8.89, 2.64, 4.1, 0.16, '存算分离 · 成本结构', sz=8.2, b=True, c=PURD)
+    chip(sl, 8.89, 2.88, 1.42, 0.34, '存储侧 · 常驻', None, 'F5F3FF', B_PUR, 1.0, 0.05, tc=PURD, tsz=6.6)
+    txt(sl, 10.41, 2.88, 2.62, 0.36,
+        [dict(runs=[('ADLS Hot/Cool ≈¥90–150/TB·月 · PB 级从容 · ZRS', {'c': SUB, 'sz': 5.9})], ls=1.15)])
+    chip(sl, 8.89, 3.30, 1.42, 0.34, '计算侧 · 按需', None, 'F0FDF4', 'A7F3D0', 1.0, 0.05, tc=GRND, tsz=6.6)
+    txt(sl, 10.41, 3.30, 2.62, 0.36,
+        [dict(runs=[('Databricks ≈¥0.4–0.8 万/月 · Trino ≈¥0.4–0.6 万/月', {'c': SUB, 'sz': 5.9})], ls=1.15)])
+    txt(sl, 8.89, 3.72, 4.1, 0.13, '存储与计算独立扩缩 · 空闲缩到 0 · 只为使用的算力付费',
+        sz=5.9, b=True, c=PUR, align='c')
+
+    # R3 方案 B 要点
+    rect(sl, 8.75, 4.02, 4.36, 1.72, 'FFFFFF', BORDER, 1.2, 0.07)
+    txt(sl, 8.89, 4.10, 4.1, 0.16, '方案 B 要点', sz=8.2, b=True, c=INK)
+    blts = [
+        ('存算分离', '冷湖常驻，Databricks / Trino 按需拉起 · 按量计费', PUR),
+        ('到期即毁', 'DROP PARTITION + VACUUM 物理清除，附件与审计同步', ROS),
+        ('零代码接入', '元数据驱动前端 · 边际 +3~6 人天 / 系统', CYN),
+        ('与 B2 差异', '自建 Trino（rules.json 授权）· 引擎中立避免锁定', GRN),
+        ('适用规模', '≥15 套系统或 >20 TB 长期保留 · PB 级从容', SLA),
     ]
-    tx = 0.22
-    for t, s, c in takes:
-        rect(sl, tx, 6.72, 4.24, 0.52, 'FFFFFF', BORDER, 1.1, 0.06)
-        rect(sl, tx, 6.78, 0.045, 0.40, c, rad=0.02)
-        txt(sl, tx + 0.16, 6.80, 4.0, 0.16, t, sz=7.6, b=True, c=c)
-        txt(sl, tx + 0.16, 6.99, 4.0, 0.16, s, sz=6.2, c=SUB)
-        tx += 4.33
+    yy = 4.32
+    for tag, s, c in blts:
+        txt(sl, 8.89, yy, 4.12, 0.24,
+            [dict(runs=[('· ' + tag + ' — ', {'c': c, 'sz': 6.1, 'b': True}),
+                        (s, {'c': SUB, 'sz': 6.1})], ls=1.1)])
+        yy += 0.265
+
+    # R4 B 的取舍
+    rect(sl, 8.75, 5.86, 4.36, 0.86, 'FFF7ED', 'FDBA74', 1.1, 0.07)
+    txt(sl, 8.89, 5.94, 4.1, 0.15, 'B 的取舍', sz=8.0, b=True, c='B45309')
+    txt(sl, 8.89, 6.12, 4.12, 0.52,
+        [dict(runs=[('引擎中立、无单一厂商锁定；代价是需自运维 Trino 集群（部署 / 升级 / 容量），列级脱敏不能直接用 Unity Catalog。',
+                     {'c': AMBD, 'sz': 6.1})], ls=1.25)])
+    txt(sl, 8.75, 6.84, 4.36, 0.24, '编号沿用 Architecture.html 原图（B-00 / B-03 / B-04 / B-05）',
+        sz=5.8, c=FAINT, align='c', anchor='m')
 
 # ------------------------------------------------------------------- build --
 def build(path):
