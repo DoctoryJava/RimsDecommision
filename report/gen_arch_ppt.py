@@ -240,7 +240,7 @@ def slide_cover(prs):
     rect(sl, 8.68, 4.13, 1.95, 0.52, L_PUR, B_PUR, 1.2, 0.08)
     txt(sl, 8.68, 4.13, 1.95, 0.52, '写侧 · Databricks', sz=8, c=PURD, b=True, align='c', anchor='m')
     rect(sl, 10.73, 4.13, 1.95, 0.52, L_PUR, B_PUR, 1.2, 0.08)
-    txt(sl, 10.73, 4.13, 1.95, 0.52, '读侧 · Trino', sz=8, c=PURD, b=True, align='c', anchor='m')
+    txt(sl, 10.73, 4.13, 1.95, 0.52, '读侧 · Serverless', sz=8, c=PURD, b=True, align='c', anchor='m')
     seg(sl, 10.68, 4.65, 10.68, 4.99, MUT, 1.4)
     rect(sl, 8.68, 4.99, 4.0, 0.52, L_BLUE, B_BLUE, 1.2, 0.08)
     txt(sl, 8.68, 4.99, 4.0, 0.52, 'ADLS Gen2 · Iceberg 湖仓 + Blob 附件', sz=8, c=AZD, b=True, align='c', anchor='m')
@@ -253,8 +253,8 @@ def slide_cover(prs):
         sz=10.5, c=MUT)
     items = [
         ('01', AZ, L_BLUE, B_BLUE, 'Azure 基础设施部署架构 · 方案 B2', 'VNet · AKS · Databricks Serverless · NCC 私有端点 · 六大 PaaS 服务'),
-        ('02', GRN, L_GRN, B_GRN, '应用架构图 · 方案 B（湖仓一体 + Trino 读）', '访问入口 → 自研应用层（AKS）→ 写 / 读 / 附件三条链路 → 数据底座'),
-        ('03', PUR, L_PUR, B_PUR, '方案 B · 湖仓一体 · 存算分离架构', '源系统 → 接入配置 → 抽取 → Iceberg 冷湖 → 统一计算层 → 消费入口 + 销毁回路'),
+        ('02', GRN, L_GRN, B_GRN, '应用架构图 · 方案 B2（湖仓一体 · Databricks Serverless 读）', '访问入口 → 自研应用层（AKS）→ 写 / 读 / 附件三条链路 → 数据底座'),
+        ('03', PUR, L_PUR, B_PUR, '方案 B2 · 湖仓一体 · 存算分离架构', '源系统 → 接入配置 → 抽取 → Iceberg 冷湖 → Databricks 读写一体计算层 → 消费入口 + 销毁回路'),
     ]
     y = 3.62
     for no, col, lf, bl, t, d in items:
@@ -499,8 +499,8 @@ def slide_azure(prs):
 def slide_app(prs):
     sl = prs.slides.add_slide(prs.slide_layouts[6]); _cur['i'] = 2
     sl.background.fill.solid(); sl.background.fill.fore_color.rgb = _rgb(BG)
-    title_bar(sl, '应用架构图 · 方案 B（湖仓一体 + Trino 读）',
-              '应用逻辑分层视角 · 与基础设施部署拓扑互补', GRN, '02 / 03')
+    title_bar(sl, '应用架构图 · 方案 B2（湖仓一体 · Databricks Serverless 读）',
+              '应用逻辑分层视角 · 读侧 SQL Warehouse · 与基础设施部署拓扑互补', GRN, '02 / 03')
 
     # band 01
     rect(sl, 0.22, 0.62, 12.90, 0.82, L_GRN, '86EFAC', 1.2, 0.08)
@@ -543,8 +543,8 @@ def slide_app(prs):
          [('Airflow / ADF', '编排调度', 'FDBA74'), ('SeaTunnel', '结构化抽取', 'FDBA74')],
          'DCFCE7', B_GRNB, GRND, 'Databricks Jobs：ETL · Compaction · DROP PARTITION + VACUUM'),
         (4.62, 'READ PATH', PURD, L_PURB, B_PURB, '在线查询 / 跨系统检索',
-         [('查询代理', '限流 / 超时 / 审计', 'C4B5FD'), ('Trino', 'MPP 查询引擎', 'A78BFA')],
-         'EDE9FE', B_PURB, PURD, 'rules.json 表级授权 · SERVE 层首屏 2–5 s'),
+         [('查询代理', '限流 / 超时 / 审计', 'C4B5FD'), ('Databricks Serverless', 'SQL Warehouse 查询', 'A78BFA')],
+         'EDE9FE', B_PURB, PURD, 'Unity Catalog 表级授权 · SERVE 层首屏 2–5 s'),
         (8.84, 'ATTACHMENT PATH', 'B45309', L_AMB, B_AMB, '非结构化附件 / 预览下载',
          [('Storage Mover', '迁移附件', 'FCD34D'), ('附件代理', '鉴权 / 流式回吐', 'FCD34D')],
          'FEF3C7', B_AMB, '92400E', 'SHA-256 台账 · 附件索引表 · 后端审计'),
@@ -592,12 +592,13 @@ def slide_app(prs):
     rect(sl, 0.22, 6.24, 8.20, 0.40, 'FFFFFF', 'CBD5E1', 1.0, 0.06)
     txt(sl, 0.4, 6.24, 7.9, 0.40,
         [dict(runs=[('安全底座：', {'b': True, 'c': '334155', 'sz': 6.8}),
-                    ('Key Vault · App Insights · Azure Monitor · Trino Query History · 全部 PaaS 私有端点 · 入口 WAF',
+                    ('Key Vault · App Insights · Azure Monitor · Databricks Query History · 全部 PaaS 私有端点 · 入口 WAF',
                      {'c': SUB, 'sz': 6.8})])], anchor='m')
     rect(sl, 8.56, 6.24, 4.56, 0.40, 'FFF7ED', 'FDBA74', 1.0, 0.06)
     txt(sl, 8.74, 6.24, 4.2, 0.40,
-        [dict(runs=[('B 的取舍：', {'b': True, 'c': 'B45309', 'sz': 6.8}),
-                    ('引擎中立，但需自运维 Trino；列级脱敏不能直接用 UC', {'c': AMBD, 'sz': 6.8})])], anchor='m')
+        [dict(runs=[('B2 读侧：', {'b': True, 'c': 'B45309', 'sz': 6.8}),
+                    ('SQL Serverless 完全托管 · 空闲缩 0；代价是引擎绑定 + 需 Premium 层（NCC / 私有端点）',
+                     {'c': AMBD, 'sz': 6.8})])], anchor='m')
     # legend
     leg = [('自研应用组件（AKS）', CYN), ('写侧数据链路', GRN), ('读侧查询链路', PUR),
            ('编排 / 抽取', AMB), ('Azure PaaS 数据服务', AZ)]
@@ -624,8 +625,8 @@ def vstage(sl, y, h, sid, col, t, en, subs, fill, bl, lw=1.2):
 def slide_lake(prs):
     sl = prs.slides.add_slide(prs.slide_layouts[6]); _cur['i'] = 3
     sl.background.fill.solid(); sl.background.fill.fore_color.rgb = _rgb(BG)
-    title_bar(sl, '方案 B · 湖仓一体 · 存算分离架构',
-              '对象存储冷湖（Iceberg）· Databricks 写侧 + Trino 读侧 · PB 级从容', PUR, '03 / 03')
+    title_bar(sl, '方案 B2 · 湖仓一体 · 存算分离架构',
+              '对象存储冷湖（Iceberg）· Databricks 写读一体（Serverless）· PB 级从容', PUR, '03 / 03')
 
     # ================= 左侧：竖向主管道 =================
     seg(sl, 0.55, 0.74, 0.55, 6.90, 'E2E8F0', 2.5, arrow=False)   # 脊柱
@@ -687,7 +688,7 @@ def slide_lake(prs):
         ('RAW · 原始落地（最冷）', 'SeaTunnel 全量 1:1 保真 · 分区 sys_id / ingest_date', 'EEF2FF', 'C7D2FE', '818CF8', '4338CA'),
         ('CURATED · 清洗规整', '类型统一 · 缺失值处理 · SHA-256 台账 · 分区归约', 'EDE9FE', 'C4B5FD', 'A78BFA', '6D28D9'),
         ('LAKE · 建模归档', '业务维度建模 · 生命周期分区（销毁友好）', 'F5F3FF', 'A78BFA', '7C3AED', '5B21B6'),
-        ('SERVE · 加速服务（最热）', '热表物化 · Z-Order · 供 Trino 直接查询', 'FEF3C7', 'FCD34D', 'D97706', 'B45309'),
+        ('SERVE · 加速服务（最热）', '热表物化 · Z-Order · 供 SQL Warehouse 直接查询', 'FEF3C7', 'FCD34D', 'D97706', 'B45309'),
     ]
     ly = 3.50
     for t, s, f, bl, ac, tc in layers:
@@ -701,21 +702,21 @@ def slide_lake(prs):
     seg(sl, 0.78, 4.65, 8.55, 4.65, '94A3B8', 1.6, MSO_LINE_DASH_STYLE.DASH, arrow=False)
     rect(sl, 4.62, 4.55, 1.76, 0.20, 'FFFFFF', 'CBD5E1', 1.0, 0.06)
     txt(sl, 4.62, 4.55, 1.76, 0.20, '━━ 存算分离边界 ━━', sz=6.8, b=True, c=SLA, align='c', anchor='m')
-    seg(sl, 3.40, 4.50, 3.40, 4.80, PUR, 1.8)          # 湖 -> Trino 读
-    txt(sl, 3.52, 4.51, 1.00, 0.12, 'Trino 外表直查', sz=5.6, b=True, c=PUR)
+    seg(sl, 3.40, 4.50, 3.40, 4.80, PUR, 1.8)          # 湖 -> Serverless 读
+    txt(sl, 3.52, 4.51, 1.00, 0.12, 'Serverless 直查', sz=5.6, b=True, c=PUR)
     seg(sl, 7.80, 4.80, 7.80, 4.50, GRN, 1.8)          # Databricks ETL 写回
     txt(sl, 6.45, 4.67, 1.28, 0.12, 'ETL 写入 · Databricks', sz=5.6, b=True, c=GRN, align='r')
 
     # ---- B-04 统一计算层 ----
     vstage(sl, 4.80, 0.84, 'B-04', GRN, '统一计算层', 'COMPUTE',
-           [('写侧 · 读侧并列', False, None), ('弹性 · 按量计费', False, None)], L_GRNB, 'A7F3D0')
+           [('Databricks 读写一体', False, None), ('弹性 · 按量计费', False, None)], L_GRNB, 'A7F3D0')
     comp = [
         (2.44, 'Databricks · 写侧 ETL',
          ['RAW → CURATED → LAKE → SERVE', 'Spark 批处理 · Iceberg 写入 · Z-Order',
           'Compaction · VACUUM · 到期销毁', '按 DBU 计费 · 按需拉起 ≈¥0.4–0.8 万/月']),
-        (5.51, 'Trino · 读侧查询引擎',
-         ['Iceberg 外表 · MPP 分布式', '首屏 2–5 s · SERVE 层加速',
-          'RLS 行级权限 · 查询网关', '常驻小集群 · 弹性扩缩 ≈¥0.4–0.6 万/月']),
+        (5.51, 'SQL Warehouse · 读侧查询',
+         ['Serverless · 零运维 · 故障自动重建', 'Iceberg 直查 · SERVE 加速 · 首屏 2–5 s',
+          'UC 表 / 行 / 列级授权 + 审计', 'X-Small 6 DBU/h · 空闲缩 0 ≈¥0.5–0.9 万/月']),
     ]
     for cx0, t, lines in comp:
         rect(sl, cx0, 4.86, 2.94, 0.72, 'FFFFFF', GRN, 1.3, 0.05)
@@ -788,18 +789,18 @@ def slide_lake(prs):
         [dict(runs=[('ADLS Hot/Cool ≈¥90–150/TB·月 · PB 级从容 · ZRS', {'c': SUB, 'sz': 5.9})], ls=1.15)])
     chip(sl, 8.89, 3.30, 1.42, 0.34, '计算侧 · 按需', None, 'F0FDF4', 'A7F3D0', 1.0, 0.05, tc=GRND, tsz=6.6)
     txt(sl, 10.41, 3.30, 2.62, 0.36,
-        [dict(runs=[('Databricks ≈¥0.4–0.8 万/月 · Trino ≈¥0.4–0.6 万/月', {'c': SUB, 'sz': 5.9})], ls=1.15)])
+        [dict(runs=[('写侧 Jobs ≈¥0.4–0.8 万/月 · 读侧 Warehouse ≈¥0.5–0.9 万/月', {'c': SUB, 'sz': 5.9})], ls=1.15)])
     txt(sl, 8.89, 3.72, 4.1, 0.13, '存储与计算独立扩缩 · 空闲缩到 0 · 只为使用的算力付费',
         sz=5.9, b=True, c=PUR, align='c')
 
     # R3 方案 B 要点
     rect(sl, 8.75, 4.02, 4.36, 1.72, 'FFFFFF', BORDER, 1.2, 0.07)
-    txt(sl, 8.89, 4.10, 4.1, 0.16, '方案 B 要点', sz=8.2, b=True, c=INK)
+    txt(sl, 8.89, 4.10, 4.1, 0.16, '方案 B2 要点', sz=8.2, b=True, c=INK)
     blts = [
-        ('存算分离', '冷湖常驻，Databricks / Trino 按需拉起 · 按量计费', PUR),
+        ('存算分离', '冷湖常驻，Serverless 读写按需拉起 · 空闲缩 0', PUR),
         ('到期即毁', 'DROP PARTITION + VACUUM 物理清除，附件与审计同步', ROS),
         ('零代码接入', '元数据驱动前端 · 边际 +3~6 人天 / 系统', CYN),
-        ('与 B2 差异', '自建 Trino（rules.json 授权）· 引擎中立避免锁定', GRN),
+        ('读侧托管', 'SQL Warehouse Serverless · 零集群运维 · UC 授权', GRN),
         ('适用规模', '≥15 套系统或 >20 TB 长期保留 · PB 级从容', SLA),
     ]
     yy = 4.32
@@ -811,9 +812,9 @@ def slide_lake(prs):
 
     # R4 B 的取舍
     rect(sl, 8.75, 5.86, 4.36, 0.86, 'FFF7ED', 'FDBA74', 1.1, 0.07)
-    txt(sl, 8.89, 5.94, 4.1, 0.15, 'B 的取舍', sz=8.0, b=True, c='B45309')
+    txt(sl, 8.89, 5.94, 4.1, 0.15, 'B2 的取舍', sz=8.0, b=True, c='B45309')
     txt(sl, 8.89, 6.12, 4.12, 0.52,
-        [dict(runs=[('引擎中立、无单一厂商锁定；代价是需自运维 Trino 集群（部署 / 升级 / 容量），列级脱敏不能直接用 Unity Catalog。',
+        [dict(runs=[('读侧完全托管、UC 治理原生；代价是计算引擎绑定 Databricks（数据仍为开放 Iceberg，随时可换引擎），且 Serverless / NCC 需 Premium 层。',
                      {'c': AMBD, 'sz': 6.1})], ls=1.25)])
     txt(sl, 8.75, 6.84, 4.36, 0.24, '编号沿用 Architecture.html 原图（B-00 / B-03 / B-04 / B-05）',
         sz=5.8, c=FAINT, align='c', anchor='m')
