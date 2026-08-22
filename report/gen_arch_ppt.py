@@ -88,6 +88,14 @@ def _ln_style(conn, color, w, dash, arrow, head=False):
         ln.append(ln.makeelement(qn('a:headEnd'), {'type': 'triangle', 'w': 'med', 'len': 'med'}))
     if arrow:
         ln.append(ln.makeelement(qn('a:tailEnd'), {'type': 'triangle', 'w': 'med', 'len': 'med'}))
+    # 关键：显式清空效果列表，阻断主题 effectRef 的默认软阴影（否则箭头会"发虚/模糊"）
+    spPr = conn._element.spPr
+    if spPr.find(qn('a:effectLst')) is None:
+        spPr.append(spPr.makeelement(qn('a:effectLst'), {}))
+    # 移除主题样式引用，彻底避免任何主题默认效果/线型干扰
+    style = conn._element.find(qn('p:style'))
+    if style is not None:
+        conn._element.remove(style)
 
 def seg(sl, x1, y1, x2, y2, color=MUT, w=1.0, dash=None, arrow=True, head=False):
     c = sl.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, Inches(x1), Inches(y1), Inches(x2), Inches(y2))
