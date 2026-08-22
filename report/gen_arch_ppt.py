@@ -281,7 +281,7 @@ def slide_azure(prs):
     stack = [
         ('1', '前端 · 配置化查询平台 React', False),
         ('2', '后端 · .NET 10（AKS 容器化）', False),
-        ('3', '抽取 · DataX / SeaTunnel', False),
+        ('3', '抽取 · Apache SeaTunnel', False),
         ('4', '编排 · Airflow / ADF', False),
         ('5', '表格式 · Apache Iceberg', False),
         ('6', '引擎 · Databricks SQL Serverless', False),
@@ -318,7 +318,7 @@ def slide_azure(prs):
         xx += 2.00
     chip(sl, 2.54, 1.62, 2.90, 0.50,
          [dict(runs=[('结构化抽取 · ', {'c': INK, 'sz': 7.4, 'b': True}),
-                     ('DataX / SeaTunnel', {'c': ORG, 'sz': 7.4, 'b': True})])],
+                     ('Apache SeaTunnel', {'c': ORG, 'sz': 7.4, 'b': True})])],
          '仅读权限 · 按勾选的表抽取（10 选 5）· Airflow / ADF 编排',
          'FFFFFF', ORG, 1.3, 0.05, sc=MUT, ssz=6.0)
     chip(sl, 5.56, 1.62, 2.84, 0.50,
@@ -415,7 +415,7 @@ def slide_azure(prs):
     txt(sl, 1.30, 2.78, 1.0, 0.13, 'HTTPS 443', sz=6.0, b=True, c=GRN, align='c')
     # source -> AKS extraction
     seg(sl, 6.60, 2.26, 6.60, 3.32, AMB, 1.3, MSO_LINE_DASH_STYLE.DASH)
-    txt(sl, 6.74, 3.14, 2.3, 0.13, 'DataX / SeaTunnel 抽取 · NAT 固定 IP', sz=6.0, b=True, c=AMB)
+    txt(sl, 6.74, 3.14, 2.3, 0.13, 'SeaTunnel 抽取 · NAT 固定 IP', sz=6.0, b=True, c=AMB)
     # NAT egress note (arrow up)
     seg(sl, 5.81, 2.72, 5.81, 2.30, AMB, 1.1, MSO_LINE_DASH_STYLE.DASH)
     txt(sl, 4.4, 2.28, 1.35, 0.12, '出站固定 IP ↑', sz=5.9, b=True, c=AMB, align='r')
