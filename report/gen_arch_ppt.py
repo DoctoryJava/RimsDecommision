@@ -253,7 +253,7 @@ def slide_cover(prs):
         sz=10.5, c=MUT)
     items = [
         ('01', AZ, L_BLUE, B_BLUE, 'Azure 基础设施部署架构 · 方案 B2', 'VNet · AKS · Databricks Serverless · NCC 私有端点 · 六大 PaaS 服务'),
-        ('02', GRN, L_GRN, B_GRN, '应用架构图 · 方案 B2（湖仓一体 · Serverless SQL Warehouse 读）', '访问入口 → 自研应用层（AKS）→ 写 / 读 / 附件三条链路 → 数据底座'),
+        ('02', GRN, L_GRN, B_GRN, '应用架构图 · 方案 B2（湖仓一体 · Databricks SQL Serverless 读）', '访问入口 → 自研应用层（AKS）→ 写 / 读 / 附件三条链路 → 数据底座'),
         ('03', PUR, L_PUR, B_PUR, '方案 B2 · 湖仓一体 · 存算分离架构', '源系统 → 接入配置 → 抽取 → Iceberg 冷湖 → Databricks 读写一体计算层 → 消费入口 + 销毁回路'),
     ]
     y = 3.62
@@ -346,9 +346,9 @@ def slide_azure(prs):
     db_cards = [
         (1.18, 0.74, 'FFFFFF', 'A78BFA', 1.0, '控制平面 Control Plane',
          [('Web UI · 作业调度 · 无状态', False), ('Unity Catalog 元数据服务', False)], PURD, 7.6),
-        (1.99, 0.74, L_PUR, '8B5CF6', 1.5, 'Serverless SQL Warehouse',
+        (1.99, 0.74, L_PUR, '8B5CF6', 1.5, 'Databricks SQL Serverless',
          [('读侧查询 · X-Small 6 DBU/h', False), ('空闲自动缩到 0 · 零运维', True)], PURD, 7.6),
-        (2.80, 0.74, 'FFFFFF', 'A78BFA', 1.0, 'Serverless Jobs',
+        (2.80, 0.74, 'FFFFFF', 'A78BFA', 1.0, 'Databricks Serverless',
          [('写侧 ETL：RAW→CURATED→LAKE→SERVE', False), ('Compaction · VACUUM · 到期销毁', False)], PURD, 7.6),
         (3.61, 0.60, 'ECFDF5', '6EE7B7', 1.3, 'NCC 网络连接 + 托管私有端点',
          [('Serverless 私有访问 ADLS 的唯一通道', True)], GRND, 7.2),
@@ -501,8 +501,8 @@ def slide_azure(prs):
 def slide_app(prs):
     sl = prs.slides.add_slide(prs.slide_layouts[6]); _cur['i'] = 2
     sl.background.fill.solid(); sl.background.fill.fore_color.rgb = _rgb(BG)
-    title_bar(sl, '应用架构图 · 方案 B2（湖仓一体 · Serverless SQL Warehouse 读）',
-              '应用逻辑分层视角 · 读侧 Serverless SQL Warehouse · 与基础设施拓扑互补', GRN, '02 / 03')
+    title_bar(sl, '应用架构图 · 方案 B2（湖仓一体 · Databricks SQL Serverless 读）',
+              '应用逻辑分层视角 · 读侧 Databricks SQL Serverless · 与基础设施拓扑互补', GRN, '02 / 03')
 
     # band 01
     rect(sl, 0.22, 0.62, 12.90, 0.82, L_GRN, '86EFAC', 1.2, 0.08)
@@ -544,9 +544,9 @@ def slide_app(prs):
     lanes = [
         (0.40, 'WRITE PATH', GRND, L_GRNB, B_GRNB, '归档写入 / 到期销毁',
          [('Azure Data Factory', '编排调度', 'FDBA74'), ('SeaTunnel', '结构化抽取', 'FDBA74')],
-         'DCFCE7', B_GRNB, GRND, 'Databricks Jobs：ETL · Compaction · DROP PARTITION + VACUUM'),
+         'DCFCE7', B_GRNB, GRND, 'Databricks Serverless：ETL · Compaction · DROP PARTITION + VACUUM'),
         (4.62, 'READ PATH', PURD, L_PURB, B_PURB, '在线查询 / 跨系统检索',
-         [('查询代理', '限流 / 超时 / 审计', 'C4B5FD'), ('Serverless SQL Warehouse', '读侧查询 · 空闲缩 0', 'A78BFA')],
+         [('查询代理', '限流 / 超时 / 审计', 'C4B5FD'), ('Databricks SQL Serverless', '读侧查询 · 空闲缩 0', 'A78BFA')],
          'EDE9FE', B_PURB, PURD, 'Unity Catalog 表级授权 · SERVE 层首屏 2–5 s'),
         (8.84, 'ATTACHMENT PATH', 'B45309', L_AMB, B_AMB, '非结构化附件 / 预览下载',
          [('Storage Mover', '迁移附件', 'FCD34D'), ('附件代理', '鉴权 / 流式回吐', 'FCD34D')],
@@ -600,7 +600,7 @@ def slide_app(prs):
     rect(sl, 8.56, 6.24, 4.56, 0.40, 'FFF7ED', 'FDBA74', 1.0, 0.06)
     txt(sl, 8.74, 6.24, 4.2, 0.40,
         [dict(runs=[('B2 读侧：', {'b': True, 'c': 'B45309', 'sz': 6.8}),
-                    ('Serverless SQL Warehouse 完全托管 · 空闲缩 0；代价是引擎绑定 + 需 Premium 层（NCC / PE）',
+                    ('Databricks SQL Serverless 完全托管 · 空闲缩 0；代价是引擎绑定 + 需 Premium 层（NCC / PE）',
                      {'c': AMBD, 'sz': 6.8})])], anchor='m')
     # legend
     leg = [('自研应用组件（AKS）', CYN), ('写侧数据链路', GRN), ('读侧查询链路', PUR),
@@ -690,7 +690,7 @@ def slide_lake(prs):
         ('RAW · 原始落地（最冷）', 'SeaTunnel 全量 1:1 保真 · 分区 sys_id / ingest_date', 'EEF2FF', 'C7D2FE', '818CF8', '4338CA'),
         ('CURATED · 清洗规整', '类型统一 · 缺失值处理 · SHA-256 台账 · 分区归约', 'EDE9FE', 'C4B5FD', 'A78BFA', '6D28D9'),
         ('LAKE · 建模归档', '业务维度建模 · 生命周期分区（销毁友好）', 'F5F3FF', 'A78BFA', '7C3AED', '5B21B6'),
-        ('SERVE · 加速服务（最热）', '热表物化 · Z-Order · 供 SQL Warehouse 直接查询', 'FEF3C7', 'FCD34D', 'D97706', 'B45309'),
+        ('SERVE · 加速服务（最热）', '热表物化 · Z-Order · 供 Databricks SQL Serverless 直查', 'FEF3C7', 'FCD34D', 'D97706', 'B45309'),
     ]
     ly = 3.50
     for t, s, f, bl, ac, tc in layers:
@@ -716,7 +716,7 @@ def slide_lake(prs):
         (2.44, 'Databricks · 写侧 ETL',
          ['RAW → CURATED → LAKE → SERVE', 'Spark 批处理 · Iceberg 写入 · Z-Order',
           'Compaction · VACUUM · 到期销毁', '按 DBU 计费 · 按需拉起 ≈¥0.4–0.8 万/月']),
-        (5.51, 'Serverless SQL Warehouse',
+        (5.51, 'Databricks SQL Serverless',
          ['读侧查询 · 零运维 · 故障自动重建', 'Iceberg 直查 · SERVE 加速 · 首屏 2–5 s',
           'UC 表 / 行 / 列级授权 + 审计', 'X-Small 6 DBU/h · 空闲缩 0 ≈¥0.5–0.9 万/月']),
     ]
@@ -790,7 +790,7 @@ def slide_lake(prs):
         [dict(runs=[('ADLS Hot/Cool ≈¥90–150/TB·月 · PB 级从容 · ZRS', {'c': SUB, 'sz': 5.9})], ls=1.15)])
     chip(sl, 8.89, 3.30, 1.42, 0.34, '计算侧 · 按需', None, 'F0FDF4', 'A7F3D0', 1.0, 0.05, tc=GRND, tsz=6.6)
     txt(sl, 10.41, 3.30, 2.62, 0.36,
-        [dict(runs=[('写侧 Jobs ≈¥0.4–0.8 万/月 · 读侧 Warehouse ≈¥0.5–0.9 万/月', {'c': SUB, 'sz': 5.9})], ls=1.15)])
+        [dict(runs=[('写侧 ETL ≈¥0.4–0.8 万/月 · 读侧查询 ≈¥0.5–0.9 万/月', {'c': SUB, 'sz': 5.9})], ls=1.15)])
     txt(sl, 8.89, 3.72, 4.1, 0.13, '存储与计算独立扩缩 · 空闲缩到 0 · 只为使用的算力付费',
         sz=5.9, b=True, c=PUR, align='c')
 
@@ -801,7 +801,7 @@ def slide_lake(prs):
         ('存算分离', '冷湖常驻，Serverless 读写按需拉起 · 空闲缩 0', PUR),
         ('到期即毁', 'DROP PARTITION + VACUUM 物理清除，附件与审计同步', ROS),
         ('零代码接入', '元数据驱动前端 · 边际 +3~6 人天 / 系统', CYN),
-        ('读侧托管', 'Serverless SQL Warehouse · 零集群运维 · UC 授权', GRN),
+        ('读侧托管', 'Databricks SQL Serverless · 零集群运维 · UC 授权', GRN),
         ('适用规模', '≥15 套系统或 >20 TB 长期保留 · PB 级从容', SLA),
     ]
     yy = 4.32
