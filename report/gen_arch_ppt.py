@@ -371,11 +371,8 @@ def slide_azure(prs):
     txt(sl, 6.3, 2.54, 3.6, 0.15, 'Hub-Spoke · NSG 管控 · PaaS 全部关闭公网', sz=6.4, c=MUT, align='r')
     # edge row
     chip(sl, 2.54, 2.74, 0.96, 0.46, 'WAF', 'OWASP 防护', 'FFFFFF', AZ, 1.2, 0.05, tsz=7.8, sc=MUT, ssz=6.0)
-    rect(sl, 2.60, 2.83, 0.17, 0.13, 'DC2626', rad=0.02)
     chip(sl, 3.66, 2.74, 1.46, 0.46, 'Application Gateway', 'TLS 终止 · 七层路由', 'FFFFFF', AZ, 1.2, 0.05, tsz=7.4, sc=MUT, ssz=6.0)
-    rect(sl, 3.73, 2.83, 0.17, 0.13, AZ, rad=0.02)
     chip(sl, 5.28, 2.74, 1.06, 0.46, 'NAT Gateway', '出站固定 IP', 'FFFFFF', AZ, 1.2, 0.05, tsz=7.4, sc=MUT, ssz=6.0)
-    rect(sl, 5.35, 2.83, 0.17, 0.13, AMB, rad=0.02)
     seg(sl, 3.50, 2.97, 3.64, 2.97, AZ, 1.4)
     seg(sl, 5.12, 2.97, 5.26, 2.97, AZ, 1.4)
     seg(sl, 4.39, 3.20, 4.39, 3.32, AZ, 1.4)   # App Gateway -> AKS
@@ -522,16 +519,13 @@ def slide_app(prs):
     txt(sl, 0.38, 1.63, 3.0, 0.17, '02 自研应用层（AKS）', sz=8.5, b=True, c=CYND)
     chip(sl, 0.60, 1.86, 2.70, 0.62, 'React 配置化查询平台', 'JSON Schema 渲染查询表单 · 表格 / 明细 / 附件预览 / 导出',
          'FFFFFF', CYN, 1.4, 0.06, tc=INK, tsz=8.2, sc=MUT, ssz=6.4, shadow=True)
-    rect(sl, 0.60, 1.92, 0.05, 0.50, CYN, rad=0.025)
     rect(sl, 3.50, 1.86, 5.30, 0.62, 'FFFFFF', CYN, 1.4, 0.06, shadow=True)
-    rect(sl, 3.50, 1.92, 0.05, 0.50, CYN, rad=0.025)
     txt(sl, 3.66, 1.93, 5.0, 0.16, '.NET 10 后端服务组', sz=8.2, b=True, c=INK)
     txt(sl, 3.66, 2.12, 5.0, 0.34,
         [dict(runs=[('元数据 · 查询代理 · 权限校验 · 附件代理 · 审计上报 · 销毁调度', {'c': MUT, 'sz': 6.6})], ls=1.2),
          dict(runs=[('后端二次鉴权 · 参数化 SQL · 私有端点访问下游', {'c': FAINT, 'sz': 6.6})], ls=1.2)])
     chip(sl, 10.55, 1.86, 2.42, 0.62, 'Azure SQL 元数据库', '系统台账 / 表清单 / 保留期 / 销毁策略 / 审计索引',
          'FFFFFF', CYN, 1.4, 0.06, tc=INK, tsz=8.2, sc=MUT, ssz=6.4, shadow=True)
-    rect(sl, 10.55, 1.92, 0.05, 0.50, CYN, rad=0.025)
     seg(sl, 8.80, 2.17, 10.53, 2.17, CYN, 1.8)
     txt(sl, 8.9, 2.00, 1.6, 0.14, '读写配置', sz=6.4, b=True, c=CYN, align='c')
 
@@ -654,7 +648,6 @@ def slide_lake(prs):
     bx = 2.44
     for t, lines in b00:
         rect(sl, bx, 1.48, 1.85, 0.64, 'FFFFFF', CYN, 1.3, 0.05)
-        rect(sl, bx, 1.54, 0.035, 0.52, CYN, rad=0.017)
         txt(sl, bx + 0.10, 1.54, 1.68, 0.13, t, sz=6.8, b=True, c=INK)
         yy = 1.70
         for l in lines:
@@ -720,7 +713,6 @@ def slide_lake(prs):
     ]
     for cx0, t, lines in comp:
         rect(sl, cx0, 4.86, 2.94, 0.72, 'FFFFFF', GRN, 1.3, 0.05)
-        rect(sl, cx0, 4.92, 0.035, 0.60, GRN, rad=0.017)
         txt(sl, cx0 + 0.10, 4.92, 2.76, 0.13, t, sz=7.2, b=True, c=INK, align='c')
         yy = 5.08
         for i, l in enumerate(lines):
