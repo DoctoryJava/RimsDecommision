@@ -506,14 +506,14 @@ def slide_app(prs):
 
     # band 01
     rect(sl, 0.22, 0.62, 12.90, 0.82, L_GRN, '86EFAC', 1.2, 0.08)
-    txt(sl, 0.38, 0.69, 2.0, 0.17, '01 访问入口', sz=8.5, b=True, c=GRND)
+    txt(sl, 0.40, 0.69, 2.0, 0.17, '01 访问入口', sz=8.5, b=True, c=GRND)
     users = [('业务查询员', '查本系统归档数据'), ('审计 / 合规岗', '跨系统检索与举证'), ('平台运维', '监控作业与销毁')]
-    xx = 0.60
+    xx = 0.40
     for t, s in users:
         chip(sl, xx, 0.92, 2.00, 0.42, t, s, 'FFFFFF', 'BBF7D0', 1.0, 0.05, tsz=8, sc=MUT, ssz=6.4, shadow=True)
         person(sl, xx + 0.22, 1.13, AZ, 0.95)
         xx += 2.16
-    chip(sl, 10.55, 0.90, 2.42, 0.46,
+    chip(sl, 10.44, 0.90, 2.42, 0.46,
          [dict(runs=[('Microsoft Entra ID', {'c': '1D4ED8', 'sz': 8.2, 'b': True})])],
          'SSO / OIDC / 托管标识', L_BLUE, '93C5FD', 1.2, 0.05, sc='1E40AF', ssz=6.5, shadow=True)
     txt(sl, 8.3, 1.02, 2.1, 0.2, '统一身份 · 单点登录 →', sz=6.8, c=MUT, align='r')
@@ -522,25 +522,25 @@ def slide_app(prs):
 
     # band 02
     rect(sl, 0.22, 1.56, 12.90, 1.04, L_CYN, B_CYNB, 1.2, 0.08)
-    txt(sl, 0.38, 1.63, 3.0, 0.17, '02 自研应用层（AKS）', sz=8.5, b=True, c=CYND)
-    chip(sl, 0.60, 1.86, 2.70, 0.62, 'React 配置化查询平台', 'JSON Schema 渲染查询表单 · 表格 / 明细 / 附件预览 / 导出',
+    txt(sl, 0.40, 1.63, 3.0, 0.17, '02 自研应用层（AKS）', sz=8.5, b=True, c=CYND)
+    chip(sl, 0.40, 1.86, 2.70, 0.62, 'React 配置化查询平台', 'JSON Schema 渲染查询表单 · 表格 / 明细 / 附件预览 / 导出',
          'FFFFFF', CYN, 1.4, 0.06, tc=INK, tsz=8.2, sc=MUT, ssz=6.4, shadow=True)
-    rect(sl, 3.50, 1.86, 5.30, 0.62, 'FFFFFF', CYN, 1.4, 0.06, shadow=True)
-    txt(sl, 3.56, 1.86, 5.18, 0.62,
+    rect(sl, 3.30, 1.86, 5.30, 0.62, 'FFFFFF', CYN, 1.4, 0.06, shadow=True)
+    txt(sl, 3.36, 1.86, 5.18, 0.62,
         [dict(runs=[('.NET 10 后端服务组', {'c': INK, 'sz': 8.2, 'b': True})], align='c'),
          dict(runs=[('元数据 · 查询代理 · 权限校验 · 附件代理 · 审计上报 · 销毁调度', {'c': MUT, 'sz': 6.6})],
               align='c', sb=2),
          dict(runs=[('后端二次鉴权 · 参数化 SQL · 私有端点访问下游', {'c': FAINT, 'sz': 6.6})], align='c', sb=1)],
         anchor='m')
-    seg(sl, 3.32, 2.17, 3.48, 2.17, CYN, 1.8)   # React -> .NET
-    chip(sl, 10.55, 1.86, 2.42, 0.62, 'Azure SQL 元数据库', '系统台账 / 表清单 / 保留期 / 销毁策略 / 审计索引',
+    seg(sl, 3.12, 2.17, 3.28, 2.17, CYN, 1.8)   # React -> .NET
+    chip(sl, 10.44, 1.86, 2.42, 0.62, 'Azure SQL 元数据库', '系统台账 / 表清单 / 保留期 / 销毁策略 / 审计索引',
          'FFFFFF', CYN, 1.4, 0.06, tc=INK, tsz=8.2, sc=MUT, ssz=6.4, shadow=True)
-    seg(sl, 8.80, 2.17, 10.53, 2.17, CYN, 1.8)
-    txt(sl, 8.9, 2.00, 1.6, 0.14, '读写配置', sz=6.4, b=True, c=CYN, align='c')
+    seg(sl, 8.62, 2.17, 10.41, 2.17, CYN, 1.8)
+    txt(sl, 8.72, 2.00, 1.6, 0.14, '读写配置', sz=6.4, b=True, c=CYN, align='c')
 
     # band 03
     rect(sl, 0.22, 2.74, 12.90, 2.42, 'FFFFFF', BORDER, 1.2, 0.08)
-    txt(sl, 0.38, 2.81, 3.4, 0.17, '03 核心链路（写入 / 查询 / 附件）', sz=8.5, b=True, c='334155')
+    txt(sl, 0.40, 2.81, 3.4, 0.17, '03 核心链路（写入 / 查询 / 附件）', sz=8.5, b=True, c='334155')
     lanes = [
         (0.40, 'WRITE PATH', GRND, L_GRNB, B_GRNB, '归档写入 / 到期销毁',
          [('Azure Data Factory', '编排调度', 'FDBA74'), ('SeaTunnel', '结构化抽取', 'FDBA74')],
@@ -576,12 +576,12 @@ def slide_app(prs):
 
     # band 04
     rect(sl, 0.22, 5.28, 12.90, 0.82, L_BLUE, B_BLUE, 1.2, 0.08)
-    txt(sl, 0.38, 5.35, 4.0, 0.17, '04 数据底座与统一治理', sz=8.5, b=True, c='1D4ED8')
-    chip(sl, 0.60, 5.56, 3.80, 0.46, 'ADLS Gen2 · Iceberg 湖表', 'RAW / CURATED / LAKE / SERVE · 1:1 原样归档',
+    txt(sl, 0.40, 5.35, 4.0, 0.17, '04 数据底座与统一治理', sz=8.5, b=True, c='1D4ED8')
+    chip(sl, 0.40, 5.56, 3.90, 0.46, 'ADLS Gen2 · Iceberg 湖表', 'RAW / CURATED / LAKE / SERVE · 1:1 原样归档',
          'FFFFFF', '60A5FA', 1.2, 0.05, tc=INK, tsz=8, sc=MUT, ssz=6.3, shadow=True)
-    chip(sl, 4.60, 5.56, 3.60, 0.46, 'Unity Catalog', '表级权限 / 血缘 / 快照回溯',
+    chip(sl, 4.50, 5.56, 3.60, 0.46, 'Unity Catalog', '表级权限 / 血缘 / 快照回溯',
          'FFFFFF', '60A5FA', 1.2, 0.05, tc=INK, tsz=8, sc=MUT, ssz=6.3, shadow=True)
-    chip(sl, 8.40, 5.56, 4.25, 0.46, 'Azure Blob · 附件账户', 'Cool / Cold 分层 · WORM 可选 · 与业务表分账户',
+    chip(sl, 8.30, 5.56, 4.56, 0.46, 'Azure Blob · 附件账户', 'Cool / Cold 分层 · WORM 可选 · 与业务表分账户',
          'FFFFFF', 'F59E0B', 1.2, 0.05, tc=INK, tsz=8, sc=MUT, ssz=6.3, shadow=True)
     # lanes -> data arrows
     seg(sl, 2.41, 4.96, 2.41, 5.54, GRN, 2.2)
@@ -592,20 +592,20 @@ def slide_app(prs):
     txt(sl, 10.96, 5.175, 1.3, 0.11, '附件取流', sz=6.4, b=True, c=AMB)
 
     # footer pills
-    rect(sl, 0.22, 6.24, 8.20, 0.40, 'FFFFFF', 'CBD5E1', 1.0, 0.06)
-    txt(sl, 0.4, 6.24, 7.9, 0.40,
+    rect(sl, 0.40, 6.24, 8.02, 0.40, 'FFFFFF', 'CBD5E1', 1.0, 0.06)
+    txt(sl, 0.56, 6.24, 7.7, 0.40,
         [dict(runs=[('安全底座：', {'b': True, 'c': '334155', 'sz': 6.8}),
                     ('Key Vault · App Insights · Azure Monitor · Databricks Query History · 全部 PaaS 私有端点 · 入口 WAF',
                      {'c': SUB, 'sz': 6.8})])], anchor='m')
-    rect(sl, 8.56, 6.24, 4.56, 0.40, 'FFF7ED', 'FDBA74', 1.0, 0.06)
-    txt(sl, 8.74, 6.24, 4.2, 0.40,
+    rect(sl, 8.64, 6.24, 4.22, 0.40, 'FFF7ED', 'FDBA74', 1.0, 0.06)
+    txt(sl, 8.82, 6.24, 3.86, 0.40,
         [dict(runs=[('B2 读侧：', {'b': True, 'c': 'B45309', 'sz': 6.8}),
                     ('Databricks SQL Serverless 完全托管 · 空闲缩 0；代价是引擎绑定 + 需 Premium 层（NCC / PE）',
                      {'c': AMBD, 'sz': 6.8})])], anchor='m')
     # legend
     leg = [('自研应用组件（AKS）', CYN), ('写侧数据链路', GRN), ('读侧查询链路', PUR),
            ('编排 / 抽取', AMB), ('Azure PaaS 数据服务', AZ)]
-    xx = 0.60
+    xx = 0.40
     for t, c in leg:
         oval(sl, xx, 6.83, 0.09, 0.09, c)
         txt(sl, xx + 0.14, 6.78, 1.9, 0.16, t, sz=6.4, c=MUT)
