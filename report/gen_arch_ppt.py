@@ -520,10 +520,13 @@ def slide_app(prs):
     chip(sl, 0.60, 1.86, 2.70, 0.62, 'React 配置化查询平台', 'JSON Schema 渲染查询表单 · 表格 / 明细 / 附件预览 / 导出',
          'FFFFFF', CYN, 1.4, 0.06, tc=INK, tsz=8.2, sc=MUT, ssz=6.4, shadow=True)
     rect(sl, 3.50, 1.86, 5.30, 0.62, 'FFFFFF', CYN, 1.4, 0.06, shadow=True)
-    txt(sl, 3.66, 1.93, 5.0, 0.16, '.NET 10 后端服务组', sz=8.2, b=True, c=INK)
-    txt(sl, 3.66, 2.12, 5.0, 0.34,
-        [dict(runs=[('元数据 · 查询代理 · 权限校验 · 附件代理 · 审计上报 · 销毁调度', {'c': MUT, 'sz': 6.6})], ls=1.2),
-         dict(runs=[('后端二次鉴权 · 参数化 SQL · 私有端点访问下游', {'c': FAINT, 'sz': 6.6})], ls=1.2)])
+    txt(sl, 3.56, 1.86, 5.18, 0.62,
+        [dict(runs=[('.NET 10 后端服务组', {'c': INK, 'sz': 8.2, 'b': True})], align='c'),
+         dict(runs=[('元数据 · 查询代理 · 权限校验 · 附件代理 · 审计上报 · 销毁调度', {'c': MUT, 'sz': 6.6})],
+              align='c', sb=2),
+         dict(runs=[('后端二次鉴权 · 参数化 SQL · 私有端点访问下游', {'c': FAINT, 'sz': 6.6})], align='c', sb=1)],
+        anchor='m')
+    seg(sl, 3.32, 2.17, 3.48, 2.17, CYN, 1.8)   # React -> .NET
     chip(sl, 10.55, 1.86, 2.42, 0.62, 'Azure SQL 元数据库', '系统台账 / 表清单 / 保留期 / 销毁策略 / 审计索引',
          'FFFFFF', CYN, 1.4, 0.06, tc=INK, tsz=8.2, sc=MUT, ssz=6.4, shadow=True)
     seg(sl, 8.80, 2.17, 10.53, 2.17, CYN, 1.8)
