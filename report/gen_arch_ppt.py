@@ -753,10 +753,10 @@ def slide_lake(prs):
     ]
     rx = 2.44
     for t, s in rsteps:
-        chip(sl, rx, 6.68, 1.30, 0.42, t, s, 'FFFFFF', ROS, 1.2, 0.05, tc=INK, tsz=6.6, sc=MUT, ssz=5.6)
-        rx += 1.36
-    for ax in (3.76, 5.12, 6.48):
-        seg(sl, ax, 6.89, ax + 0.10, 6.89, ROS, 1.5)
+        chip(sl, rx, 6.68, 1.34, 0.42, t, s, 'FFFFFF', ROS, 1.2, 0.05, tc=INK, tsz=6.6, sc=MUT, ssz=5.6)
+        rx += 1.56
+    for ax in (3.81, 5.37, 6.93):
+        seg(sl, ax, 6.89, ax + 0.16, 6.89, ROS, 1.5)
     txt(sl, 2.44, 7.14, 6.01, 0.13, '审计与元数据独立备份 · 不随业务数据销毁 · 纳入年度销毁演练',
         sz=5.8, b=True, c='9F1239', align='c')
     # 回路箭头：从 Retention 左侧绕到 B-03 左缘
