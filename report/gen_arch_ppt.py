@@ -523,20 +523,20 @@ def slide_app(prs):
     # band 02
     rect(sl, 0.22, 1.56, 12.90, 1.04, L_CYN, B_CYNB, 1.2, 0.08)
     txt(sl, 0.40, 1.63, 3.0, 0.17, '02 自研应用层（AKS）', sz=8.5, b=True, c=CYND)
-    chip(sl, 0.40, 1.86, 2.70, 0.62, 'React 配置化查询平台', 'JSON Schema 渲染查询表单 · 表格 / 明细 / 附件预览 / 导出',
+    chip(sl, 0.40, 1.86, 2.94, 0.62, 'React 配置化查询平台', 'JSON Schema 渲染查询表单 · 表格 / 明细 / 附件预览 / 导出',
          'FFFFFF', CYN, 1.4, 0.06, tc=INK, tsz=8.2, sc=MUT, ssz=6.4, shadow=True)
-    rect(sl, 3.30, 1.86, 5.30, 0.62, 'FFFFFF', CYN, 1.4, 0.06, shadow=True)
-    txt(sl, 3.36, 1.86, 5.18, 0.62,
+    rect(sl, 3.89, 1.86, 5.78, 0.62, 'FFFFFF', CYN, 1.4, 0.06, shadow=True)
+    txt(sl, 3.95, 1.86, 5.66, 0.62,
         [dict(runs=[('.NET 10 后端服务组', {'c': INK, 'sz': 8.2, 'b': True})], align='c'),
          dict(runs=[('元数据 · 查询代理 · 权限校验 · 附件代理 · 审计上报 · 销毁调度', {'c': MUT, 'sz': 6.6})],
               align='c', sb=2),
          dict(runs=[('后端二次鉴权 · 参数化 SQL · 私有端点访问下游', {'c': FAINT, 'sz': 6.6})], align='c', sb=1)],
         anchor='m')
-    seg(sl, 3.12, 2.17, 3.28, 2.17, CYN, 1.8)   # React -> .NET
-    chip(sl, 10.44, 1.86, 2.42, 0.62, 'Azure SQL 元数据库', '系统台账 / 表清单 / 保留期 / 销毁策略 / 审计索引',
+    seg(sl, 3.40, 2.17, 3.83, 2.17, CYN, 1.8)   # React -> .NET
+    chip(sl, 10.22, 1.86, 2.64, 0.62, 'Azure SQL 元数据库', '系统台账 / 表清单 / 保留期 / 销毁策略 / 审计索引',
          'FFFFFF', CYN, 1.4, 0.06, tc=INK, tsz=8.2, sc=MUT, ssz=6.4, shadow=True)
-    seg(sl, 8.62, 2.17, 10.41, 2.17, CYN, 1.8)
-    txt(sl, 8.72, 2.00, 1.6, 0.14, '读写配置', sz=6.4, b=True, c=CYN, align='c')
+    seg(sl, 9.73, 2.17, 10.16, 2.17, CYN, 1.8)
+    txt(sl, 9.14, 2.00, 1.6, 0.14, '读写配置', sz=6.4, b=True, c=CYN, align='c')
 
     # band 03
     rect(sl, 0.22, 2.74, 12.90, 2.42, 'FFFFFF', BORDER, 1.2, 0.08)
