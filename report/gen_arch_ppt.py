@@ -282,7 +282,7 @@ def slide_azure(prs):
         ('1', '前端 · 配置化查询平台 React', False),
         ('2', '后端 · .NET 10（AKS 容器化）', False),
         ('3', '抽取 · Apache SeaTunnel', False),
-        ('4', '编排 · Airflow / ADF', False),
+        ('4', '编排 · Azure Data Factory', False),
         ('5', '表格式 · Apache Iceberg', False),
         ('6', '引擎 · Databricks SQL Serverless', False),
         ('7', '治理 · Unity Catalog', False),
@@ -319,7 +319,7 @@ def slide_azure(prs):
     chip(sl, 2.54, 1.62, 2.90, 0.50,
          [dict(runs=[('结构化抽取 · ', {'c': INK, 'sz': 7.4, 'b': True}),
                      ('Apache SeaTunnel', {'c': ORG, 'sz': 7.4, 'b': True})])],
-         '仅读权限 · 按勾选的表抽取（10 选 5）· Airflow / ADF 编排',
+         '仅读权限 · 按勾选的表抽取（10 选 5）· ADF 编排',
          'FFFFFF', ORG, 1.3, 0.05, sc=MUT, ssz=6.0)
     chip(sl, 5.56, 1.62, 2.84, 0.50,
          [dict(runs=[('附件迁移 · ', {'c': AMBD, 'sz': 7.4, 'b': True}),
@@ -540,7 +540,7 @@ def slide_app(prs):
     txt(sl, 0.38, 2.81, 3.4, 0.17, '03 核心链路（写入 / 查询 / 附件）', sz=8.5, b=True, c='334155')
     lanes = [
         (0.40, 'WRITE PATH', GRND, L_GRNB, B_GRNB, '归档写入 / 到期销毁',
-         [('Airflow / ADF', '编排调度', 'FDBA74'), ('SeaTunnel', '结构化抽取', 'FDBA74')],
+         [('Azure Data Factory', '编排调度', 'FDBA74'), ('SeaTunnel', '结构化抽取', 'FDBA74')],
          'DCFCE7', B_GRNB, GRND, 'Databricks Jobs：ETL · Compaction · DROP PARTITION + VACUUM'),
         (4.62, 'READ PATH', PURD, L_PURB, B_PURB, '在线查询 / 跨系统检索',
          [('查询代理', '限流 / 超时 / 审计', 'C4B5FD'), ('Databricks Serverless', 'SQL Warehouse 查询', 'A78BFA')],
@@ -669,7 +669,7 @@ def slide_lake(prs):
 
     # ---- 02 数据抽取 ----
     vstage(sl, 2.46, 0.68, '02', ORG, '数据抽取', 'INGEST',
-           [('批量 · 全量 + 增量', False, None), ('Airflow / ADF 编排', False, None)], 'FFF7ED', 'FED7AA')
+           [('批量 · 全量 + 增量', False, None), ('ADF 编排调度', False, None)], 'FFF7ED', 'FED7AA')
     chip(sl, 2.44, 2.54, 2.94, 0.52, '结构化 · SeaTunnel',
          '200+ 连接器 · JDBC · 类型映射 · 对账 → Iceberg 表',
          'FFFFFF', ORG, 1.3, 0.05, tc=INK, tsz=7.4, sc=MUT, ssz=6.0)
