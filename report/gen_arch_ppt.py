@@ -214,11 +214,13 @@ def lockicon(sl, cx, cy, color=AZ, s=1.0):
     OPS.append({'t': 'arc', 's': _slide_idx(), 'cx': cx, 'cy': cy, 'r': bw * 0.32, 'c': color, 'w': 1.2})
 
 # ------------------------------------------------------------ slide chrome -
-def title_bar(sl, title, right_note, accent, idx_note):
+def title_bar(sl, title, right_note, accent, idx_note=''):
     rect(sl, 0.22, 0.17, 0.055, 0.40, accent, rad=0.027)
     txt(sl, 0.38, 0.13, 9.0, 0.34, title, sz=18.5, b=True, c=INK, anchor='m')
-    txt(sl, 9.40, 0.06, 3.05, 0.42, right_note, sz=7.5, c=MUT, align='r', anchor='m', leading=1.25)
-    txt(sl, 12.52, 0.40, 0.6, 0.18, idx_note, sz=7, c=FAINT, align='r', mono=True)
+    if right_note:
+        txt(sl, 9.40, 0.06, 3.05, 0.42, right_note, sz=7.5, c=MUT, align='r', anchor='m', leading=1.25)
+    if idx_note:
+        txt(sl, 12.52, 0.40, 0.6, 0.18, idx_note, sz=7, c=FAINT, align='r', mono=True)
 
 # ================================================================= COVER ====
 def slide_cover(prs):
@@ -271,8 +273,7 @@ def slide_cover(prs):
 def slide_azure(prs):
     sl = prs.slides.add_slide(prs.slide_layouts[6]); _cur['i'] = 1
     sl.background.fill.solid(); sl.background.fill.fore_color.rgb = _rgb(BG)
-    title_bar(sl, 'Azure 基础设施部署架构 · 方案 B2',
-              '湖仓一体 · Databricks 读写 · 共 17 个组件 · 无 Trino 集群 / 无 PostgreSQL', AZ, '01 / 03')
+    title_bar(sl, 'Azure 基础设施部署架构 · 方案 B2', '', AZ)
 
     # ---- 技术栈 ----
     rect(sl, 0.22, 0.66, 2.02, 1.94, 'FFFFFF', BORDER, 1.2, 0.07)
@@ -501,8 +502,7 @@ def slide_azure(prs):
 def slide_app(prs):
     sl = prs.slides.add_slide(prs.slide_layouts[6]); _cur['i'] = 2
     sl.background.fill.solid(); sl.background.fill.fore_color.rgb = _rgb(BG)
-    title_bar(sl, '应用架构图 · 方案 B2（湖仓一体 · Databricks SQL Serverless 读）',
-              '应用逻辑分层视角 · 读侧 Databricks SQL Serverless · 与基础设施拓扑互补', GRN, '02 / 03')
+    title_bar(sl, '应用架构图 · 方案 B2（湖仓一体 · Databricks SQL Serverless 读）', '', GRN)
 
     # band 01
     rect(sl, 0.22, 0.62, 12.90, 0.82, L_GRN, '86EFAC', 1.2, 0.08)
@@ -628,8 +628,7 @@ def vstage(sl, y, h, sid, col, t, en, subs, fill, bl, lw=1.2):
 def slide_lake(prs):
     sl = prs.slides.add_slide(prs.slide_layouts[6]); _cur['i'] = 3
     sl.background.fill.solid(); sl.background.fill.fore_color.rgb = _rgb(BG)
-    title_bar(sl, '方案 B2 · 湖仓一体 · 存算分离架构',
-              '对象存储冷湖（Iceberg）· Databricks 写读一体（Serverless）· PB 级从容', PUR, '03 / 03')
+    title_bar(sl, '方案 B2 · 湖仓一体 · 存算分离架构', '', PUR)
 
     # ================= 左侧：竖向主管道 =================
     seg(sl, 0.55, 0.74, 0.55, 6.90, 'E2E8F0', 2.5, arrow=False)   # 脊柱
@@ -817,8 +816,6 @@ def slide_lake(prs):
     txt(sl, 8.89, 6.12, 4.12, 0.52,
         [dict(runs=[('读侧完全托管、UC 治理原生；代价是计算引擎绑定 Databricks（数据仍为开放 Iceberg，随时可换引擎），且 Serverless / NCC 需 Premium 层。',
                      {'c': AMBD, 'sz': 6.1})], ls=1.25)])
-    txt(sl, 8.75, 6.84, 4.36, 0.24, '编号沿用 Architecture.html 原图（B-00 / B-03 / B-04 / B-05）',
-        sz=5.8, c=FAINT, align='c', anchor='m')
 
 # ------------------------------------------------------------------- build --
 def build(path):
