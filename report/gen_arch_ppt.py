@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-生成《方案 B / B2 架构图集》PPTX —— 全部使用 PPT 原生矩形 / 线条 / 文本绘制，不嵌入任何图片。
+生成《方案 B2 架构图集》PPTX —— 全部使用 PPT 原生矩形 / 线条 / 文本绘制，不嵌入任何图片。
 同时输出 /tmp/arch_ops.json 供 PIL 预览渲染检查版式。
 """
 import json
@@ -246,7 +246,7 @@ def slide_cover(prs):
     txt(sl, 8.68, 4.99, 4.0, 0.52, 'ADLS Gen2 · Iceberg 湖仓 + Blob 附件', sz=8, c=AZD, b=True, align='c', anchor='m')
     txt(sl, 8.68, 5.72, 4.0, 0.3, '存算分离 · 私有端点 · 合规销毁', sz=7.5, c=FAINT, align='c')
 
-    txt(sl, 0.9, 1.55, 6.6, 0.3, 'RIMS 退役归档平台 · 方案 B / B2', sz=11, c=MUT, spc=300, b=True)
+    txt(sl, 0.9, 1.55, 6.6, 0.3, 'RIMS 退役归档平台 · 方案 B2', sz=11, c=MUT, spc=300, b=True)
     txt(sl, 0.88, 1.92, 6.9, 0.85, '湖仓一体架构图集', sz=33, b=True, c=INK)
     rect(sl, 0.92, 2.86, 0.62, 0.045, AZ)
     txt(sl, 0.92, 3.02, 6.4, 0.3, '三张核心架构图 · 全部以 PPT 原生形状绘制，文字 / 颜色 / 位置均可直接编辑',
@@ -284,7 +284,7 @@ def slide_azure(prs):
         ('3', '抽取 · Apache SeaTunnel', False),
         ('4', '编排 · Azure Data Factory', False),
         ('5', '表格式 · Apache Iceberg', False),
-        ('6', '引擎 · Databricks SQL Serverless', False),
+        ('6', '引擎 · Databricks Serverless（读写）', False),
         ('7', '治理 · Unity Catalog', False),
         ('8', '附件迁移 · Azure Storage Mover', True),
     ]
@@ -397,7 +397,7 @@ def slide_azure(prs):
     # PE subnet
     rect(sl, 7.30, 3.34, 3.06, 1.24, 'FFFFFF', AZ, 1.1, 0.06)
     txt(sl, 7.42, 3.42, 2.9, 0.17, '私有端点子网 · 10.0.2.0/24', sz=7.8, b=True, c=AZ)
-    pes = ['ADLS 私有端点（blob + dfs）', 'SQL Database 私有端点', 'Key Vault 私有端点', 'Databricks 工作区私有端点']
+    pes = ['ADLS 私有端点（blob + dfs）', 'SQL Database 私有端点', 'Key Vault 私有端点', 'Databricks 工作区端点']
     for i, s in enumerate(pes):
         px = 7.42 + (i % 2) * 1.46; py = 3.64 + (i // 2) * 0.40
         chip(sl, px, py, 1.40, 0.34, s, None, L_BLUE, B_BLUE, 1.0, 0.04, tc=AZD, tsz=6.1)
@@ -424,22 +424,27 @@ def slide_azure(prs):
     rect(sl, 0.22, 4.84, 12.90, 1.44, 'F0FAF6', GRN, 1.3, 0.08)
     txt(sl, 0.38, 4.92, 8.0, 0.2, 'Azure PaaS 数据与治理服务 · 全部私有端点接入 · 公网访问已禁用', sz=9, b=True, c=GRN)
     paas = [
-        ('Microsoft Entra ID', '身份与单点登录', 'SAML / OIDC · 托管标识'),
-        ('Application Insights', '审计留痕与链路追踪', '操作日志 · 告警规则'),
-        ('Azure Monitor', '资源指标与告警', '仪表板 · 自动化响应'),
-        ('Azure Key Vault', '密钥与凭据托管', 'CMK · 源库连接串'),
-        ('Azure SQL Database', '元数据库 Standard S2', '主备自动故障转移 · PITR'),
+        ('Microsoft Entra ID', '身份与单点登录', 'SAML / OIDC · 托管标识', True),
+        ('Application Insights', '审计留痕与链路追踪', '操作日志 · 告警规则', False),
+        ('Azure Monitor', '资源指标与告警', '仪表板 · 自动化响应', False),
+        ('Azure Key Vault', '密钥与凭据托管', 'CMK · 源库连接串', False),
+        ('Azure SQL Database', '元数据库 Standard S2', '主备自动故障转移 · PITR', False),
     ]
     xx = 0.34
-    for t, role, sub in paas:
+    for t, role, sub, is_global in paas:
         rect(sl, xx, 5.18, 1.98, 1.00, 'FFFFFF', AZ, 1.1, 0.06, shadow=True)
         rect(sl, xx + 0.02, 5.24, 0.035, 0.88, AZ, rad=0.017)
         txt(sl, xx + 0.12, 5.24, 1.8, 0.16, t, sz=7.4, b=True, c=INK, align='c')
         txt(sl, xx + 0.08, 5.42, 1.84, 0.14, role, sz=6.5, b=True, c=AZ, align='c')
         txt(sl, xx + 0.08, 5.57, 1.84, 0.13, sub, sz=6.0, c=MUT, align='c')
-        chip(sl, xx + 0.34, 5.73, 1.30, 0.17, 'Private Endpoint', None, L_BLUE, B_BLUE, 0.9, 0.04,
-             tc=AZD, tsz=5.8)
-        txt(sl, xx, 5.95, 1.98, 0.14, '公网访问：已禁用', sz=6.0, b=True, c='DC2626', align='c')
+        if is_global:
+            chip(sl, xx + 0.34, 5.73, 1.30, 0.17, '全局服务 · 443', None, 'F1F5F9', 'CBD5E1', 0.9, 0.04,
+                 tc=SLA, tsz=5.8)
+            txt(sl, xx, 5.95, 1.98, 0.14, '认证走 443 · 无私有端点', sz=6.0, b=True, c=MUT, align='c')
+        else:
+            chip(sl, xx + 0.34, 5.73, 1.30, 0.17, 'Private Endpoint', None, L_BLUE, B_BLUE, 0.9, 0.04,
+                 tc=AZD, tsz=5.8)
+            txt(sl, xx, 5.95, 1.98, 0.14, '公网访问：已禁用', sz=6.0, b=True, c='DC2626', align='c')
         xx += 2.08
     # storage card (wider)
     rect(sl, 10.74, 5.18, 2.06, 1.00, 'FFFFFF', AZ, 1.1, 0.06, shadow=True)
@@ -467,7 +472,7 @@ def slide_azure(prs):
     rect(sl, 0.22, 6.40, 9.50, 0.94, 'FFFFFF', BORDER, 1.1, 0.06)
     txt(sl, 0.36, 6.46, 3.0, 0.17, '关键设计要点', sz=8.5, b=True, c=INK)
     pts_l = [
-        '全部 PaaS 私有端点接入，流量不出 Azure 骨干网；入口 WAF + App Gateway 收敛',
+        '除 Entra ID（全局认证）外，PaaS 全部私有端点接入，流量不出骨干网；入口 WAF + AppGW 收敛',
         'Serverless 不支持 VNet 对等 / VPN —— 私有访问 ADLS 唯一方式：NCC + 托管私有端点',
         '源库抽取走 NAT 固定出口 IP 白名单；跨机房走 ExpressRoute / 站点到站点 VPN',
     ]
@@ -497,7 +502,7 @@ def slide_app(prs):
     sl = prs.slides.add_slide(prs.slide_layouts[6]); _cur['i'] = 2
     sl.background.fill.solid(); sl.background.fill.fore_color.rgb = _rgb(BG)
     title_bar(sl, '应用架构图 · 方案 B2（湖仓一体 · Serverless SQL Warehouse 读）',
-              '应用逻辑分层视角 · 读侧 SQL Warehouse · 与基础设施部署拓扑互补', GRN, '02 / 03')
+              '应用逻辑分层视角 · 读侧 Serverless SQL Warehouse · 与基础设施拓扑互补', GRN, '02 / 03')
 
     # band 01
     rect(sl, 0.22, 0.62, 12.90, 0.82, L_GRN, '86EFAC', 1.2, 0.08)
@@ -513,6 +518,7 @@ def slide_app(prs):
          'SSO / OIDC / 托管标识', L_BLUE, '93C5FD', 1.2, 0.05, sc='1E40AF', ssz=6.5, shadow=True)
     txt(sl, 8.3, 1.02, 2.1, 0.2, '统一身份 · 单点登录 →', sz=6.8, c=MUT, align='r')
     seg(sl, 4.35, 1.44, 4.35, 1.56, CYN, 2.0)
+    txt(sl, 4.47, 1.445, 1.2, 0.11, 'HTTPS 443 · SSO', sz=5.8, b=True, c=CYN)
 
     # band 02
     rect(sl, 0.22, 1.56, 12.90, 1.04, L_CYN, B_CYNB, 1.2, 0.08)
@@ -819,7 +825,7 @@ def build(path):
     prs = Presentation()
     prs.slide_width = Inches(13.333)
     prs.slide_height = Inches(7.5)
-    prs.core_properties.title = '方案 B / B2 架构图集'
+    prs.core_properties.title = '方案 B2 架构图集'
     prs.core_properties.author = 'RIMS 退役归档平台'
     slide_cover(prs)
     slide_azure(prs)
