@@ -945,218 +945,144 @@ def slide_enc(prs):
                      {'c': '4C1D95', 'sz': 7.2})])], anchor='m')
 
 
-# ===================================================== SLIDE 6 · ER DIAGRAM ==
-# 元数据库 ER 图：布局数据同时驱动 PPT(slide_er) 与 HTML(emit_er_html)
-ER_ZONES = [
-    # key, label, x, y, w, h, fill, border, title-color
-    ('rbac',  '① 权限与访问控制 RBAC',            0.22, 0.56, 4.62, 3.06, L_BLUE, B_BLUE, AZ),
-    ('hub',   '② 退役系统管理（核心）',            4.94, 0.56, 3.34, 3.06, L_GRN,  B_GRN,  GRND),
-    ('query', '⑦ 动态查询（含归档 Schema）',       8.38, 0.56, 4.73, 3.06, L_CYN,  B_CYN,  CYND),
-    ('src',   '③ 源数据 · ④ 目标存储 · ⑥ 附件索引', 0.22, 3.72, 3.30, 3.62, 'FFF7ED', 'FED7AA', ORG),
-    ('sync',  '⑤ 同步与归档',                      3.62, 3.72, 4.42, 3.62, L_PUR,  B_PUR,  PURD),
-    ('life',  '⑧ 生命周期与保留',                  8.14, 3.72, 2.34, 3.62, L_ROS,  B_ROS,  ROS),
-    ('ops',   '⑨ 销毁审批 · ⑩ 通知 · ⑪ 审计监控',  10.58, 3.72, 2.53, 3.62, 'F6F8FA', 'CBD5E1', SLA),
+# ===================================================== SLIDE 6 · ER (Mermaid 风格) =
+ER_FILL, ER_BORDER, ER_TITLE, ER_LINE = 'ECECFF', '9370DB', '3D3A6B', '8785A8'
+ER_TAGC = {'PK': 'C0392B', 'FK': '6C3FC5', 'UK': '1E8E5A'}
+
+# (name, x, y, w, h, rows[(type, name, tag)])
+ER_ENTITIES = [
+    ('user', 0.30, 0.88, 1.62, 0.92, [('bigint', 'id', 'PK'), ('varchar', 'username', 'UK'), ('varchar', 'real_name', ''), ('tinyint', 'status', '')]),
+    ('user_role', 2.12, 1.04, 1.30, 0.60, [('bigint', 'user_id', 'FK'), ('bigint', 'role_id', 'FK')]),
+    ('role', 3.62, 0.88, 1.55, 0.92, [('bigint', 'id', 'PK'), ('varchar', 'role_code', 'UK'), ('varchar', 'role_name', '')]),
+    ('role_permission', 5.37, 1.04, 1.42, 0.60, [('bigint', 'role_id', 'FK'), ('bigint', 'permission_id', 'FK')]),
+    ('permission', 6.99, 0.88, 1.62, 0.92, [('bigint', 'id', 'PK'), ('varchar', 'permission_code', 'UK'), ('varchar', 'module', '')]),
+    ('role_page', 8.81, 1.04, 1.30, 0.60, [('bigint', 'role_id', 'FK'), ('bigint', 'page_id', 'FK')]),
+    ('page', 10.31, 0.88, 1.55, 0.92, [('bigint', 'id', 'PK'), ('varchar', 'page_code', 'UK'), ('varchar', 'path', '')]),
+    ('system_user', 0.30, 2.14, 1.30, 0.60, [('bigint', 'system_id', 'FK'), ('bigint', 'user_id', 'FK')]),
+    ('source_database', 1.80, 1.98, 1.66, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'db_type', ''), ('varchar', 'host', '')]),
+    ('source_table', 3.66, 1.98, 1.66, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'source_database_id', 'FK'), ('varchar', 'table_name', ''), ('tinyint', 'is_attachment', '')]),
+    ('decommission_system', 5.52, 1.90, 2.80, 1.02, [('bigint', 'id', 'PK'), ('varchar', 'system_code', 'UK'), ('varchar', 'status', ''), ('int', 'retention_years', ''), ('date', 'destroy_after_date', '')]),
+    ('schema', 8.52, 1.98, 1.50, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'catalog_name', ''), ('varchar', 'schema_name', '')]),
+    ('storage_config', 10.22, 1.98, 1.66, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'storage_type', ''), ('varchar', 'container', '')]),
+    ('unstructured_source', 0.30, 3.10, 1.66, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'source_type', ''), ('varchar', 'location_uri', '')]),
+    ('unstructured_item', 2.16, 3.10, 1.62, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'unstructured_source_id', 'FK'), ('varchar', 'hash', ''), ('bigint', 'size_bytes', '')]),
+    ('sync_job', 3.98, 3.10, 2.30, 1.02, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'job_type', ''), ('varchar', 'status', '')]),
+    ('sync_job_config', 6.48, 3.10, 1.60, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'cron_expr', '')]),
+    ('sync_table_config', 8.28, 3.10, 1.66, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'source_table_id', 'FK'), ('int', 'retain_years', '')]),
+    ('sync_table_stat', 10.14, 3.10, 1.60, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'sync_job_id', 'FK'), ('bigint', 'row_count', '')]),
+    ('archive_batch', 0.30, 4.24, 1.60, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'sync_job_id', 'FK'), ('int', 'batch_year', '')]),
+    ('archive_set', 2.10, 4.24, 1.55, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'archive_batch_id', 'FK'), ('varchar', 'set_name', '')]),
+    ('archive_set_item', 3.85, 4.24, 1.66, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'archive_set_id', 'FK'), ('varchar', 'blob_url', '')]),
+    ('archive_file', 5.71, 4.24, 1.60, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'archive_batch_id', 'FK'), ('varchar', 'blob_url', '')]),
+    ('query_config', 7.51, 4.24, 1.62, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'name', ''), ('varchar', 'base_table', '')]),
+    ('attachment_index', 9.33, 4.24, 1.70, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'business_key', ''), ('varchar', 'sha256', '')]),
+    ('retention_policy', 0.30, 5.36, 1.60, 0.92, [('bigint', 'id', 'PK'), ('varchar', 'policy_code', 'UK'), ('int', 'period_days', '')]),
+    ('retention_assignment', 2.06, 5.36, 1.72, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'policy_id', 'FK'), ('varchar', 'object_type', ''), ('date', 'due_date', '')]),
+    ('legal_hold_event', 3.98, 5.36, 1.66, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'assignment_id', 'FK'), ('varchar', 'action', '')]),
+    ('query_field', 5.84, 5.36, 1.62, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'query_config_id', 'FK'), ('tinyint', 'is_pii', '')]),
+    ('query_join', 7.62, 5.36, 1.55, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'query_config_id', 'FK'), ('varchar', 'join_type', '')]),
+    ('drill_config', 9.33, 5.36, 1.60, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'query_config_id', 'FK'), ('bigint', 'schema_id', 'FK')]),
+    ('destroy_approval', 0.30, 6.46, 1.62, 0.80, [('bigint', 'id', 'PK'), ('bigint', 'sync_job_id', 'FK'), ('bigint', 'approver_id', 'FK')]),
+    ('notification', 2.12, 6.46, 1.50, 0.80, [('bigint', 'id', 'PK'), ('varchar', 'recipient', ''), ('varchar', 'channel', '')]),
+    ('audit_log', 3.82, 6.46, 1.55, 0.80, [('bigint', 'id', 'PK'), ('bigint', 'user_id', 'FK'), ('varchar', 'action', '')]),
+    ('sync_activity', 5.57, 6.46, 1.60, 0.80, [('bigint', 'id', 'PK'), ('date', 'activity_date', ''), ('int', 'success_count', '')]),
 ]
-# (table, cn, zone, x, y, w, h, rows[(tag, text)])   tag: PK/FK/UK/''
-ER_TABLES = [
-    ('user', '用户', 'rbac', 0.34, 0.86, 2.16, 1.44, [
-        ('PK', 'id'), ('UK', 'username 登录名'), ('', 'password_hash BCrypt'),
-        ('', 'real_name · email · phone'), ('', 'status 启用/禁用'), ('', 'last_login_at')]),
-    ('role', '角色', 'rbac', 2.62, 0.86, 2.10, 1.02, [
-        ('PK', 'id'), ('UK', 'role_code'), ('', 'role_name'), ('', 'is_builtin 内置')]),
-    ('permission', '权限', 'rbac', 0.34, 1.96, 2.16, 0.98, [
-        ('PK', 'id'), ('UK', 'permission_code'), ('', 'module 模块'), ('', 'resource_type api/menu/btn')]),
-    ('page', '页面', 'rbac', 2.62, 1.96, 2.10, 0.98, [
-        ('PK', 'id'), ('UK', 'page_code'), ('', 'path 路由'), ('', 'enabled · sort_order')]),
-    ('user_role', '用户角色', 'rbac', 0.34, 3.10, 1.42, 0.42, [('FK', 'user_id + role_id')]),
-    ('role_permission', '角色权限', 'rbac', 1.88, 3.10, 1.42, 0.42, [('FK', 'role_id + permission_id')]),
-    ('role_page', '角色页面', 'rbac', 3.42, 3.10, 1.30, 0.42, [('FK', 'role_id + page_id')]),
-    ('decommission_system', '退役系统 · 核心枢纽', 'hub', 5.06, 0.86, 3.10, 2.28, [
-        ('PK', 'id'), ('UK', 'system_code 如 CRM_V1'), ('', 'system_name · department'),
-        ('', 'owner · owner_email'), ('', 'status 六态状态机'), ('', 'retention_years 保留年限'),
-        ('', 'sync_completed_date 保留起算'), ('', 'destroy_after_date 到期日'),
-        ('', 'actual_destroy_date 销毁日')]),
-    ('system_user', '系统-用户授权', 'hub', 5.06, 3.20, 3.10, 0.36, [('FK', 'system_id + user_id（系统级隔离）')]),
-    ('query_config', '查询配置', 'query', 8.50, 0.86, 2.16, 1.26, [
-        ('PK', 'id'), ('FK', 'system_id'), ('', 'name · description'),
-        ('', 'base_table 主表'), ('', 'status active/draft')]),
-    ('schema', '归档 Schema', 'query', 10.78, 0.86, 2.21, 1.06, [
-        ('PK', 'id'), ('FK', 'system_id'), ('', 'catalog_name 如 lake'), ('', 'schema_name 如 CRM_V1')]),
-    ('query_field', '字段定义', 'query', 8.50, 2.18, 2.16, 1.36, [
-        ('PK', 'id'), ('FK', 'query_config_id'), ('', 'column_name · alias'),
-        ('', 'filter_type 筛选'), ('', 'is_pii 隐私'), ('', 'mask_type 脱敏')]),
-    ('query_join', '连接定义', 'query', 10.78, 2.18, 2.21, 0.84, [
-        ('PK', 'id'), ('FK', 'query_config_id'), ('', 'join_table · join_type'), ('', 'left_field → right_field')]),
-    ('drill_config', '下钻配置', 'query', 10.78, 3.08, 2.21, 0.52, [
-        ('FK', 'query_config_id + schema_id'), ('', 'parent_field → child_field')]),
-    ('source_database', '源数据库', 'src', 0.34, 4.02, 1.54, 1.44, [
-        ('PK', 'id'), ('FK', 'system_id'), ('', 'db_type 类型'), ('', 'host : port'),
-        ('', 'database_name'), ('', 'credential_ref 密钥引用'), ('', 'test_status 连通')]),
-    ('source_table', '源表清单', 'src', 1.98, 4.02, 1.54, 1.44, [
-        ('PK', 'id'), ('FK', 'source_database_id'), ('', 'table_name · alias'),
-        ('', 'primary_key 主键'), ('', 'estimated_rows 行数'), ('', 'is_attachment 附件表')]),
-    ('unstructured_source', '非结构化源', 'src', 0.34, 5.54, 1.54, 0.88, [
-        ('PK', 'id'), ('FK', 'system_id'), ('', 'source_type 类型'), ('', 'location_uri · file_pattern')]),
-    ('unstructured_item', '文件条目', 'src', 1.98, 5.54, 1.54, 0.88, [
-        ('PK', 'id'), ('FK', 'unstructured_source_id'), ('', 'original_path · name'), ('', 'hash · size_bytes')]),
-    ('storage_config', '目标存储 ④', 'src', 0.34, 6.46, 1.54, 0.84, [
-        ('PK', 'id'), ('FK', 'system_id'), ('', 'storage_type ADLS/BLOB'),
-        ('', 'account · container · prefix'), ('', 'file_format ICEBERG')]),
-    ('attachment_index', '附件索引 ⑥', 'src', 1.98, 6.46, 1.54, 0.84, [
-        ('PK', 'id'), ('FK', 'system_id'), ('', 'table_name · business_key'),
-        ('', 'object_key · container'), ('', 'sha256 · size')]),
-    ('sync_job', '同步任务', 'sync', 3.74, 4.02, 2.74, 1.64, [
-        ('PK', 'id'), ('FK', 'system_id'), ('FK', 'assignment_id 销毁指派'),
-        ('', 'job_type FULL/INCR/COMPACT/DESTROY'), ('', 'trigger_type · status'),
-        ('', 'started_at · finished_at'), ('', 'total/success_tables'), ('', 'total_rows')]),
-    ('sync_job_config', '定时配置', 'sync', 6.58, 4.02, 1.34, 1.64, [
-        ('PK', 'id'), ('FK', 'system_id'), ('', 'job_name'), ('', 'cron_expr'),
-        ('', 'enabled'), ('', 'last_run_at')]),
-    ('sync_table_config', '表级配置', 'sync', 3.74, 5.72, 1.32, 0.74, [
-        ('FK', 'system_id + source_table_id'), ('', 'enabled · date_column'), ('', 'retain_years')]),
-    ('sync_table_stat', '表级统计', 'sync', 5.16, 5.72, 1.32, 0.74, [
-        ('FK', 'sync_job_id + source_table_id'), ('', 'row_count · size_bytes'), ('', 'status')]),
-    ('archive_batch', '归档批次', 'sync', 6.58, 5.72, 1.34, 0.74, [
-        ('PK', 'id'), ('FK', 'sync_job_id'), ('', 'batch_year · rows_out'), ('', 'result · log_url')]),
-    ('archive_file', '归档文件', 'sync', 3.74, 6.52, 1.32, 0.76, [
-        ('PK', 'id'), ('FK', 'batch_id + source_table_id'), ('', 'blob_url'), ('', 'size · checksum · etag')]),
-    ('archive_set', '归档集', 'sync', 5.16, 6.52, 1.32, 0.76, [
-        ('PK', 'id'), ('FK', 'archive_batch_id'), ('', 'set_name · dir_url'), ('', 'items · bytes')]),
-    ('archive_set_item', '集条目', 'sync', 6.58, 6.52, 1.34, 0.76, [
-        ('PK', 'id'), ('FK', 'archive_set_id'), ('', 'original_name · blob_url'), ('', 'size · checksum')]),
-    ('retention_policy', '保留策略', 'life', 8.26, 4.02, 2.10, 1.04, [
-        ('PK', 'id'), ('UK', 'policy_code'), ('', 'policy_name'), ('', 'period_days 天数'),
-        ('', 'start_trigger 起算')]),
-    ('retention_assignment', '保留指派', 'life', 8.26, 5.12, 2.10, 1.06, [
-        ('PK', 'id'), ('FK', 'policy_id'), ('', 'object_type SYSTEM/TABLE/SET'),
-        ('', 'start_date · due_date'), ('', 'status ACTIVE/EXPIRED')]),
-    ('legal_hold_event', '法定保留', 'life', 8.26, 6.26, 2.10, 0.84, [
-        ('PK', 'id'), ('FK', 'assignment_id'), ('', 'action HOLD/RELEASE'), ('', 'reason · actor')]),
-    ('destroy_approval', '销毁审批 ⑨', 'ops', 10.70, 4.02, 2.29, 0.88, [
-        ('PK', 'id'), ('FK', 'sync_job_id + approver_id'), ('', 'decision APPROVE/REJECT'),
-        ('', 'comment · decided_at')]),
-    ('audit_log', '审计日志 ⑪', 'ops', 10.70, 4.98, 2.29, 1.10, [
-        ('PK', 'id'), ('FK', 'user_id 弱关联'), ('', 'action · module'),
-        ('', 'target_type · target_id'), ('', 'ip · status · duration')]),
-    ('notification', '通知 ⑩', 'ops', 10.70, 6.16, 2.29, 0.66, [
-        ('PK', 'id'), ('', 'recipient · channel'), ('', 'title · status · sent_at')]),
-    ('sync_activity', '同步活跃度 ⑪', 'ops', 10.70, 6.88, 2.29, 0.42, [
-        ('', 'activity_date 按天预聚合'), ('', '成功/失败/部分/运行中')]),
-]
-# 关系折线（父→子）与标注
-ER_RELS = [
-    ([(2.50, 1.92), (4.89, 1.92), (4.89, 3.38), (5.06, 3.38)], None, None, None),
-    ([(5.60, 3.14), (5.60, 3.20)], None, None, None),
-    ([(8.16, 1.30), (8.50, 1.30)], None, None, None),
-    ([(6.60, 3.14), (6.60, 3.67), (5.20, 3.67), (5.20, 4.02)], '1 : *  同步任务', 5.30, 3.78),
-    ([(5.06, 2.60), (4.89, 2.60), (4.89, 3.67), (3.10, 3.67), (3.10, 3.73)],
-     '1 : *  源库 / 文件源 / 存储 / 附件', 3.02, 3.638),
-    ([(1.88, 4.60), (1.98, 4.60)], None, None, None),
-    ([(1.88, 5.98), (1.98, 5.98)], None, None, None),
-    ([(3.52, 4.60), (3.57, 4.60), (3.57, 6.00), (3.74, 6.00)], None, None, None),
-    ([(5.82, 5.66), (5.82, 5.72)], None, None, None),
-    ([(6.48, 5.40), (7.25, 5.40), (7.25, 5.72)], None, None, None),
-    ([(7.25, 6.46), (7.25, 6.52)], None, None, None),
-    ([(6.48, 6.90), (6.58, 6.90)], None, None, None),
-    ([(9.31, 5.06), (9.31, 5.12)], None, None, None),
-    ([(9.31, 6.18), (9.31, 6.26)], None, None, None),
-    ([(8.26, 5.60), (8.09, 5.60), (8.09, 3.60), (6.20, 3.60), (6.20, 4.02)], None, None, None),
-    ([(9.58, 2.12), (9.58, 2.18)], None, None, None),
+# 关系折线：父在前、子在后（子端画鸦爪，父端画 ||）
+ER_EDGES = [
+    ([(1.92, 1.34), (2.12, 1.34)], None),
+    ([(3.62, 1.34), (3.42, 1.34)], None),
+    ([(5.17, 1.34), (5.37, 1.34)], None),
+    ([(6.99, 1.34), (6.79, 1.34)], None),
+    ([(8.61, 1.34), (8.81, 1.34)], None),
+    ([(10.31, 1.34), (10.11, 1.34)], None),
+    ([(1.11, 1.80), (1.11, 2.14)], None),
+    ([(0.95, 2.74), (0.95, 3.01), (5.42, 3.01), (5.42, 2.72), (5.52, 2.72)], None),
+    ([(3.46, 2.44), (3.66, 2.44)], None),
+    ([(8.32, 2.40), (8.52, 2.40)], None),
+    ([(5.60, 2.92), (5.60, 3.10)], None),
+    ([(8.32, 2.66), (8.42, 2.66), (8.42, 3.01), (11.05, 3.01), (11.05, 2.92)], None),
+    ([(4.49, 2.90), (4.49, 3.05), (9.11, 3.05), (9.11, 3.10)], None),
+    ([(4.30, 4.12), (4.30, 4.18), (1.10, 4.18), (1.10, 4.24)], None),
+    ([(1.90, 4.70), (2.10, 4.70)], None),
+    ([(3.65, 4.70), (3.85, 4.70)], None),
+    ([(0.70, 4.24), (0.70, 4.15), (6.51, 4.15), (6.51, 4.24)], None),
+    ([(1.96, 3.56), (2.16, 3.56)], None),
+    ([(6.90, 1.90), (6.90, 1.89), (13.00, 1.89), (13.00, 4.70), (11.03, 4.70)], None),
+    ([(8.32, 2.12), (8.42, 2.12), (8.42, 1.83), (12.40, 1.83), (12.40, 4.18), (8.32, 4.18), (8.32, 4.24)], None),
+    ([(7.80, 5.16), (7.80, 5.26), (6.65, 5.26), (6.65, 5.36)], None),
+    ([(8.60, 5.16), (8.60, 5.26), (8.40, 5.26), (8.40, 5.36)], None),
+    ([(8.90, 5.16), (8.90, 5.30), (10.13, 5.30), (10.13, 5.36)], None),
+    ([(1.90, 5.82), (2.06, 5.82)], None),
+    ([(3.78, 5.82), (3.98, 5.82)], None),
+    ([(2.92, 5.36), (2.92, 5.26), (3.75, 5.26), (3.75, 4.22), (4.30, 4.22), (4.30, 4.12)], '到期触发'),
 ]
 
-def _er_row_color(tag, zone_tc):
-    return {'PK': 'DC2626', 'FK': zone_tc, 'UK': GRN}.get(tag, MUT)
+def _crow(sl, pts, color, lw):
+    """父端画 ||（一），子端画鸦爪 + ○（零或多）"""
+    def unit(a, b):
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        L = max(1e-9, (dx * dx + dy * dy) ** 0.5)
+        return dx / L, dy / L
+    x0, y0 = pts[0]; x1, y1 = pts[1]
+    ux, uy = unit(pts[0], pts[1]); px, py = -uy, ux
+    for d in (0.06, 0.11):     # 父端两道竖杠
+        cx, cy = x0 + ux * d, y0 + uy * d
+        seg(sl, cx - px * 0.05, cy - py * 0.05, cx + px * 0.05, cy + py * 0.05, color, lw, arrow=False)
+    xe, ye = pts[-1]; xp, yp = pts[-2]
+    vx, vy = unit((xp, yp), (xe, ye)); qx, qy = -vy, vx
+    b1x, b1y = xe - vx * 0.11, ye - vy * 0.11
+    seg(sl, b1x, b1y, xe + qx * 0.055, ye + qy * 0.055, color, lw, arrow=False)
+    seg(sl, b1x, b1y, xe - qx * 0.055, ye - qy * 0.055, color, lw, arrow=False)
+    c2x, c2y = xe - vx * 0.175, ye - vy * 0.175
+    oval(sl, c2x - 0.026, c2y - 0.026, 0.052, 0.052, None, color, 1.0)
 
 def slide_er(prs):
     sl = prs.slides.add_slide(prs.slide_layouts[6]); _cur['i'] = 5
     sl.background.fill.solid(); sl.background.fill.fore_color.rgb = _rgb(BG)
-    title_bar(sl, '元数据库 ER 图 · 35 张表 / 11 模块', '', SLA)
-    txt(sl, 8.40, 0.14, 4.7, 0.28,
-        [dict(runs=[('通用字段 id · deleted · created_at · updated_at 已省略；', {'c': MUT, 'sz': 6.4}),
-                    ('FK 行即关联关系，完整外键见 docs/数据库ER图与全量表结构.md', {'c': FAINT, 'sz': 6.4})], ls=1.25),
-         ], align='r')
-    zmap = {z[0]: z for z in ER_ZONES}
-    for key, label, zx, zy, zw, zh, lf, bl, tc in ER_ZONES:
-        rect(sl, zx, zy, zw, zh, lf, bl, 1.1, 0.08)
-        txt(sl, zx + 0.12, zy + 0.05, zw - 0.24, 0.16, label, sz=7.8, b=True, c=tc)
-    for name, cn, zone, x, y, w, h, rows in ER_TABLES:
-        z = zmap[zone]
-        is_hub = (name == 'decommission_system')
-        rect(sl, x, y, w, h, 'FFFFFF', z[7], 1.6 if is_hub else 1.0, 0.04, shadow=is_hub)
-        rect(sl, x, y, w, 0.20, z[6], None, 0.5, 0.04)
-        # title
-        txt(sl, x + 0.06, y + 0.02, w - 0.12, 0.17,
-            [dict(runs=[(name, {'b': True, 'sz': 6.6, 'c': z[8]}),
-                        ('  ' + cn, {'sz': 5.2, 'c': MUT})])])
-        # rows
+    title_bar(sl, '元数据库 ER 图 · 35 张表 / 11 模块（Mermaid 风格）', '', SLA)
+    txt(sl, 8.30, 0.14, 4.8, 0.26,
+        [dict(runs=[('每表仅列关键字段 · 通用列（id / deleted / created_at / updated_at）已省略\n源码：report/元数据库ER图.mmd（Mermaid erDiagram，可直接贴 kroki）',
+                     {'c': MUT, 'sz': 6.3})], ls=1.3)], align='r')
+    for name, x, y, w, h, rows in ER_ENTITIES:
+        hub = (name == 'decommission_system')
+        rect(sl, x, y, w, h, ER_FILL, ER_BORDER, 1.6 if hub else 1.1, 0.035, shadow=hub)
+        seg(sl, x + 0.07, y + 0.215, x + w - 0.07, y + 0.215, 'C5BEEF', 0.75, arrow=False)
+        txt(sl, x + 0.04, y + 0.035, w - 0.08, 0.17, name, sz=7.2, b=True, c=ER_TITLE, align='c')
         paras = []
-        for tag, text in rows:
-            runs = []
+        for tp, fn, tag in rows:
+            runs = [(tp + ' ', {'sz': 5.2, 'c': '6E6A94'}), (fn, {'sz': 5.5, 'c': '2F2C54'})]
             if tag:
-                runs.append((tag + ' ', {'b': True, 'sz': 5.3, 'c': _er_row_color(tag, z[8])}))
-            runs.append((text, {'sz': 5.3, 'c': SUB if not tag else MUT}))
+                runs.append(('  ' + tag, {'sz': 5.1, 'b': True, 'c': ER_TAGC[tag]}))
             paras.append(dict(runs=runs, ls=1.0))
-        txt(sl, x + 0.07, y + 0.225, w - 0.13, h - 0.24, paras, leading=1.0)
-    for pts, label, lx, ly in ER_RELS:
-        poly(sl, pts, '94A3B8', 1.1, None)
+        pitch = 0.155 if len(rows) >= 5 else 0.165
+        txt(sl, x + 0.10, y + 0.245, w - 0.16, h - 0.26, paras, leading=1.0)
+    for pts, label in ER_EDGES:
+        poly(sl, pts, ER_LINE, 1.1, None)
+        _crow(sl, pts, ER_LINE, 1.1)
         if label:
-            txt(sl, lx, ly, 2.3, 0.115, label, sz=5.0, b=True, c=MUT)
+            txt(sl, 3.02, 5.28, 0.9, 0.11, label, sz=5.0, b=True, c=MUT)
+    rect(sl, 7.60, 6.52, 5.30, 0.62, 'FFFFFF', BORDER, 1.0, 0.05)
+    txt(sl, 7.76, 6.60, 5.0, 0.46,
+        [dict(runs=[('记号：', {'b': True, 'c': INK, 'sz': 6.2}),
+                    ('[PK] 主键 · [UK] 唯一键 · [FK] 外键　｜　连线：∥ 一端 · 鸦爪+○ 多端（一对多）',
+                     {'c': SUB, 'sz': 6.2})], ls=1.3),
+         dict(runs=[('销毁回路：', {'b': True, 'c': ROS, 'sz': 6.0}),
+                    ('retention_assignment 到期触发 sync_job(DESTROY)，审批留痕 destroy_approval',
+                     {'c': MUT, 'sz': 6.0})], ls=1.3)])
 
 def emit_er_html(path):
-    S = 150
-    def px(v): return round(v * S, 1)
-    zmap = {z[0]: z for z in ER_ZONES}
-    css_z = {}
-    cards, lines, labels = [], [], []
-    for key, label, zx, zy, zw, zh, lf, bl, tc in ER_ZONES:
-        css_z[key] = (lf, bl, tc)
-    for name, cn, zone, x, y, w, h, rows in ER_TABLES:
-        lf, bl, tc = css_z[zone]
-        row_html = ''.join(
-            ('<div class="r">%s<span class="t %s">%s</span>%s</div>' % (
-                '', tag.lower() or 'no', tag, text)) for tag, text in rows)
-        hub = ' hub' if name == 'decommission_system' else ''
-        cards.append(
-            '<div class="card{hub}" style="left:{l}px;top:{t}px;width:{w}px;min-height:{h}px;border-color:#{bl}">'
-            '<div class="h" style="background:#{lf};color:#{tc}">{n}<span>{cn}</span></div>{rows}</div>'.format(
-                hub=hub, l=px(x), t=px(y), w=px(w), h=px(h - 0.20), bl=bl, lf=lf, tc=tc,
-                n=name, cn=cn, rows=row_html))
-    for pts, label, lx, ly in ER_RELS:
-        d = 'M ' + ' L '.join('%s %s' % (px(a), px(b)) for a, b in pts)
-        lines.append('<path d="%s" />' % d)
-        if label:
-            labels.append('<div class="lbl" style="left:%spx;top:%spx;width:auto;text-align:left">%s</div>' % (
-                px(lx), px(ly - 0.02), label))
-    zones_html = ''.join(
-        '<div class="zone" style="left:{l}px;top:{t}px;width:{w}px;height:{h}px;'
-        'background:#{lf};border-color:#{bl}"><div class="zl" style="color:#{tc}">{lab}</div></div>'.format(
-            l=px(z[2]), t=px(z[3]), w=px(z[4]), h=px(z[5]), lf=z[6], bl=z[7], tc=z[8], lab=z[1])
-        for z in ER_ZONES)
-    html = """<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">
-<title>元数据库 ER 图 · 35 张表 / 11 模块</title><style>
-body{margin:0;background:#eef2f7;font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
-display:flex;justify-content:center;padding:24px}
-.wrap{width:2000px;transform-origin:top center}
-.canvas{position:relative;width:2000px;height:1125px;background:#F8FAFC;border-radius:14px;
-box-shadow:0 8px 30px rgba(15,23,42,.12)}
-.zone{position:absolute;border:1.5px solid;border-radius:12px}
-.zl{position:absolute;top:7px;left:12px;font-size:14px;font-weight:700}
-.card{position:absolute;background:#fff;border:1.2px solid #E2E8F0;border-radius:7px;
-box-shadow:0 2px 6px rgba(15,23,42,.08);overflow:hidden}
-.card.hub{box-shadow:0 4px 14px rgba(15,23,42,.18)}
-.h{font-size:12px;font-weight:700;padding:3px 8px;line-height:20px}
-.h span{font-weight:400;font-size:10px;color:#64748b;margin-left:6px}
-.r{font-size:10.5px;color:#475569;padding:1px 8px;line-height:16px;white-space:nowrap}
-.t{display:inline-block;font-weight:700;width:22px}
-.t.pk{color:#DC2626}.t.fk{color:#7C3AED}.t.uk{color:#059669}.t.no{visibility:hidden}
-svg{position:absolute;inset:0;pointer-events:none}
-path{stroke:#94A3B8;stroke-width:1.6;fill:none}
-.lbl{position:absolute;width:330px;text-align:center;font-size:11px;font-weight:700;color:#64748b}
-</style></head><body><div class="wrap"><div class="canvas">
-@@ZONES@@@@CARDS@@<svg width="2000" height="1125">@@LINES@@</svg>@@LABELS@@
-</div></div></body></html>"""
-    html = html.replace('@@ZONES@@', zones_html).replace('@@CARDS@@', ''.join(cards))
-    html = html.replace('@@LINES@@', ''.join(lines)).replace('@@LABELS@@', ''.join(labels))
+    mmd = open('/home/user/RimsDecommision/report/元数据库ER图.mmd', encoding='utf-8').read()
+    html = ('<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">'
+            '<title>元数据库 ER 图 · 35 张表 / 11 模块</title>'
+            '<style>body{margin:0;padding:28px;background:#f8fafc;font-family:\'Segoe UI\',\'PingFang SC\',\'Microsoft YaHei\',sans-serif;display:flex;flex-direction:column;align-items:center}'
+            '.main{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;max-width:96vw;box-shadow:0 8px 30px rgba(15,23,42,.08)}'
+            'h1{font-size:18px;color:#0f172a;margin:0 0 4px}p{font-size:12px;color:#64748b;margin:0 0 14px}'
+            '.mermaid{display:flex;justify-content:center}</style>'
+            '<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>'
+            '<script>mermaid.initialize({startOnLoad:true,theme:\"default\"});</script>'
+            '</head><body><div class="main"><h1>RIMS 元数据库 ER 图 · 35 张表 / 11 模块</h1>'
+            '<p>源码：report/元数据库ER图.mmd（Mermaid erDiagram）· 每表仅列关键字段，通用列已省略</p>'
+            '<pre class="mermaid">\n' + mmd.replace('<', '&lt;').replace('&', '&amp;') + '</pre></div></body></html>')
     with open(path, 'w', encoding='utf-8') as f:
         f.write(html)
 
