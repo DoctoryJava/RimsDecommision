@@ -251,23 +251,24 @@ def slide_cover(prs):
     txt(sl, 0.9, 1.55, 6.6, 0.3, 'RIMS 退役归档平台 · 方案 B2', sz=11, c=MUT, spc=300, b=True)
     txt(sl, 0.88, 1.92, 6.9, 0.85, '湖仓一体架构图集', sz=33, b=True, c=INK)
     rect(sl, 0.92, 2.86, 0.62, 0.045, AZ)
-    txt(sl, 0.92, 3.02, 6.4, 0.3, '三张核心架构图 · 全部以 PPT 原生形状绘制，文字 / 颜色 / 位置均可直接编辑',
+    txt(sl, 0.92, 3.02, 6.4, 0.3, '三张架构图 + 一页数据加密设计 · 全部以 PPT 原生形状绘制，可直接编辑',
         sz=10.5, c=MUT)
     items = [
         ('01', AZ, L_BLUE, B_BLUE, 'Azure 基础设施部署架构 · 方案 B2', 'VNet · AKS · Databricks Serverless · NCC 私有端点 · 六大 PaaS 服务'),
         ('02', GRN, L_GRN, B_GRN, '应用架构图 · 方案 B2（湖仓一体 · Databricks SQL Serverless 读）', '访问入口 → 自研应用层（AKS）→ 写 / 读 / 附件三条链路 → 数据底座'),
         ('03', PUR, L_PUR, B_PUR, '方案 B2 · 湖仓一体 · 存算分离架构', '源系统 → 接入配置 → 抽取 → Iceberg 冷湖 → Databricks 读写一体计算层 → 消费入口 + 销毁回路'),
+        ('04', AZ, L_BLUE, B_BLUE, '方案 B2 · 数据加密设计', '四层加密模型 · aes_encrypt + UC 列掩码 · 信封加密 / Crypto-Shredding'),
     ]
-    y = 3.62
+    y = 3.46
     for no, col, lf, bl, t, d in items:
-        rect(sl, 0.92, y, 6.35, 0.78, 'FFFFFF', BORDER, 1.2, 0.09, shadow=True)
-        rect(sl, 1.06, y + 0.14, 0.5, 0.5, lf, bl, 1.2, 0.08)
-        txt(sl, 1.06, y + 0.14, 0.5, 0.5, no, sz=13, b=True, c=col, align='c', anchor='m', mono=True)
-        txt(sl, 1.72, y + 0.13, 5.4, 0.26, t, sz=10.5, b=True, c=INK)
-        txt(sl, 1.72, y + 0.42, 5.4, 0.24, d, sz=7.5, c=MUT)
-        y += 0.94
-    rect(sl, 0.92, 6.62, 6.35, 0.035, BORDER)
-    txt(sl, 0.92, 6.74, 6.4, 0.25, '整理自 report/Architecture.html · 2026-08', sz=8, c=FAINT)
+        rect(sl, 0.92, y, 6.35, 0.72, 'FFFFFF', BORDER, 1.2, 0.09, shadow=True)
+        rect(sl, 1.06, y + 0.11, 0.5, 0.5, lf, bl, 1.2, 0.08)
+        txt(sl, 1.06, y + 0.11, 0.5, 0.5, no, sz=13, b=True, c=col, align='c', anchor='m', mono=True)
+        txt(sl, 1.72, y + 0.10, 5.4, 0.26, t, sz=10.5, b=True, c=INK)
+        txt(sl, 1.72, y + 0.39, 5.4, 0.24, d, sz=7.5, c=MUT)
+        y += 0.84
+    rect(sl, 0.92, 6.80, 6.35, 0.035, BORDER)
+    txt(sl, 0.92, 6.92, 6.4, 0.25, '整理自 report/Architecture.html · 2026-08', sz=8, c=FAINT)
 
 # ======================================================== SLIDE 1 · AZURE ===
 def slide_azure(prs):
@@ -817,6 +818,129 @@ def slide_lake(prs):
         [dict(runs=[('读侧完全托管、UC 治理原生；代价是计算引擎绑定 Databricks（数据仍为开放 Iceberg，随时可换引擎），且 Serverless / NCC 需 Premium 层。',
                      {'c': AMBD, 'sz': 6.1})], ls=1.25)])
 
+
+# ===================================================== SLIDE 5 · ENCRYPTION =
+def col_head(sl, x, y, w, t):
+    rect(sl, x, y, w, 0.30, 'FFFFFF', BORDER, 1.1, 0.06)
+    txt(sl, x + 0.14, y, w - 0.28, 0.30, t, sz=8.5, b=True, c=INK, anchor='m')
+
+def slide_enc(prs):
+    sl = prs.slides.add_slide(prs.slide_layouts[6]); _cur['i'] = 4
+    sl.background.fill.solid(); sl.background.fill.fore_color.rgb = _rgb(BG)
+    title_bar(sl, '方案 B2 · 数据加密设计', '', AZ)
+
+    # ================= 左：四层加密模型 + 密钥管理 =================
+    col_head(sl, 0.22, 0.62, 4.30, '四层加密模型 + 密钥管理（L1 → L5）')
+    layers = [
+        ('L1', AZ, L_BLUE, B_BLUE, '存储层 · 防磁盘 / 桶泄露',
+         'ADLS 账户级 SSE（AES-256）+ Key Vault CMK；数据 / 元数据 / 附件一套密钥策略，可选基础设施双重加密'),
+        ('L2', GRN, L_GRN, B_GRN, '传输层 · 防链路窃听',
+         '全链路 TLS 1.2+：HTTPS 443 入口 · 私有端点私网 · JDBC / ODBC；流量不出 Azure 骨干网'),
+        ('L3', ROS, L_ROS, B_ROS, '字段层 · 防 DBA / 运维内鬼（合规核心）',
+         'aes_encrypt() 落盘即密文 + UC 列掩码查询遮蔽——两者必须组合；GCM 每次随机 IV'),
+        ('L4', PUR, L_PUR, B_PUR, '展示层 · 防越权查看',
+         'UC COLUMN MASK / ROW FILTER 绑定基表，任何访问路径强制生效；B2 原生，Trino 读完全不可用'),
+        ('L5', AMB, L_AMB, B_AMB, '密钥层 · 防泄露无法止损',
+         'Key Vault CMK 自动轮转；信封加密——轮主密钥只重包装 KEK、零数据重写；密文自带 key_version'),
+    ]
+    yy = 1.00
+    for tag, col, lf, bl, t, d in layers:
+        rect(sl, 0.22, yy, 4.30, 0.82, 'FFFFFF', bl, 1.2, 0.06)
+        rect(sl, 0.36, yy + 0.14, 0.50, 0.26, lf, bl, 1.0, 0.05)
+        txt(sl, 0.36, yy + 0.14, 0.50, 0.26, tag, sz=7.5, b=True, c=col, align='c', anchor='m', mono=True)
+        txt(sl, 0.98, yy + 0.09, 3.42, 0.15, t, sz=7.8, b=True, c=col if tag == 'L3' else INK)
+        txt(sl, 0.98, yy + 0.28, 3.42, 0.48, d, sz=5.9, c=MUT, leading=1.22)
+        yy += 0.90
+
+    # ================= 中：字段级加密 · 推荐路线四步 =================
+    col_head(sl, 4.66, 0.62, 4.50, '字段级加密 · 推荐路线：aes_encrypt + UC 列掩码')
+    steps = [
+        ('STEP 1', '密钥入 Secret Scope', 'Key Vault 撑腰 · 托管标识免密拉取，密钥不进代码 / 日志'),
+        ('STEP 2', 'ETL 写侧加密', dict(runs=[('aes_encrypt(col, secret(...))', {'mono': True, 'c': CYND, 'sz': 5.9}),
+                                               (' · 默认 GCM 随机 IV，绝不能用 ECB', {'c': MUT, 'sz': 5.9})])),
+        ('STEP 3', '定义掩码函数', dict(runs=[('is_account_group_member()', {'mono': True, 'c': CYND, 'sz': 5.9}),
+                                               (' ? try_aes_decrypt : ***', {'mono': True, 'c': MUT, 'sz': 5.9})])),
+        ('STEP 4', '挂载到列', dict(runs=[('ALTER TABLE … SET MASK', {'mono': True, 'c': CYND, 'sz': 5.9}),
+                                               ('（必须打在基表，不支持视图）', {'c': MUT, 'sz': 5.9})])),
+    ]
+    yy = 0.98
+    for tag, t, d in steps:
+        rect(sl, 4.66, yy, 4.50, 0.60, 'FFFFFF', B_GRN, 1.2, 0.06)
+        rect(sl, 4.78, yy + 0.11, 0.56, 0.22, L_GRN, B_GRN, 1.0, 0.04)
+        txt(sl, 4.78, yy + 0.11, 0.56, 0.22, tag, sz=5.8, b=True, c=GRND, align='c', anchor='m', mono=True)
+        txt(sl, 5.46, yy + 0.08, 3.6, 0.15, t, sz=7.6, b=True, c=INK)
+        txt(sl, 5.46, yy + 0.28, 3.60, 0.26, [d] if isinstance(d, dict) else [(d, {'c': MUT, 'sz': 5.9})],
+            leading=1.2)
+        if yy < 2.9:
+            seg(sl, 6.90, yy + 0.61, 6.90, yy + 0.69, GRN, 1.4)
+        yy += 0.70
+    rect(sl, 4.66, 3.80, 4.50, 0.40, 'DCFCE7', B_GRN, 1.1, 0.06)
+    txt(sl, 4.76, 3.80, 4.30, 0.40, '同一条 SQL：授权者见明文 · 其他人见 *** · 直读 Parquet 只见密文',
+        sz=6.8, b=True, c=GRND, align='c', anchor='m')
+    txt(sl, 4.72, 4.28, 4.40, 0.30,
+        [dict(runs=[('为何安全：', {'b': True, 'c': INK, 'sz': 5.9}),
+                    ('掩码函数以定义者权限取密钥，分析师自己写 aes_decrypt 也拿不到 key',
+                     {'c': MUT, 'sz': 5.9})], ls=1.2)])
+    rect(sl, 4.66, 4.62, 4.50, 0.80, 'FFF7ED', 'FDBA74', 1.1, 0.06)
+    txt(sl, 4.78, 4.68, 4.3, 0.14, '三个必守约束', sz=7.2, b=True, c='B45309')
+    txt(sl, 4.78, 4.86, 4.28, 0.52,
+        [dict(runs=[('❶ 绝不能改成 ECB（暴露频率分布）　❷ 业务用户对 Secret Scope 必须无 READ 权限，否则防线归零',
+                     {'c': AMBD, 'sz': 5.8})], ls=1.25),
+         dict(runs=[('❸ 掩码不支持视图须挂基表；卸载顺序：先 DROP MASK 再 DROP FUNCTION', {'c': AMBD, 'sz': 5.8})], ls=1.25)])
+
+    # ================= 右：密钥体系 · 合规与销毁 =================
+    col_head(sl, 9.32, 0.62, 3.80, '密钥体系 · 合规与销毁')
+    rect(sl, 9.32, 0.98, 3.80, 1.72, 'FFFFFF', AZ, 1.2, 0.06)
+    chip(sl, 9.46, 1.08, 3.52, 0.34, 'Key Vault · CMK / KEK 主密钥', None, L_BLUE, B_BLUE, 1.1, 0.05,
+         tc=AZD, tsz=6.8)
+    seg(sl, 11.22, 1.43, 11.22, 1.55, AZ, 1.3)
+    txt(sl, 11.32, 1.42, 1.0, 0.12, '包装 / 解包', sz=5.4, c=AZ, b=True)
+    chip(sl, 9.46, 1.56, 3.52, 0.34, 'DEK 数据密钥（带 key_version）', None, L_PUR, B_PUR, 1.1, 0.05,
+         tc=PURD, tsz=6.8)
+    seg(sl, 11.22, 1.91, 11.22, 2.03, PUR, 1.3)
+    txt(sl, 11.32, 1.90, 1.0, 0.12, '加密 / 解密', sz=5.4, c=PUR, b=True)
+    chip(sl, 9.46, 2.04, 3.52, 0.34, 'Iceberg 密文 + UC 列掩码', None, L_GRN, B_GRN, 1.1, 0.05,
+         tc=GRND, tsz=6.8)
+    txt(sl, 9.42, 2.44, 3.60, 0.22, '信封加密：轮转主密钥只重新包装 DEK，数据文件一个字节不动',
+        sz=5.8, b=True, c=AZ, align='c')
+    rect(sl, 9.32, 2.80, 3.80, 0.94, L_ROS, ROS, 1.2, 0.06, dash=MSO_LINE_DASH_STYLE.DASH)
+    txt(sl, 9.46, 2.87, 3.5, 0.15, 'Crypto-Shredding · 被遗忘权', sz=7.6, b=True, c=ROS)
+    txt(sl, 9.46, 3.06, 3.54, 0.60,
+        [dict(runs=[('按数据主体分配独立 DEK——「删除」= 销毁该 DEK，密文永久不可读，无需重写 PB 级文件',
+                     {'c': SUB, 'sz': 5.9})], ls=1.25),
+         dict(runs=[('归档场景性价比最高的合规设计，建议第一版纳入', {'c': ROS, 'sz': 5.9, 'b': True})], ls=1.25)])
+    rect(sl, 9.32, 3.84, 3.80, 1.58, 'FFFFFF', BORDER, 1.2, 0.06)
+    txt(sl, 9.46, 3.91, 3.5, 0.15, '合规映射', sz=7.6, b=True, c=INK)
+    comp = [
+        ('等保 2.0 三级', L_GRN, B_GRN, GRND, '存储 / 传输保密达标；策略在引擎内、审计落表，举证材料天然齐备'),
+        ('个保法第 51 条', L_AMB, B_AMB, 'B45309', 'SSE ≠ 去标识化——必须 L3 字段级加密 + L4 强制脱敏，只做 L1 不满足'),
+        ('GDPR 被遗忘权', L_ROS, B_ROS, ROS, 'Crypto-Shredding：销毁主体 DEK 即永久不可读'),
+    ]
+    yy = 4.12
+    for tag, lf, bl, tc, d in comp:
+        chip(sl, 9.46, yy, 1.06, 0.24, tag, None, lf, bl, 1.0, 0.04, tc=tc, tsz=5.9)
+        txt(sl, 10.62, yy - 0.01, 2.42, 0.42, d, sz=5.7, c=MUT, leading=1.2)
+        yy += 0.44
+
+    # ================= 底部：三个结构性优势 + 结论 =================
+    adv = [
+        ('① 授权强制力', AZ, '掩码 / 行过滤绑定引擎元数据，任何客户端绕不过；应用层脱敏绕过 API 即失效'),
+        ('② 轮转成本', GRN, '信封加密只重包装 KEK、零数据重写；应用层方案轮转需重刷数十 TB 存量'),
+        ('③ 实施成本', PUR, '约 2~3 人天（应用层方案 8~12 人天）· 加密字段仍可检索 · 审计平台原生'),
+    ]
+    xx = 0.22
+    for t, c, d in adv:
+        rect(sl, xx, 5.56, 4.20, 0.98, 'FFFFFF', BORDER, 1.2, 0.06, shadow=True)
+        rect(sl, xx, 5.62, 0.045, 0.86, c, rad=0.02)
+        txt(sl, xx + 0.16, 5.66, 3.9, 0.15, t, sz=7.8, b=True, c=c)
+        txt(sl, xx + 0.16, 5.87, 3.92, 0.58, d, sz=6.0, c=MUT, leading=1.25)
+        xx += 4.35
+    rect(sl, 0.22, 6.68, 12.90, 0.52, L_PUR, B_PUR, 1.2, 0.07)
+    txt(sl, 0.40, 6.68, 12.54, 0.52,
+        [dict(runs=[('★ 若列级脱敏是硬需求：', {'b': True, 'c': PURD, 'sz': 7.2}),
+                    ('B（Trino 读）的 UC 列掩码完全不可用（Iceberg REST Catalog 不支持），B2 原生生效、任何路径强制遮蔽——这一条基本决定必须选 B2',
+                     {'c': '4C1D95', 'sz': 7.2})])], anchor='m')
+
 # ------------------------------------------------------------------- build --
 def build(path):
     prs = Presentation()
@@ -828,6 +952,7 @@ def build(path):
     slide_azure(prs)
     slide_app(prs)
     slide_lake(prs)
+    slide_enc(prs)
     prs.save(path)
     with open('/tmp/arch_ops.json', 'w', encoding='utf-8') as f:
         json.dump(OPS, f, ensure_ascii=False)
