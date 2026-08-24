@@ -44,6 +44,7 @@ erDiagram
     user ||--o{ destroy_approval : "审批人"
     %% ============ ⑪ 审计 ============
     audit_log }o--o{ user : "弱关联"
+    sync_job ||--o{ sync_activity : "按天预聚合(派生)"
 
     user {
         bigint id PK

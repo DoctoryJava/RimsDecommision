@@ -1000,9 +1000,9 @@ ER_A = dict(
         ('unstructured_item', 8.70, 3.92, 2.15, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'unstructured_source_id', 'FK'), ('varchar', 'original_path', ''), ('varchar', 'hash', '')]),
         ('schema', 11.10, 2.58, 1.95, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'catalog_name', ''), ('varchar', 'schema_name', '')]),
         ('storage_config', 11.10, 3.92, 1.95, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'storage_type', ''), ('varchar', 'container', '')]),
-        ('audit_log', 0.30, 6.42, 4.05, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'user_id', 'FK'), ('varchar', 'action·module', ''), ('varchar', 'ip·status', '')]),
-        ('sync_activity', 4.55, 6.42, 4.05, 0.77, [('bigint', 'id', 'PK'), ('date', 'activity_date', ''), ('int', '成功/失败/运行', '')]),
-        ('notification', 8.80, 6.42, 4.25, 0.77, [('bigint', 'id', 'PK'), ('varchar', 'recipient', ''), ('varchar', 'channel', '')]),
+        ('audit_log', 0.30, 6.42, 2.60, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'user_id', 'FK'), ('varchar', 'action·module', ''), ('varchar', 'ip·status', '')]),
+        ('sync_activity', 3.06, 6.42, 2.86, 0.92, [('bigint', 'id', 'PK'), ('date', 'activity_date', ''), ('int', '成功/失败/运行', ''), ('', 'sync_job 按天预聚合·派生', '')]),
+        ('notification', 6.08, 6.42, 2.60, 0.77, [('bigint', 'id', 'PK'), ('varchar', 'recipient', ''), ('varchar', 'channel', '')]),
     ],
     edges=[
         ([(2.40, 1.55), (2.65, 1.55)], None, False, 'yellow'),
@@ -1022,6 +1022,7 @@ ER_A = dict(
         ([(0.30, 6.88), (0.18, 6.88), (0.18, 1.80), (0.30, 1.80)], None, True, 'gray'),
     ],
     chip=(4.85, 2.95, 1.18, 0.52, 'sync_job / query_config\n子域见下页 →'),
+    chip2=(8.84, 6.42, 4.21, 0.80),
     extra=[('弱关联', 0.03, 3.55, 0.16, 0.62, True)],
 )
 
@@ -1057,6 +1058,7 @@ ER_B = dict(
     edges=[
         ([(2.60, 1.29), (3.30, 1.29)], None, False, 'blue'),
         ([(1.45, 1.60), (1.45, 2.55)], None, False, 'blue'),
+        ([(2.60, 1.55), (2.90, 1.55), (2.90, 2.18), (6.60, 2.18), (6.60, 1.90)], None, False, 'blue'),
         ([(2.60, 1.42), (2.67, 1.42), (2.67, 3.08), (2.75, 3.08)], None, False, 'green'),
         ([(0.30, 1.30), (0.18, 1.30), (0.18, 6.15), (0.30, 6.15)], None, False, 'yellow'),
         ([(5.45, 2.05), (5.45, 2.55)], None, False, 'blue'),
@@ -1094,7 +1096,8 @@ def _er_card2(sl, name, x, y, w, h, rows):
         else:
             runs.append(('     ', {'sz': 6.2, 'c': 'FAFAFA'}))
         runs.append((fn, {'sz': 6.3, 'c': '222222'}))
-        runs.append((' (' + tp + ')', {'sz': 5.9, 'c': '7A7A7A'}))
+        if tp:
+            runs.append((' (' + tp + ')', {'sz': 5.9, 'c': '7A7A7A'}))
         paras.append(dict(runs=runs, ls=1.0))
     txt(sl, x + 0.10, y + 0.285, w - 0.16, h - 0.30, paras, leading=1.0)
 
@@ -1135,6 +1138,14 @@ def _er_slide2(prs, D, accent):
         _er_1n(sl, pts)
         if label:
             txt(sl, label[1][0], label[1][1], 1.7, 0.12, label[0], sz=5.6, b=True, c=MUT)
+    if D.get('chip2'):
+        cx, cy, cw, chh = D['chip2']
+        rect(sl, cx, cy, cw, chh, 'FFFFFF', 'A8A8A8', 1.0, 0.05, dash=MSO_LINE_DASH_STYLE.DASH)
+        txt(sl, cx + 0.12, cy + 0.06, cw - 0.24, chh - 0.10,
+            [dict(runs=[('跨页关联（详见卡内 FK 字段）：', {'sz': 5.8, 'b': True, 'c': SLA})], ls=1.25),
+             dict(runs=[('source_table → sync_table_config · sync_table_stat · archive_file', {'sz': 5.6, 'c': MUT})], ls=1.25),
+             dict(runs=[('schema → drill_config　·　user → destroy_approval', {'sz': 5.6, 'c': MUT})], ls=1.25),
+             dict(runs=[('sync_job ⇢ sync_activity（按天预聚合，派生表无 FK）', {'sz': 5.6, 'c': MUT})], ls=1.25)])
     for ex in D.get('extra') or []:
         t, exx, exy, exw, exh, vert = ex
         txt(sl, exx, exy, exw, exh, t, sz=5.6, b=True, c=MUT if t == '弱关联' else ROS,
