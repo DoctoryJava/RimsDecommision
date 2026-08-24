@@ -1,0 +1,230 @@
+%%{init: { "theme": "default", "themeVariables": { "fontFamily": "'Noto Sans SC','Microsoft YaHei',sans-serif" } } }%%
+erDiagram
+    %% ============ ① 权限与访问控制 ============
+    user ||--o{ user_role : "拥有"
+    role ||--o{ user_role : "授予"
+    role ||--o{ role_permission : "包含"
+    permission ||--o{ role_permission : "归属"
+    role ||--o{ role_page : "可见"
+    page ||--o{ role_page : "归属"
+    user ||--o{ system_user : "授权"
+    %% ============ ② 退役系统管理 ============
+    decommission_system ||--o{ system_user : "系统级授权"
+    decommission_system ||--o{ source_database : "源库"
+    source_database ||--o{ source_table : "表清单"
+    decommission_system ||--o{ unstructured_source : "附件源"
+    unstructured_source ||--o{ unstructured_item : "文件条目"
+    decommission_system ||--o{ storage_config : "目标存储"
+    %% ============ ⑤ 同步与归档 ============
+    decommission_system ||--o{ sync_job : "同步任务"
+    decommission_system ||--o{ sync_job_config : "定时配置"
+    decommission_system ||--o{ sync_table_config : "表级配置"
+    source_table ||--o{ sync_table_config : "勾选"
+    sync_job ||--o{ sync_table_stat : "统计"
+    source_table ||--o{ sync_table_stat : "统计"
+    sync_job ||--o{ archive_batch : "归档批次"
+    archive_batch ||--o{ archive_file : "归档文件"
+    source_table ||--o{ archive_file : "来源"
+    archive_batch ||--o{ archive_set : "归档集"
+    archive_set ||--o{ archive_set_item : "集条目"
+    %% ============ ⑥⑦ 附件索引与动态查询 ============
+    decommission_system ||--o{ attachment_index : "附件索引"
+    decommission_system ||--o{ query_config : "查询配置"
+    query_config ||--o{ query_join : "连接"
+    query_config ||--o{ query_field : "字段"
+    query_config ||--o{ drill_config : "下钻"
+    decommission_system ||--o{ schema : "归档Schema"
+    schema ||--o{ drill_config : "定位子表"
+    %% ============ ⑧⑨ 生命周期与销毁 ============
+    retention_policy ||--o{ retention_assignment : "指派"
+    retention_assignment ||--o{ legal_hold_event : "法定保留"
+    retention_assignment ||--o{ sync_job : "到期触发DESTROY"
+    sync_job ||--o{ destroy_approval : "销毁审批"
+    user ||--o{ destroy_approval : "审批人"
+    %% ============ ⑪ 审计 ============
+    audit_log }o--o{ user : "弱关联"
+
+    user {
+        bigint id PK
+        varchar username UK
+        varchar real_name
+        tinyint status
+    }
+    role {
+        bigint id PK
+        varchar role_code UK
+        varchar role_name
+    }
+    permission {
+        bigint id PK
+        varchar permission_code UK
+        varchar module
+    }
+    page {
+        bigint id PK
+        varchar page_code UK
+        varchar path
+    }
+    user_role {
+        bigint user_id FK
+        bigint role_id FK
+    }
+    role_permission {
+        bigint role_id FK
+        bigint permission_id FK
+    }
+    role_page {
+        bigint role_id FK
+        bigint page_id FK
+    }
+    decommission_system {
+        bigint id PK
+        varchar system_code UK
+        varchar status "六态状态机"
+        int retention_years
+        date destroy_after_date
+    }
+    system_user {
+        bigint system_id FK
+        bigint user_id FK
+    }
+    source_database {
+        bigint id PK
+        bigint system_id FK
+        varchar db_type
+        varchar host
+    }
+    source_table {
+        bigint id PK
+        bigint source_database_id FK
+        varchar table_name
+        tinyint is_attachment
+    }
+    unstructured_source {
+        bigint id PK
+        bigint system_id FK
+        varchar source_type
+        varchar location_uri
+    }
+    unstructured_item {
+        bigint id PK
+        bigint unstructured_source_id FK
+        varchar hash "SHA-256"
+        bigint size_bytes
+    }
+    schema {
+        bigint id PK
+        bigint system_id FK
+        varchar catalog_name
+        varchar schema_name
+    }
+    storage_config {
+        bigint id PK
+        bigint system_id FK
+        varchar storage_type
+        varchar container
+    }
+    sync_job {
+        bigint id PK
+        bigint system_id FK
+        varchar job_type "含DESTROY"
+        varchar status
+    }
+    sync_job_config {
+        bigint id PK
+        bigint system_id FK
+        varchar cron_expr
+    }
+    sync_table_config {
+        bigint id PK
+        bigint source_table_id FK
+        int retain_years
+    }
+    sync_table_stat {
+        bigint id PK
+        bigint sync_job_id FK
+        bigint row_count
+    }
+    archive_batch {
+        bigint id PK
+        bigint sync_job_id FK
+        int batch_year
+    }
+    archive_file {
+        bigint id PK
+        bigint archive_batch_id FK
+        varchar blob_url
+    }
+    archive_set {
+        bigint id PK
+        bigint archive_batch_id FK
+        varchar set_name
+    }
+    archive_set_item {
+        bigint id PK
+        bigint archive_set_id FK
+        varchar blob_url
+    }
+    attachment_index {
+        bigint id PK
+        bigint system_id FK
+        varchar business_key
+        varchar sha256
+    }
+    query_config {
+        bigint id PK
+        bigint system_id FK
+        varchar name
+        varchar base_table
+    }
+    query_join {
+        bigint id PK
+        bigint query_config_id FK
+        varchar join_type
+    }
+    query_field {
+        bigint id PK
+        bigint query_config_id FK
+        tinyint is_pii
+    }
+    drill_config {
+        bigint id PK
+        bigint query_config_id FK
+        bigint schema_id FK
+    }
+    retention_policy {
+        bigint id PK
+        varchar policy_code UK
+        int period_days
+    }
+    retention_assignment {
+        bigint id PK
+        bigint policy_id FK
+        varchar object_type
+        date due_date
+    }
+    legal_hold_event {
+        bigint id PK
+        bigint assignment_id FK
+        varchar action "HOLD/RELEASE"
+    }
+    destroy_approval {
+        bigint id PK
+        bigint sync_job_id FK
+        bigint approver_id FK
+    }
+    notification {
+        bigint id PK
+        varchar recipient
+        varchar channel
+    }
+    audit_log {
+        bigint id PK
+        bigint user_id FK
+        varchar action
+    }
+    sync_activity {
+        bigint id PK
+        date activity_date
+        int success_count
+    }
