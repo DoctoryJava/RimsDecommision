@@ -832,24 +832,26 @@ def slide_enc(prs):
     # ================= 左：四层加密模型 + 密钥管理 =================
     col_head(sl, 0.22, 0.62, 4.30, '四层加密模型 + 密钥管理（L1 → L5）')
     layers = [
-        ('L1', AZ, L_BLUE, B_BLUE, '存储层 · 防磁盘 / 桶泄露',
+        ('L1', AZ, L_BLUE, B_BLUE, '存储层', '防磁盘 / 桶泄露',
          'ADLS 账户级 SSE（AES-256）+ Key Vault CMK；数据 / 元数据 / 附件一套密钥策略，可选基础设施双重加密'),
-        ('L2', GRN, L_GRN, B_GRN, '传输层 · 防链路窃听',
+        ('L2', GRN, L_GRN, B_GRN, '传输层', '防链路窃听',
          '全链路 TLS 1.2+：HTTPS 443 入口 · 私有端点私网 · JDBC / ODBC；流量不出 Azure 骨干网'),
-        ('L3', ROS, L_ROS, B_ROS, '字段层 · 防 DBA / 运维内鬼（合规核心）',
+        ('L3', ROS, L_ROS, B_ROS, '字段层', '防 DBA / 运维内鬼 ★ 合规核心',
          'aes_encrypt() 落盘即密文 + UC 列掩码查询遮蔽——两者必须组合；GCM 每次随机 IV'),
-        ('L4', PUR, L_PUR, B_PUR, '展示层 · 防越权查看',
+        ('L4', PUR, L_PUR, B_PUR, '展示层', '防越权查看',
          'UC COLUMN MASK / ROW FILTER 绑定基表，任何访问路径强制生效；B2 原生，Trino 读完全不可用'),
-        ('L5', AMB, L_AMB, B_AMB, '密钥层 · 防泄露无法止损',
+        ('L5', AMB, L_AMB, B_AMB, '密钥层', '防泄露无法止损',
          'Key Vault CMK 自动轮转；信封加密——轮主密钥只重包装 KEK、零数据重写；密文自带 key_version'),
     ]
     yy = 1.00
-    for tag, col, lf, bl, t, d in layers:
-        rect(sl, 0.22, yy, 4.30, 0.82, 'FFFFFF', bl, 1.2, 0.06)
-        rect(sl, 0.36, yy + 0.14, 0.50, 0.26, lf, bl, 1.0, 0.05)
-        txt(sl, 0.36, yy + 0.14, 0.50, 0.26, tag, sz=7.5, b=True, c=col, align='c', anchor='m', mono=True)
-        txt(sl, 0.98, yy + 0.09, 3.42, 0.15, t, sz=7.8, b=True, c=col if tag == 'L3' else INK)
-        txt(sl, 0.98, yy + 0.28, 3.42, 0.48, d, sz=5.9, c=MUT, leading=1.22)
+    for tag, col, lf, bl, name, threat, d in layers:
+        rect(sl, 0.22, yy, 4.30, 0.82, lf, bl, 1.6 if tag == 'L3' else 1.1, 0.06)
+        rect(sl, 0.36, yy + 0.13, 0.52, 0.28, 'FFFFFF', bl, 1.1, 0.05)
+        txt(sl, 0.36, yy + 0.13, 0.52, 0.28, tag, sz=7.5, b=True, c=col, align='c', anchor='m', mono=True)
+        txt(sl, 1.02, yy + 0.09, 3.40, 0.15,
+            [dict(runs=[(name, {'b': True, 'sz': 7.9, 'c': col if tag == 'L3' else INK}),
+                        (' · ' + threat, {'sz': 5.9, 'c': MUT})])])
+        txt(sl, 1.02, yy + 0.28, 3.38, 0.48, d, sz=5.9, c=SUB, leading=1.22)
         yy += 0.90
 
     # ================= 中：字段级加密 · 推荐路线四步 =================
@@ -864,12 +866,12 @@ def slide_enc(prs):
                                                ('（必须打在基表，不支持视图）', {'c': MUT, 'sz': 5.9})])),
     ]
     yy = 0.98
-    for tag, t, d in steps:
-        rect(sl, 4.66, yy, 4.50, 0.60, 'FFFFFF', B_GRN, 1.2, 0.06)
-        rect(sl, 4.78, yy + 0.11, 0.56, 0.22, L_GRN, B_GRN, 1.0, 0.04)
-        txt(sl, 4.78, yy + 0.11, 0.56, 0.22, tag, sz=5.8, b=True, c=GRND, align='c', anchor='m', mono=True)
-        txt(sl, 5.46, yy + 0.08, 3.6, 0.15, t, sz=7.6, b=True, c=INK)
-        txt(sl, 5.46, yy + 0.28, 3.60, 0.26, [d] if isinstance(d, dict) else [(d, {'c': MUT, 'sz': 5.9})],
+    for i, (tag, t, d) in enumerate(steps):
+        rect(sl, 4.66, yy, 4.50, 0.60, 'FFFFFF', B_GRN, 1.2, 0.06, shadow=True)
+        oval(sl, 4.78, yy + 0.15, 0.30, 0.30, 'FFFFFF', GRN, 1.6)
+        txt(sl, 4.78, yy + 0.15, 0.30, 0.30, str(i + 1), sz=8, b=True, c=GRND, align='c', anchor='m', mono=True)
+        txt(sl, 5.20, yy + 0.08, 3.86, 0.15, t, sz=7.6, b=True, c=INK)
+        txt(sl, 5.20, yy + 0.28, 3.86, 0.26, [d] if isinstance(d, dict) else [(d, {'c': MUT, 'sz': 5.9})],
             leading=1.2)
         if yy < 2.9:
             seg(sl, 6.90, yy + 0.61, 6.90, yy + 0.69, GRN, 1.4)
@@ -877,10 +879,11 @@ def slide_enc(prs):
     rect(sl, 4.66, 3.80, 4.50, 0.40, 'DCFCE7', B_GRN, 1.1, 0.06)
     txt(sl, 4.76, 3.80, 4.30, 0.40, '同一条 SQL：授权者见明文 · 其他人见 *** · 直读 Parquet 只见密文',
         sz=6.8, b=True, c=GRND, align='c', anchor='m')
-    txt(sl, 4.72, 4.28, 4.40, 0.30,
+    rect(sl, 4.66, 4.26, 4.50, 0.28, 'F8FAFC', BORDER, 1.0, 0.05)
+    txt(sl, 4.78, 4.26, 4.28, 0.28,
         [dict(runs=[('为何安全：', {'b': True, 'c': INK, 'sz': 5.9}),
                     ('掩码函数以定义者权限取密钥，分析师自己写 aes_decrypt 也拿不到 key',
-                     {'c': MUT, 'sz': 5.9})], ls=1.2)])
+                     {'c': MUT, 'sz': 5.9})])], anchor='m')
     rect(sl, 4.66, 4.62, 4.50, 0.80, 'FFF7ED', 'FDBA74', 1.1, 0.06)
     txt(sl, 4.78, 4.68, 4.3, 0.14, '三个必守约束', sz=7.2, b=True, c='B45309')
     txt(sl, 4.78, 4.86, 4.28, 0.52,
@@ -892,15 +895,15 @@ def slide_enc(prs):
     col_head(sl, 9.32, 0.62, 3.80, '密钥体系 · 合规与销毁')
     rect(sl, 9.32, 0.98, 3.80, 1.72, 'FFFFFF', AZ, 1.2, 0.06)
     chip(sl, 9.46, 1.08, 3.52, 0.34, 'Key Vault · CMK / KEK 主密钥', None, L_BLUE, B_BLUE, 1.1, 0.05,
-         tc=AZD, tsz=6.8)
+         tc=AZD, tsz=6.8, shadow=True)
     seg(sl, 11.22, 1.43, 11.22, 1.55, AZ, 1.3)
     txt(sl, 11.32, 1.42, 1.0, 0.12, '包装 / 解包', sz=5.4, c=AZ, b=True)
     chip(sl, 9.46, 1.56, 3.52, 0.34, 'DEK 数据密钥（带 key_version）', None, L_PUR, B_PUR, 1.1, 0.05,
-         tc=PURD, tsz=6.8)
+         tc=PURD, tsz=6.8, shadow=True)
     seg(sl, 11.22, 1.91, 11.22, 2.03, PUR, 1.3)
     txt(sl, 11.32, 1.90, 1.0, 0.12, '加密 / 解密', sz=5.4, c=PUR, b=True)
     chip(sl, 9.46, 2.04, 3.52, 0.34, 'Iceberg 密文 + UC 列掩码', None, L_GRN, B_GRN, 1.1, 0.05,
-         tc=GRND, tsz=6.8)
+         tc=GRND, tsz=6.8, shadow=True)
     txt(sl, 9.42, 2.44, 3.60, 0.22, '信封加密：轮转主密钥只重新包装 DEK，数据文件一个字节不动',
         sz=5.8, b=True, c=AZ, align='c')
     rect(sl, 9.32, 2.80, 3.80, 0.94, L_ROS, ROS, 1.2, 0.06, dash=MSO_LINE_DASH_STYLE.DASH)
@@ -924,16 +927,15 @@ def slide_enc(prs):
 
     # ================= 底部：三个结构性优势 + 结论 =================
     adv = [
-        ('① 授权强制力', AZ, '掩码 / 行过滤绑定引擎元数据，任何客户端绕不过；应用层脱敏绕过 API 即失效'),
-        ('② 轮转成本', GRN, '信封加密只重包装 KEK、零数据重写；应用层方案轮转需重刷数十 TB 存量'),
-        ('③ 实施成本', PUR, '约 2~3 人天（应用层方案 8~12 人天）· 加密字段仍可检索 · 审计平台原生'),
+        ('① 授权强制力', '059669', L_BLUE, B_BLUE, '掩码 / 行过滤绑定引擎元数据，任何客户端绕不过；应用层脱敏绕过 API 即失效'),
+        ('② 轮转成本', '059669', L_GRN, B_GRN, '信封加密只重包装 KEK、零数据重写；应用层方案轮转需重刷数十 TB 存量'),
+        ('③ 实施成本', '7C3AED', L_PUR, B_PUR, '约 2~3 人天（应用层方案 8~12 人天）· 加密字段仍可检索 · 审计平台原生'),
     ]
     xx = 0.22
-    for t, c, d in adv:
-        rect(sl, xx, 5.56, 4.20, 0.98, 'FFFFFF', BORDER, 1.2, 0.06, shadow=True)
-        rect(sl, xx, 5.62, 0.045, 0.86, c, rad=0.02)
-        txt(sl, xx + 0.16, 5.66, 3.9, 0.15, t, sz=7.8, b=True, c=c)
-        txt(sl, xx + 0.16, 5.87, 3.92, 0.58, d, sz=6.0, c=MUT, leading=1.25)
+    for t, chex, lf, bl, d in adv:
+        rect(sl, xx, 5.56, 4.20, 0.98, lf, bl, 1.2, 0.06, shadow=True)
+        txt(sl, xx + 0.16, 5.68, 3.9, 0.15, t, sz=7.8, b=True, c=chex)
+        txt(sl, xx + 0.16, 5.90, 3.92, 0.58, d, sz=6.0, c=SUB, leading=1.25)
         xx += 4.35
     rect(sl, 0.22, 6.68, 12.90, 0.52, L_PUR, B_PUR, 1.2, 0.07)
     txt(sl, 0.40, 6.68, 12.54, 0.52,
