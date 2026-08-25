@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三方案对比 · 四层应用架构</title>
+<style>
+:root{
+  --ink:#0f172a; --sub:#475569; --mut:#64748b; --faint:#94a3b8; --bd:#e2e8f0;
+  --a:#2563eb; --b:#059669; --b2:#7c3aed; --amber:#d97706; --ros:#e11d48;
+  --bg:#f8fafc;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--ink);line-height:1.65;padding:0 0 60px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+header{background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 55%,#5b21b6 100%);color:#fff;padding:44px 0 38px;margin-bottom:34px}
+header h1{font-size:1.9rem;font-weight:700;letter-spacing:.5px}
+header p{margin-top:10px;font-size:.92rem;color:#c7d2fe;max-width:860px}
+header .meta{margin-top:14px;font-size:.78rem;color:#93a4d8}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.72rem;font-weight:700;vertical-align:middle}
+h2.sec{font-size:1.28rem;font-weight:700;margin:44px 0 6px;display:flex;align-items:center;gap:10px}
+h2.sec .no{background:var(--ink);color:#fff;width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:.85rem}
+p.lead{color:var(--mut);font-size:.88rem;margin-bottom:18px}
+.card{background:#fff;border:1px solid var(--bd);border-radius:14px;padding:22px;box-shadow:0 6px 22px rgba(15,23,42,.06)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px}
+/* 方案速览卡 */
+.plan{position:relative;border-top:4px solid;border-radius:14px}
+.plan.a{border-color:var(--a)} .plan.b{border-color:var(--b)} .plan.b2{border-color:var(--b2)}
+.plan .tag{font-size:.72rem;font-weight:700;letter-spacing:.06em}
+.plan.a .tag{color:var(--a)} .plan.b .tag{color:var(--b)} .plan.b2 .tag{color:var(--b2)}
+.plan h3{font-size:1.05rem;margin:4px 0 2px}
+.plan .tco{font-size:1.55rem;font-weight:700;margin:8px 0 2px}
+.plan .tco small{font-size:.72rem;color:var(--faint);font-weight:400}
+.plan ul{list-style:none;margin-top:10px}
+.plan li{font-size:.82rem;color:var(--sub);padding:3px 0 3px 22px;position:relative}
+.plan li.good::before{content:'✔';position:absolute;left:0;color:var(--b);font-weight:700}
+.plan li.bad::before{content:'✘';position:absolute;left:0;color:var(--ros);font-weight:700}
+.plan .rec{position:absolute;top:14px;right:14px;background:#fdf3ff;color:var(--b2);border:1px solid #e9d5ff;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700}
+/* 表格 */
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th,td{padding:10px 12px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}
+th{background:#f1f5f9;font-size:.78rem;color:var(--sub);font-weight:700;white-space:nowrap}
+td.dim{color:var(--mut);font-size:.8rem}
+tr:hover td{background:#fafbff}
+.ca{color:var(--a);font-weight:700}.cb{color:var(--b);font-weight:700}.cb2{color:var(--b2);font-weight:700}
+.ok{color:#059669;font-weight:700}.no{color:#dc2626;font-weight:700}.mid{color:#d97706;font-weight:700}
+/* TCO 条形 */
+.tco-row{display:flex;align-items:center;gap:10px;margin:10px 0}
+.tco-row .name{width:230px;font-size:.84rem;color:var(--sub);text-align:right;flex-shrink:0}
+.tco-row .bar{height:26px;border-radius:6px;color:#fff;font-size:.78rem;font-weight:700;display:flex;align-items:center;padding:0 10px;min-width:60px}
+.tco-row .val{font-size:.84rem;font-weight:700;color:var(--ink)}
+/* Appsmith / Trino 对比 */
+.pc{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+.pc .col{padding:18px 20px}
+.pc .col+.col{border-left:1px dashed var(--bd)}
+.pc h4{font-size:.95rem;margin-bottom:10px}
+.pc ul{list-style:none}
+.pc li{font-size:.82rem;color:var(--sub);padding:4px 0 4px 20px;position:relative}
+.pc li::before{position:absolute;left:0;font-weight:700}
+.pc .pros li::before{content:'＋';color:#059669}
+.pc .cons li::before{content:'－';color:#dc2626}
+/* 四层架构 */
+.layer{display:flex;gap:14px;margin:0;align-items:stretch}
+.layer .side{width:168px;flex-shrink:0;border-radius:12px;padding:16px 14px;color:#fff;display:flex;flex-direction:column;justify-content:center}
+.layer .side h4{font-size:.98rem;font-weight:700}
+.layer .side .en{font-size:.7rem;opacity:.75;letter-spacing:.08em;margin-top:2px}
+.layer .side p{font-size:.74rem;opacity:.92;margin-top:8px}
+.layer .body{flex:1;background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-content:center}
+.comp{border:1px solid var(--bd);border-radius:10px;padding:10px 12px;background:#fbfdff}
+.comp b{display:block;font-size:.84rem;color:var(--ink)}
+.comp span{display:block;font-size:.72rem;color:var(--mut);margin-top:4px;line-height:1.5}
+.l1 .side{background:linear-gradient(135deg,#0891b2,#0e7490)} .l1 .comp{border-top:3px solid #0891b2}
+.l2 .side{background:linear-gradient(135deg,#059669,#047857)} .l2 .comp{border-top:3px solid #059669}
+.l3 .side{background:linear-gradient(135deg,#7c3aed,#6d28d9)} .l3 .comp{border-top:3px solid #7c3aed}
+.l4 .side{background:linear-gradient(135deg,#2563eb,#1d4ed8)} .l4 .comp{border-top:3px solid #2563eb}
+.flow{display:flex;justify-content:center;padding:4px 0}
+.flow .arr{width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:12px solid #cbd5e1}
+.flow .lbl{font-size:.72rem;color:var(--faint);margin-left:10px;align-self:center}
+.flow{display:flex;align-items:center}
+.note{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;font-size:.8rem;color:#92400e;margin-top:16px}
+.kv{font-size:.78rem;color:var(--mut);margin-top:14px;border-top:1px dashed var(--bd);padding-top:10px}
+@media (max-width:860px){.layer{flex-direction:column}.layer .side{width:100%}.pc{grid-template-columns:1fr}.pc .col+.col{border-left:none;border-top:1px dashed var(--bd)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>退役归档平台 · 三方案对比 与 四层应用架构</h1>
+    <p>方案 A：PG 合一群 + Appsmith 低代码　|　方案 B：湖仓一体 + 配置化平台（Trino 读）　|　方案 B2：湖仓一体 + Databricks 读写</p>
+    <div class="meta">口径：15 个归档系统 / 总存量 20 TB / 3 年周期 · Azure 列表价（$1 = ¥7.1） · 整理自 Architecture.html</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ================= 1. 三方案速览 ================= -->
+<h2 class="sec"><span class="no">1</span>三方案速览 · 3 年 TCO</h2>
+<p class="lead">同一批需求（15 系统 / 20 TB / 3 年）下的总拥有成本与能力对照。★ 报告推荐 B2。</p>
+
+<div class="card" style="margin-bottom:18px">
+  <div class="tco-row"><div class="name">A′ · PG + Appsmith 企业版(含SSO)</div><div class="bar" style="width:100%;background:linear-gradient(90deg,#93c5fd,#2563eb)">¥168 万</div></div>
+  <div class="tco-row"><div class="name">A · PG + Appsmith Business</div><div class="bar" style="width:72%;background:linear-gradient(90deg,#93c5fd,#3b82f6)">¥121 万</div></div>
+  <div class="tco-row"><div class="name">B · 湖仓 + Trino 读</div><div class="bar" style="width:72.6%;background:linear-gradient(90deg,#6ee7b7,#059669)">¥122 万</div></div>
+  <div class="tco-row"><div class="name">B2 · 湖仓 + Databricks 读写 ★</div><div class="bar" style="width:64.9%;background:linear-gradient(90deg,#c4b5fd,#7c3aed)">¥109 万</div></div>
+  <div class="kv">A 一旦需要企业 AD 单点登录须升级 Appsmith 企业版（$2,500/月保底），TCO 涨至 ¥168 万 —— 此时 B2 领先扩大到 ¥59 万。</div>
+</div>
+
+<div class="grid3">
+  <div class="card plan a">
+    <div class="tag">方案 A</div>
+    <h3>PG 合一群 + Appsmith 低代码</h3>
+    <div class="tco">¥121 万 <small>/ 3 年</small></div>
+    <ul>
+      <li class="good">交付最快：首期约 1 个月</li>
+      <li class="good">拖拽建页，实施门槛最低</li>
+      <li class="good">技术栈成熟，团队易接手</li>
+      <li class="bad">每系统 100 张表仅 10 张入库，90 张沦为"死数据"不可 SQL 查询</li>
+      <li class="bad">无跨系统联邦，监管抽查需人工还原</li>
+      <li class="bad">单库上限 32 TiB，规模天花板明显</li>
+    </ul>
+  </div>
+  <div class="card plan b">
+    <div class="tag">方案 B</div>
+    <h3>湖仓一体 + 配置化平台（Trino 读）</h3>
+    <div class="tco">¥122 万 <small>/ 3 年</small></div>
+    <ul>
+      <li class="good">引擎中立，不绑定单一厂商</li>
+      <li class="good">全量数据（100 张表）可查</li>
+      <li class="good">超大规模（&gt;120 TB）后成本相对更优</li>
+      <li class="bad">需自建并运维 Trino 集群</li>
+      <li class="bad">列级脱敏能力不可用（需明文/脱敏双份数据）</li>
+      <li class="bad">当前规模下比 B2 贵 ¥13 万</li>
+    </ul>
+  </div>
+  <div class="card plan b2">
+    <div class="tag">方案 B2</div>
+    <h3>湖仓一体 + Databricks 读写</h3>
+    <div class="tco" style="color:#7c3aed">¥109 万 <small>/ 3 年</small></div>
+    <span class="rec">★ 推荐</span>
+    <ul>
+      <li class="good">三方案中成本最低，能力全面胜出</li>
+      <li class="good">全量可查 + 跨系统联邦 + 统一审计溯源</li>
+      <li class="good">零集群运维，空闲自动停机</li>
+      <li class="good">新系统接入零代码，规模越大越省</li>
+      <li class="bad">首期约 2 个月建平台（比 A 慢 1 个月）</li>
+      <li class="bad">治理层绑定 Unity Catalog（数据仍为开放 Iceberg）</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ================= 2. 核心区别 ================= -->
+<h2 class="sec"><span class="no">2</span>三个方案的核心区别</h2>
+<p class="lead">一张表看清 A / B / B2 在八个维度上的差异。</p>
+<div class="card" style="overflow-x:auto">
+<table>
+  <tr><th style="width:13%">维度</th><th>A · PG + Appsmith</th><th>B · 湖仓 + Trino</th><th>B2 · 湖仓 + Databricks ★</th></tr>
+  <tr><td class="dim">前端</td><td>Appsmith 拖拽（每系统逐个建页）</td><td>自研配置化查询平台（元数据驱动，零代码接入）</td><td>同 B（B/B2 前端完全相同）</td></tr>
+  <tr><td class="dim">数据库/查询引擎</td><td>PostgreSQL 合库（查询算力含在实例内）</td><td>ADLS + Iceberg；Trino 自建集群读</td><td>ADLS + Iceberg；Databricks Serverless 读写</td></tr>
+  <tr><td class="dim">数据可查性</td><td><span class="no">10%</span>（10/100 张表），冷数据仅文件留存</td><td><span class="ok">100%</span> 全量 SQL 可查</td><td><span class="ok">100%</span> 全量 SQL 可查 + 跨系统联邦</td></tr>
+  <tr><td class="dim">权限模型</td><td>Appsmith RBAC 与 PG RLS 两套体系并行</td><td>rules.json 表级授权 + 查询代理鉴权</td><td>Unity Catalog：表/行/列级，GRANT 向下继承，任何访问路径强制生效</td></tr>
+  <tr><td class="dim">字段级加密/脱敏</td><td><span class="no">无 TDE</span>；应用层加密后字段不可检索、不可排序</td><td><span class="no">脱敏表不可读</span>，须维护明文+脱敏双份数据</td><td><span class="ok">原生列掩码</span>：一次配置全局生效，有权限见明文、无权限见掩码</td></tr>
+  <tr><td class="dim">密钥轮转</td><td><span class="no">成本高</span>：换密钥需重刷全部历史数据</td><td><span class="ok">信封加密</span>，只重包装密钥</td><td><span class="ok">同左</span></td></tr>
+  <tr><td class="dim">运维负担</td><td>PG + Blob + Appsmith（最轻但能力最弱）</td><td><span class="mid">最重</span>：+ Trino 集群部署/升级/HA/容量</td><td><span class="ok">零集群运维</span>，Serverless 空闲缩 0</td></tr>
+  <tr><td class="dim">审计举证</td><td><span class="mid">部分</span>：pgaudit 与应用日志需人工关联</td><td><span class="mid">需自建</span>审计组件</td><td><span class="ok">开箱即用</span>：谁·何时·查了什么，一条命令导出</td></tr>
+  <tr><td class="dim">3 年 TCO</td><td><span class="ca">¥121 万</span>（需 SSO 则 ¥168 万）</td><td><span class="cb">¥122 万</span></td><td><span class="cb2">¥109 万</span>（最低）</td></tr>
+</table>
+</div>
+
+<!-- 2.1 Appsmith -->
+<h2 class="sec"><span class="no">2.1</span>Appsmith 低代码：优点与缺点</h2>
+<p class="lead">方案 A 的前端选型 —— "快"是真的快，"省"未必真的省。</p>
+<div class="card">
+  <div class="pc">
+    <div class="col pros">
+      <h4 style="color:#059669">✔ 优点</h4>
+      <ul>
+        <li>拖拽建页、交付最快：首期约 1 个月即可上线</li>
+        <li>实施门槛最低：无需前端研发能力，业务人员亦可参与</li>
+        <li>技术栈成熟、社区活跃，团队易接手</li>
+        <li>自带用户/角色管理，简单场景下免开发</li>
+        <li>Business 档授权费低（已计入 TCO）</li>
+      </ul>
+    </div>
+    <div class="col cons">
+      <h4 style="color:#dc2626">✘ 缺点</h4>
+      <ul>
+        <li>逐系统建页：15 个系统逐个拖拽，<b>规模上并不省人天</b>（边际 8~12.9 人天/系统，高于配置化平台的 3.5~8）</li>
+        <li>若直连 Databricks：<b>UC 列掩码与统一审计双双失效</b>，合规兜不住</li>
+        <li>RBAC 与 PG RLS 两套权限体系并行维护，易"页面藏了但接口没拦"</li>
+        <li>SSO 需 Enterprise 版，$2,500/月保底，与数据量无关的刚性支出（TCO ¥121→¥168 万）</li>
+        <li>复杂查询/导出/下钻等定制需求仍要写 JS 片段，低代码逐渐变"低效代码"</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note">一句话：Appsmith 适合"少量系统 + 快速上线 + 无合规硬约束"的场景；15 系统规模 + 个人信息合规要求下，自研配置化平台（B/B2）一次研发、处处复用，长期更省。</div>
+</div>
+
+<!-- 2.2 Databricks vs Trino -->
+<h2 class="sec"><span class="no">2.2</span>查询引擎：Databricks Serverless vs 自建 Trino</h2>
+<p class="lead">B 与 B2 的唯一差异就在读侧引擎 —— 也是 B2 胜出的关键。</p>
+<div class="card" style="overflow-x:auto">
+<table>
+  <tr><th style="width:14%">维度</th><th>Trino（方案 B）</th><th>Databricks Serverless（方案 B2）★</th></tr>
+  <tr><td class="dim">运维</td><td>自建集群：部署 / 升级 / HA / 容量调优全自己来</td><td class="ok">零运维：托管运行，故障自动重建</td></tr>
+  <tr><td class="dim">付费模式</td><td>常驻小集群 —— <b>没人查也要付费</b>（≈¥0.4~0.6 万/月）</td><td class="ok">按秒计费 + 空闲自动缩 0，低频归档查询天然适配</td></tr>
+  <tr><td class="dim">并发突发</td><td>小集群排队，审计批量取证慢</td><td>自动横向扩缩，突发并发无感</td></tr>
+  <tr><td class="dim">权限/治理</td><td>rules.json 表级授权（三级显式配置）</td><td class="ok">Unity Catalog：表/行/列级 + 血缘 + 审计开箱即用</td></tr>
+  <tr><td class="dim">列级脱敏</td><td class="no">完全不可用：带掩码的表直接报错（fail closed），需维护双份数据</td><td class="ok">COLUMN MASK 原生生效，任何客户端绕不过</td></tr>
+  <tr><td class="dim">网络接入</td><td>VNet 注入（host + container 双子网）</td><td>NCC + 托管私有端点（需 Premium 层）</td></tr>
+  <tr><td class="dim">节点间加密</td><td class="mid">默认不加密，需显式配置 internal TLS（易踩坑）</td><td class="ok">平台内部链路默认加密</td></tr>
+  <tr><td class="dim">引擎中立</td><td class="ok">开放引擎，无厂商绑定</td><td class="mid">绑定 Databricks —— 但存储是开放 Iceberg，数据可随时迁走</td></tr>
+  <tr><td class="dim">月度成本(读侧)</td><td>≈¥0.5~0.9 万/月（含常驻）</td><td>≈¥0.5~0.9 万/月（Serverless 比 B 月省约 ¥0.3 万）</td></tr>
+</table>
+</div>
+
+<!-- 2.3 成本对比 -->
+<h2 class="sec"><span class="no">2.3</span>成本费用对比</h2>
+<p class="lead">湖仓的结构特征：存储极便宜、算力另付。A 的胜负手不是系统数，而是 PG 热数据是否进入 10~16 TB 安全区。</p>
+<div class="grid2">
+  <div class="card">
+    <h4 style="margin-bottom:10px">月度费用结构（万元/月）</h4>
+    <table>
+      <tr><th>费用项</th><th>A</th><th>B</th><th>B2</th></tr>
+      <tr><td>存储</td><td>PG 实例 + Blob 冷存<br><span class="dim">冷存 ¥40~90/TB·月</span></td><td class="cb">0.18~0.30<br><span class="dim">湖存 ¥90~150/TB·月（Hot/Cool 混合）</span></td><td class="cb2">0.18~0.30<br><span class="dim">同 B</span></td></tr>
+      <tr><td>查询算力</td><td class="dim">含在 PG 实例内（—）</td><td>另付 0.59~0.89<br><span class="dim">含 Trino 常驻</span></td><td>另付 0.59~0.89<br><span class="dim">Serverless 按秒，月省≈0.3</span></td></tr>
+      <tr><td>前端授权</td><td>Appsmith Business（SSO 需 $2,500/月保底）</td><td class="cb">无</td><td class="cb2">无</td></tr>
+      <tr><td>一次性建设</td><td class="dim">58 + (8~12.9)×N 人天</td><td class="dim">152 + (3.5~8)×N 人天</td><td class="dim">140 + (3.5~8)×N 人天</td></tr>
+    </table>
+    <div class="kv">存储单价（Azure 列表价）：Blob Hot ¥131 / Cool ¥73 / Cold ¥33 每 TB·月。B/B2 湖存需在线可查走 Hot/Cool 混合，故单价高于 A 的 Cool→Cold 冷存，但总量口径下存储费不到 A 的一半。</div>
+  </div>
+  <div class="card">
+    <h4 style="margin-bottom:10px">怎么读这些数字</h4>
+    <ul style="list-style:none">
+      <li style="padding:6px 0;font-size:.85rem;color:var(--sub)"><b style="color:var(--b2)">① 存算分离的红利：</b>B/B2 存储仅 ¥0.18~0.30 万/月（不到 A 的一半），20 TB 全量在线可查；A 为压成本只能把 90% 数据沉为不可查的冷文件。</li>
+      <li style="padding:6px 0;font-size:.85rem;color:var(--sub)"><b style="color:var(--b2)">② 算力按需 vs 常驻：</b>B/B2 读侧 ¥0.59~0.89 万/月按用量浮动；B2 空闲缩 0，比 B 再省约 ¥0.3 万/月。</li>
+      <li style="padding:6px 0;font-size:.85rem;color:var(--sub)"><b style="color:var(--b2)">③ 人天是一次性、月费是累加：</b>A 建设期人天最少，但每系统仍需 8~12.9 人天逐个建页；A vs B2 的建设人天交叉点在 N≈17 个系统 —— 15 系统规模已贴线，此后 B2 反超且越走越省。</li>
+      <li style="padding:6px 0;font-size:.85rem;color:var(--sub)"><b style="color:var(--b2)">④ A 的隐藏天花板：</b>PG 单实例 32 TiB 上限，扣除索引与膨胀安全区 15~20 TB；热数据进入 10~16 TB 后实例费陡增，超过即被迫拆库或转 B/B2。</li>
+    </ul>
+    <div class="note" style="margin-top:8px">3 年 TCO 口径：含建设人天折算 + 云资源 + 授权；不含跨区流量、备份溢价、企业折扣与专职人力运维。若计入自建 Trino 的运维人力，B 与 B2 差距进一步拉大。</div>
+  </div>
+</div>
+
+<!-- ================= 3. 四层架构 ================= -->
+<h2 class="sec"><span class="no">3</span>四层应用架构（宏观视图）</h2>
+<p class="lead">自上而下四层：用户看到什么（UI）、业务做什么（Service）、怎么读写数据（Data Access）、数据放在哪（Storage）。每个组件附一句话解释。</p>
+<div class="card" style="padding:24px">
+
+  <div class="layer l1">
+    <div class="side">
+      <h4>表现层</h4><div class="en">UI LAYER</div>
+      <p>用户唯一入口：元数据驱动的配置化前端，新系统接入零代码。</p>
+    </div>
+    <div class="body">
+      <div class="comp"><b>配置化查询平台（React）</b><span>按元数据动态渲染查询表单、结果表格与明细页，不逐系统开发页面</span></div>
+      <div class="comp"><b>附件预览 / 下载</b><span>后端签发 SAS 令牌后前端直连 Blob 流式取件，不占服务带宽</span></div>
+      <div class="comp"><b>报表与导出</b><span>查询结果导出 CSV/Excel，供审计与离线分析</span></div>
+      <div class="comp"><b>统一登录（Entra ID SSO）</b><span>OIDC 单点登录，角色决定可见系统与页面</span></div>
+    </div>
+  </div>
+  <div class="flow"><div class="arr"></div><div class="lbl">HTTPS 443 · REST/JSON · JWT</div></div>
+
+  <div class="layer l2">
+    <div class="side">
+      <h4>业务服务层</h4><div class="en">SERVICE LAYER</div>
+      <p>.NET 10 单体服务（AKS 容器化）：全部业务规则与调度在此收敛。</p>
+    </div>
+    <div class="body">
+      <div class="comp"><b>认证与权限服务</b><span>校验 JWT、按"用户→系统→表"元数据判定可访问范围（导航层闸门）</span></div>
+      <div class="comp"><b>元数据管理</b><span>系统台账、源库/表清单、勾选配置、保留期策略的增删改查</span></div>
+      <div class="comp"><b>查询代理</b><span>拼装并校验 SQL（表名白名单）、限流、超时控制、结果裁剪</span></div>
+      <div class="comp"><b>附件服务</b><span>附件索引检索、SAS 签发、SHA-256 台账核对</span></div>
+      <div class="comp"><b>生命周期 / 销毁调度</b><span>到期扫描、触发 Databricks 销毁作业、结果回写台账</span></div>
+      <div class="comp"><b>审计与通知</b><span>操作留痕上报 App Insights，到期/审批消息推送</span></div>
+    </div>
+  </div>
+  <div class="flow"><div class="arr"></div><div class="lbl">私有端点 · 托管标识免密</div></div>
+
+  <div class="layer l3">
+    <div class="side">
+      <h4>数据访问层</h4><div class="en">DATA ACCESS LAYER</div>
+      <p>数据"怎么进、怎么查、怎么治理"：编排、抽取、引擎与治理平面。</p>
+    </div>
+    <div class="body">
+      <div class="comp"><b>编排：Azure Data Factory</b><span>定时/事件触发抽取与销毁作业，薄触发层 + 失败重试</span></div>
+      <div class="comp"><b>抽取：SeaTunnel</b><span>200+ 连接器批量抽取源库选中表，写入 RAW 层</span></div>
+      <div class="comp"><b>计算：Databricks Serverless</b><span>Jobs 承担 ETL/压缩/销毁；SQL Warehouse 承担在线查询（空闲缩 0）</span></div>
+      <div class="comp"><b>治理：Unity Catalog</b><span>表/行/列授权、列掩码、血缘与审计 —— 真正的权限闸门</span></div>
+      <div class="comp"><b>凭据：Key Vault</b><span>源库连接串、DEK/KEK 密钥集中托管，应用免密访问</span></div>
+    </div>
+  </div>
+  <div class="flow"><div class="arr"></div><div class="lbl">ABFS · JDBC/ODBC · 私有端点</div></div>
+
+  <div class="layer l4">
+    <div class="side">
+      <h4>存储层</h4><div class="en">STORAGE LAYER</div>
+      <p>存算分离：对象存储承载全量归档，元数据库只存配置与权限。</p>
+    </div>
+    <div class="body">
+      <div class="comp"><b>ADLS Gen2 · Iceberg 湖</b><span>结构化归档数据，RAW→CURATED→LAKE→SERVE 四层，PB 级容量</span></div>
+      <div class="comp"><b>Blob · 附件账户</b><span>非结构化附件独立账户（FNS），Cool→Cold 自动降档，WORM 可选</span></div>
+      <div class="comp"><b>Azure SQL · 元数据库</b><span>系统台账、表清单、查询配置、保留策略、审计索引（35 张表）</span></div>
+      <div class="comp"><b>监控与日志</b><span>App Insights + Azure Monitor：指标、告警、审计流水留存</span></div>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:18px">读图要点：权限的"真闸门"在数据访问层（UC 授权/掩码），Service 层的校验是导航与体验层；业务数据永不进入元数据库，全部驻留存储层的湖仓。</div>
+</div>
+
+<div style="margin-top:34px;text-align:center;color:var(--faint);font-size:.75rem">
+  整理自 report/Architecture.html 与 docs/数据库ER图与全量表结构.md · 2026-08
+</div>
+
+</div>
+</body>
+</html>
