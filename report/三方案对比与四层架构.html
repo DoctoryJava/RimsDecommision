@@ -100,25 +100,27 @@ tr:hover td{background:#fafbff}
 <p class="lead">同一批需求（15 系统 / 20 TB / 3 年）下的总拥有成本与能力对照。★ 报告推荐 B2。</p>
 
 <div class="card" style="margin-bottom:18px">
-  <div class="tco-row"><div class="name">A′ · PG + Appsmith 企业版(含SSO)</div><div class="bar" style="width:100%;background:linear-gradient(90deg,#93c5fd,#2563eb)">¥168 万</div></div>
-  <div class="tco-row"><div class="name">A · PG + Appsmith Business</div><div class="bar" style="width:72%;background:linear-gradient(90deg,#93c5fd,#3b82f6)">¥121 万</div></div>
+  <div class="tco-row"><div class="name">A · PG + Appsmith 企业版（含 SSO）</div><div class="bar" style="width:100%;background:linear-gradient(90deg,#93c5fd,#2563eb)">¥168 万</div></div>
   <div class="tco-row"><div class="name">B · 湖仓 + Trino 读</div><div class="bar" style="width:72.6%;background:linear-gradient(90deg,#6ee7b7,#059669)">¥122 万</div></div>
   <div class="tco-row"><div class="name">B2 · 湖仓 + Databricks 读写 ★</div><div class="bar" style="width:64.9%;background:linear-gradient(90deg,#c4b5fd,#7c3aed)">¥109 万</div></div>
-  <div class="kv">A 一旦需要企业 AD 单点登录须升级 Appsmith 企业版（$2,500/月保底），TCO 涨至 ¥168 万 —— 此时 B2 领先扩大到 ¥59 万。</div>
+  <div class="kv">口径说明：企业 AD 单点登录为必选项，方案 A 直接按 Appsmith 企业版计（$2,500/月保底、与数据量无关的刚性支出）—— 含 SSO 后 A 达 ¥168 万，为三方案最贵，B2 对 A 的领先达 ¥59 万。</div>
 </div>
 
 <div class="grid3">
   <div class="card plan a">
     <div class="tag">方案 A</div>
     <h3>PG 合一群 + Appsmith 低代码</h3>
-    <div class="tco">¥121 万 <small>/ 3 年</small></div>
+    <div class="tco">¥168 万 <small>/ 3 年 · 含 SSO 企业版</small></div>
     <ul>
       <li class="good">交付最快：首期约 1 个月</li>
       <li class="good">拖拽建页，实施门槛最低</li>
       <li class="good">技术栈成熟，团队易接手</li>
+      <li class="bad">含 SSO 企业版授权后为三方案最贵，能力却最弱</li>
       <li class="bad">每系统 100 张表仅 10 张入库，90 张沦为"死数据"不可 SQL 查询</li>
       <li class="bad">无跨系统联邦，监管抽查需人工还原</li>
-      <li class="bad">单库上限 32 TiB，规模天花板明显</li>
+      <li class="bad">单库上限 32 TiB；热数据进入 10~16 TB 后实例费陡增</li>
+      <li class="bad">PG 索引维护成本大：大表索引重建 / 膨胀治理（VACUUM）持续吃实例资源与维护窗口</li>
+      <li class="bad">SQL 查询随数据量变慢：单实例无分布式算力，跨年检索 / 复杂聚合越查越慢，只能纵向加规格</li>
     </ul>
   </div>
   <div class="card plan b">
@@ -157,14 +159,15 @@ tr:hover td{background:#fafbff}
 <table>
   <tr><th style="width:13%">维度</th><th>A · PG + Appsmith</th><th>B · 湖仓 + Trino</th><th>B2 · 湖仓 + Databricks ★</th></tr>
   <tr><td class="dim">前端</td><td>Appsmith 拖拽（每系统逐个建页）</td><td>自研配置化查询平台（元数据驱动，零代码接入）</td><td>同 B（B/B2 前端完全相同）</td></tr>
-  <tr><td class="dim">数据库/查询引擎</td><td>PostgreSQL 合库（查询算力含在实例内）</td><td>ADLS + Iceberg；Trino 自建集群读</td><td>ADLS + Iceberg；Databricks Serverless 读写</td></tr>
+  <tr><td class="dim">数据库/查询引擎</td><td>PostgreSQL 合库（查询算力含在实例内；索引与膨胀治理另计维护成本）</td><td>ADLS + Iceberg；Trino 自建集群读</td><td>ADLS + Iceberg；Databricks Serverless 读写</td></tr>
   <tr><td class="dim">数据可查性</td><td><span class="no">10%</span>（10/100 张表），冷数据仅文件留存</td><td><span class="ok">100%</span> 全量 SQL 可查</td><td><span class="ok">100%</span> 全量 SQL 可查 + 跨系统联邦</td></tr>
   <tr><td class="dim">权限模型</td><td>Appsmith RBAC 与 PG RLS 两套体系并行</td><td>rules.json 表级授权 + 查询代理鉴权</td><td>Unity Catalog：表/行/列级，GRANT 向下继承，任何访问路径强制生效</td></tr>
   <tr><td class="dim">字段级加密/脱敏</td><td><span class="no">无 TDE</span>；应用层加密后字段不可检索、不可排序</td><td><span class="no">脱敏表不可读</span>，须维护明文+脱敏双份数据</td><td><span class="ok">原生列掩码</span>：一次配置全局生效，有权限见明文、无权限见掩码</td></tr>
   <tr><td class="dim">密钥轮转</td><td><span class="no">成本高</span>：换密钥需重刷全部历史数据</td><td><span class="ok">信封加密</span>，只重包装密钥</td><td><span class="ok">同左</span></td></tr>
-  <tr><td class="dim">运维负担</td><td>PG + Blob + Appsmith（最轻但能力最弱）</td><td><span class="mid">最重</span>：+ Trino 集群部署/升级/HA/容量</td><td><span class="ok">零集群运维</span>，Serverless 空闲缩 0</td></tr>
+  <tr><td class="dim">运维负担</td><td>PG + Blob + Appsmith，另扛索引重建 / VACUUM / 慢查询调优（最重）</td><td><span class="mid">最重</span>：+ Trino 集群部署/升级/HA/容量</td><td><span class="ok">零集群运维</span>，Serverless 空闲缩 0</td></tr>
   <tr><td class="dim">审计举证</td><td><span class="mid">部分</span>：pgaudit 与应用日志需人工关联</td><td><span class="mid">需自建</span>审计组件</td><td><span class="ok">开箱即用</span>：谁·何时·查了什么，一条命令导出</td></tr>
-  <tr><td class="dim">3 年 TCO</td><td><span class="ca">¥121 万</span>（需 SSO 则 ¥168 万）</td><td><span class="cb">¥122 万</span></td><td><span class="cb2">¥109 万</span>（最低）</td></tr>
+  <tr><td class="dim">查询性能与扩展</td><td><span class="no">单实例纵向扩展</span>：复杂分析查询随数据量增长显著变慢；索引重建 / VACUUM 维护重</td><td><span class="ok">MPP 分布式并行</span>，PB 级从容</td><td><span class="ok">弹性并行</span> + SERVE 物化加速，首屏 2~5 s</td></tr>
+  <tr><td class="dim">3 年 TCO</td><td><span class="ca">¥168 万</span>（含 SSO 企业版）</td><td><span class="cb">¥122 万</span></td><td><span class="cb2">¥109 万</span>（最低）</td></tr>
 </table>
 </div>
 
@@ -189,7 +192,7 @@ tr:hover td{background:#fafbff}
         <li>逐系统建页：15 个系统逐个拖拽，<b>规模上并不省人天</b>（边际 8~12.9 人天/系统，高于配置化平台的 3.5~8）</li>
         <li>若直连 Databricks：<b>UC 列掩码与统一审计双双失效</b>，合规兜不住</li>
         <li>RBAC 与 PG RLS 两套权限体系并行维护，易"页面藏了但接口没拦"</li>
-        <li>SSO 需 Enterprise 版，$2,500/月保底，与数据量无关的刚性支出（TCO ¥121→¥168 万）</li>
+        <li>SSO 需 Enterprise 版：$2,500/月保底、与数据量无关的刚性支出（A 方案必选，TCO 按 ¥168 万计）</li>
         <li>复杂查询/导出/下钻等定制需求仍要写 JS 片段，低代码逐渐变"低效代码"</li>
       </ul>
     </div>
@@ -225,7 +228,7 @@ tr:hover td{background:#fafbff}
       <tr><th>费用项</th><th>A</th><th>B</th><th>B2</th></tr>
       <tr><td>存储</td><td>PG 实例 + Blob 冷存<br><span class="dim">冷存 ¥40~90/TB·月</span></td><td class="cb">0.18~0.30<br><span class="dim">湖存 ¥90~150/TB·月（Hot/Cool 混合）</span></td><td class="cb2">0.18~0.30<br><span class="dim">同 B</span></td></tr>
       <tr><td>查询算力</td><td class="dim">含在 PG 实例内（—）</td><td>另付 0.59~0.89<br><span class="dim">含 Trino 常驻</span></td><td>另付 0.59~0.89<br><span class="dim">Serverless 按秒，月省≈0.3</span></td></tr>
-      <tr><td>前端授权</td><td>Appsmith Business（SSO 需 $2,500/月保底）</td><td class="cb">无</td><td class="cb2">无</td></tr>
+      <tr><td>前端授权</td><td>Appsmith Enterprise（SSO 必选，$2,500/月保底）</td><td class="cb">无</td><td class="cb2">无</td></tr>
       <tr><td>一次性建设</td><td class="dim">58 + (8~12.9)×N 人天</td><td class="dim">152 + (3.5~8)×N 人天</td><td class="dim">140 + (3.5~8)×N 人天</td></tr>
     </table>
     <div class="kv">存储单价（Azure 列表价）：Blob Hot ¥131 / Cool ¥73 / Cold ¥33 每 TB·月。B/B2 湖存需在线可查走 Hot/Cool 混合，故单价高于 A 的 Cool→Cold 冷存，但总量口径下存储费不到 A 的一半。</div>
@@ -237,6 +240,7 @@ tr:hover td{background:#fafbff}
       <li style="padding:6px 0;font-size:.85rem;color:var(--sub)"><b style="color:var(--b2)">② 算力按需 vs 常驻：</b>B/B2 读侧 ¥0.59~0.89 万/月按用量浮动；B2 空闲缩 0，比 B 再省约 ¥0.3 万/月。</li>
       <li style="padding:6px 0;font-size:.85rem;color:var(--sub)"><b style="color:var(--b2)">③ 人天是一次性、月费是累加：</b>A 建设期人天最少，但每系统仍需 8~12.9 人天逐个建页；A vs B2 的建设人天交叉点在 N≈17 个系统 —— 15 系统规模已贴线，此后 B2 反超且越走越省。</li>
       <li style="padding:6px 0;font-size:.85rem;color:var(--sub)"><b style="color:var(--b2)">④ A 的隐藏天花板：</b>PG 单实例 32 TiB 上限，扣除索引与膨胀安全区 15~20 TB；热数据进入 10~16 TB 后实例费陡增，超过即被迫拆库或转 B/B2。</li>
+      <li style="padding:6px 0;font-size:.85rem;color:var(--sub)"><b style="color:var(--b2)">⑤ PG 的持续成本不止实例费：</b>大表索引重建与 VACUUM 膨胀治理要占用生产资源与维护窗口；归档查询以扫描聚合为主，单实例无分布式算力，查询随数据量增长线性变慢 —— 纵向加规格是唯一出路，越加越贵。</li>
     </ul>
     <div class="note" style="margin-top:8px">3 年 TCO 口径：含建设人天折算 + 云资源 + 授权；不含跨区流量、备份溢价、企业折扣与专职人力运维。若计入自建 Trino 的运维人力，B 与 B2 差距进一步拉大。</div>
   </div>
