@@ -89,8 +89,7 @@ tr:hover td{background:#fafbff}
 <header>
   <div class="wrap">
     <h1>退役归档平台 · 三方案对比 与 四层应用架构</h1>
-    <p>方案 A：PG 合一群 + Appsmith 低代码　|　方案 B：湖仓一体 + 配置化平台（Trino 读）　|　方案 B2：湖仓一体 + Databricks 读写</p>
-    <div class="meta">整理自 Architecture.html · 基线：15 个归档系统 / 总存量 20 TB</div>
+    <p>方案 A：PG 合一群 + Appsmith 低代码　|　方案 B：湖仓一体 + Databricks写 + 配置化平台（Trino 读）　|　方案 B2：湖仓一体 + Databricks 读写</p>
   </div>
 </header>
 
@@ -98,7 +97,6 @@ tr:hover td{background:#fafbff}
 
 <!-- ================= 1. 三方案速览 ================= -->
 <h2 class="sec"><span class="no">1</span>三方案速览</h2>
-<p class="lead">同一批需求（15 系统 / 20 TB）下的能力与特征对照。★ 报告推荐 B2。</p>
 
 <div class="grid3">
   <div class="card plan a">
@@ -268,9 +266,6 @@ tr:hover td{background:#fafbff}
   <div class="note" style="margin-top:18px">读图要点：权限的"真闸门"在数据访问层（UC 授权/掩码），Service 层的校验是导航与体验层；业务数据永不进入元数据库，全部驻留存储层的湖仓。</div>
 </div>
 
-<div style="margin-top:34px;text-align:center;color:var(--faint);font-size:.75rem">
-  整理自 report/Architecture.html 与 docs/数据库ER图与全量表结构.md · 2026-08
-</div>
 
 </div>
 </body>
