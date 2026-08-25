@@ -121,6 +121,7 @@ tr:hover td{background:#fafbff}
       <li class="bad">单库上限 32 TiB；热数据进入 10~16 TB 后实例费陡增</li>
       <li class="bad">PG 索引维护成本大：大表索引重建 / 膨胀治理（VACUUM）持续吃实例资源与维护窗口</li>
       <li class="bad">SQL 查询随数据量变慢：单实例无分布式算力，跨年检索 / 复杂聚合越查越慢，只能纵向加规格</li>
+      <li class="bad">数据销毁无证明：PG DROP / TRUNCATE 无销毁痕迹，监管抽查无法出具"已合规销毁"证书</li>
     </ul>
   </div>
   <div class="card plan b">
@@ -134,6 +135,7 @@ tr:hover td{background:#fafbff}
       <li class="bad">需自建并运维 Trino 集群</li>
       <li class="bad">列级脱敏能力不可用（需明文/脱敏双份数据）</li>
       <li class="bad">当前规模下比 B2 贵 ¥13 万</li>
+      <li class="mid">销毁依赖 Iceberg tombstone 软删除，需自建流程出具销毁证明，WORM 需额外配置</li>
     </ul>
   </div>
   <div class="card plan b2">
@@ -148,13 +150,14 @@ tr:hover td{background:#fafbff}
       <li class="good">新系统接入零代码，规模越大越省</li>
       <li class="bad">首期约 2 个月建平台（比 A 慢 1 个月）</li>
       <li class="bad">治理层绑定 Unity Catalog（数据仍为开放 Iceberg）</li>
+      <li class="good">Databricks 销毁作业自动执行 + 台账回写，开箱即出具"已销毁"记录</li>
     </ul>
   </div>
 </div>
 
 <!-- ================= 2. 核心区别 ================= -->
 <h2 class="sec"><span class="no">2</span>三个方案的核心区别</h2>
-<p class="lead">一张表看清 A / B / B2 在八个维度上的差异。</p>
+<p class="lead">一张表看清 A / B / B2 在九个维度上的差异。</p>
 <div class="card" style="overflow-x:auto">
 <table>
   <tr><th style="width:13%">维度</th><th>A · PG + Appsmith</th><th>B · 湖仓 + Trino</th><th>B2 · 湖仓 + Databricks ★</th></tr>
@@ -167,6 +170,7 @@ tr:hover td{background:#fafbff}
   <tr><td class="dim">运维负担</td><td>PG + Blob + Appsmith，另扛索引重建 / VACUUM / 慢查询调优（最重）</td><td><span class="mid">最重</span>：+ Trino 集群部署/升级/HA/容量</td><td><span class="ok">零集群运维</span>，Serverless 空闲缩 0</td></tr>
   <tr><td class="dim">审计举证</td><td><span class="mid">部分</span>：pgaudit 与应用日志需人工关联</td><td><span class="mid">需自建</span>审计组件</td><td><span class="ok">开箱即用</span>：谁·何时·查了什么，一条命令导出</td></tr>
   <tr><td class="dim">查询性能与扩展</td><td><span class="no">单实例纵向扩展</span>：复杂分析查询随数据量增长显著变慢；索引重建 / VACUUM 维护重</td><td><span class="ok">MPP 分布式并行</span>，PB 级从容</td><td><span class="ok">弹性并行</span> + SERVE 物化加速，首屏 2~5 s</td></tr>
+  <tr><td class="dim">数据销毁合规性</td><td><span class="no">无证明</span>：PG DROP / TRUNCATE 无销毁痕迹，监管抽查无法出具"已合规销毁"证书</td><td><span class="mid">需自建</span>：Iceberg tombstone 软删除，需自建流程出具销毁证明，WORM 需额外配置</td><td><span class="ok">开箱即用</span>：Databricks 销毁作业自动执行 + 台账回写，Unity Catalog 审计追踪，一条命令导出销毁记录</td></tr>
   <tr><td class="dim">3 年 TCO</td><td><span class="ca">¥168 万</span>（含 SSO 企业版）</td><td><span class="cb">¥122 万</span></td><td><span class="cb2">¥109 万</span>（最低）</td></tr>
 </table>
 </div>
