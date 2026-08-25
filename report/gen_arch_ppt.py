@@ -978,51 +978,51 @@ ER_A = dict(
     title='元数据库 ER 图（上）· 平台 / 权限 / 数据源配置',
     note='18 表 · 仅关键字段 · 通用列已省略 · 源码：report/元数据库ER图.mmd',
     bands=[
-        ('① 权限与访问控制（RBAC）', 0.30, 0.62, 11.20, 'yellow'),
-        ('③ 源数据配置', 6.30, 2.26, 4.55, 'green'),
-        ('④ 目标存储 · 归档 Schema', 11.10, 2.26, 1.95, 'purple'),
-        ('② 退役系统管理（核心）', 2.90, 3.70, 2.90, 'blue'),
-        ('⑩ 通知 · ⑪ 审计与监控', 0.30, 6.10, 12.75, 'gray'),
+        ('① 权限与访问控制（RBAC）', 0.30, 0.70, 11.20, 'yellow'),
+        ('③ 源数据配置', 6.30, 2.10, 4.55, 'green'),
+        ('④ 目标存储 · 归档 Schema', 11.10, 2.10, 1.95, 'purple'),
+        ('② 退役系统管理（核心）', 2.90, 3.48, 2.90, 'blue'),
+        ('⑩ 通知 · ⑪ 审计与监控', 0.30, 5.82, 12.75, 'gray'),
     ],
     entities=[
-        ('user', 0.30, 1.00, 2.10, 1.22, [('bigint', 'id', 'PK'), ('varchar', 'username', 'UK'), ('varchar', 'password_hash', ''), ('varchar', 'real_name·email', ''), ('tinyint', 'status', ''), ('datetime', 'last_login_at', '')]),
-        ('user_role', 2.65, 1.30, 1.85, 0.62, [('bigint', 'user_id', 'FK'), ('bigint', 'role_id', 'FK')]),
-        ('role', 4.75, 1.00, 2.10, 0.92, [('bigint', 'id', 'PK'), ('varchar', 'role_code', 'UK'), ('varchar', 'role_name', ''), ('tinyint', 'is_builtin', '')]),
-        ('role_permission', 7.10, 1.30, 1.95, 0.62, [('bigint', 'role_id', 'FK'), ('bigint', 'permission_id', 'FK')]),
-        ('permission', 9.30, 1.00, 2.20, 0.92, [('bigint', 'id', 'PK'), ('varchar', 'permission_code', 'UK'), ('varchar', 'module', ''), ('varchar', 'resource_type', '')]),
-        ('page', 0.30, 2.50, 2.10, 0.92, [('bigint', 'id', 'PK'), ('varchar', 'page_code', 'UK'), ('varchar', 'path', ''), ('tinyint', 'enabled', '')]),
-        ('role_page', 2.65, 2.66, 1.85, 0.62, [('bigint', 'role_id', 'FK'), ('bigint', 'page_id', 'FK')]),
-        ('decommission_system', 2.90, 4.02, 2.90, 1.22, [('bigint', 'id', 'PK'), ('varchar', 'system_code', 'UK'), ('varchar', 'status', ''), ('int', 'retention_years', ''), ('date', 'sync_completed_date', ''), ('date', 'destroy_after_date', '')]),
-        ('system_user', 3.20, 5.40, 1.80, 0.62, [('bigint', 'system_id', 'FK'), ('bigint', 'user_id', 'FK')]),
-        ('source_database', 6.30, 2.58, 2.15, 1.07, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'db_type', ''), ('varchar', 'host:port', ''), ('varchar', 'credential_ref', '')]),
-        ('source_table', 8.70, 2.58, 2.15, 1.07, [('bigint', 'id', 'PK'), ('bigint', 'source_database_id', 'FK'), ('varchar', 'table_name', ''), ('varchar', 'primary_key', ''), ('tinyint', 'is_attachment', '')]),
-        ('unstructured_source', 6.30, 3.92, 2.15, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'source_type', ''), ('varchar', 'location_uri', '')]),
-        ('unstructured_item', 8.70, 3.92, 2.15, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'unstructured_source_id', 'FK'), ('varchar', 'original_path', ''), ('varchar', 'hash', '')]),
-        ('schema', 11.10, 2.58, 1.95, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'catalog_name', ''), ('varchar', 'schema_name', '')]),
-        ('storage_config', 11.10, 3.92, 1.95, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'storage_type', ''), ('varchar', 'container', '')]),
-        ('audit_log', 0.30, 6.42, 2.60, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'user_id', 'FK'), ('varchar', 'action·module', ''), ('varchar', 'ip·status', '')]),
-        ('sync_activity', 3.06, 6.42, 2.86, 0.92, [('bigint', 'id', 'PK'), ('date', 'activity_date', ''), ('int', '成功/失败/运行', ''), ('', 'sync_job 按天预聚合·派生', '')]),
-        ('notification', 6.08, 6.42, 2.60, 0.77, [('bigint', 'id', 'PK'), ('varchar', 'recipient', ''), ('varchar', 'channel', '')]),
+        ('user', 0.30, 1.10, 2.10, 1.20, [('bigint', 'id', 'PK'), ('varchar', 'username', 'UK'), ('varchar', 'password_hash', ''), ('varchar', 'real_name·email', ''), ('tinyint', 'status', ''), ('datetime', 'last_login_at', '')]),
+        ('user_role', 2.65, 1.30, 1.85, 0.70, [('bigint', 'user_id', 'FK'), ('bigint', 'role_id', 'FK')]),
+        ('role', 4.75, 1.10, 2.10, 0.90, [('bigint', 'id', 'PK'), ('varchar', 'role_code', 'UK'), ('varchar', 'role_name', ''), ('tinyint', 'is_builtin', '')]),
+        ('role_permission', 7.10, 1.30, 1.95, 0.70, [('bigint', 'role_id', 'FK'), ('bigint', 'permission_id', 'FK')]),
+        ('permission', 9.30, 1.10, 2.20, 0.90, [('bigint', 'id', 'PK'), ('varchar', 'permission_code', 'UK'), ('varchar', 'module', ''), ('varchar', 'resource_type', '')]),
+        ('page', 0.30, 2.38, 2.10, 0.90, [('bigint', 'id', 'PK'), ('varchar', 'page_code', 'UK'), ('varchar', 'path', ''), ('tinyint', 'enabled', '')]),
+        ('role_page', 2.65, 2.54, 1.85, 0.70, [('bigint', 'role_id', 'FK'), ('bigint', 'page_id', 'FK')]),
+        ('decommission_system', 2.90, 3.80, 2.90, 1.35, [('bigint', 'id', 'PK'), ('varchar', 'system_code', 'UK'), ('varchar', 'status', ''), ('int', 'retention_years', ''), ('date', 'sync_completed_date', ''), ('date', 'destroy_after_date', '')]),
+        ('system_user', 3.20, 5.28, 1.80, 0.70, [('bigint', 'system_id', 'FK'), ('bigint', 'user_id', 'FK')]),
+        ('source_database', 6.30, 2.42, 2.15, 1.15, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'db_type', ''), ('varchar', 'host:port', ''), ('varchar', 'credential_ref', '')]),
+        ('source_table', 8.70, 2.42, 2.15, 1.15, [('bigint', 'id', 'PK'), ('bigint', 'source_database_id', 'FK'), ('varchar', 'table_name', ''), ('varchar', 'primary_key', ''), ('tinyint', 'is_attachment', '')]),
+        ('unstructured_source', 6.30, 3.76, 2.15, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'source_type', ''), ('varchar', 'location_uri', '')]),
+        ('unstructured_item', 8.70, 3.76, 2.15, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'unstructured_source_id', 'FK'), ('varchar', 'original_path', ''), ('varchar', 'hash', '')]),
+        ('schema', 11.10, 2.42, 1.95, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'catalog_name', ''), ('varchar', 'schema_name', '')]),
+        ('storage_config', 11.10, 3.76, 1.95, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'storage_type', ''), ('varchar', 'container', '')]),
+        ('audit_log', 0.30, 6.20, 2.60, 0.78, [('bigint', 'id', 'PK'), ('bigint', 'user_id', 'FK'), ('varchar', 'action·module', ''), ('varchar', 'ip·status', '')]),
+        ('sync_activity', 3.06, 6.20, 2.86, 0.78, [('bigint', 'id', 'PK'), ('date', 'activity_date', ''), ('int', '成功/失败/运行', ''), ('', 'sync_job 按天预聚合·派生', '')]),
+        ('notification', 6.08, 6.20, 2.60, 0.62, [('bigint', 'id', 'PK'), ('varchar', 'recipient', ''), ('varchar', 'channel', '')]),
     ],
     edges=[
-        ([(2.40, 1.55), (2.65, 1.55)], None, False, 'yellow'),
-        ([(4.75, 1.55), (4.50, 1.55)], None, False, 'yellow'),
-        ([(6.85, 1.55), (7.10, 1.55)], None, False, 'yellow'),
-        ([(9.30, 1.55), (9.05, 1.55)], None, False, 'yellow'),
-        ([(2.40, 3.00), (2.65, 3.00)], None, False, 'yellow'),
-        ([(5.20, 1.92), (5.20, 2.30), (3.57, 2.30), (3.57, 2.66)], None, False, 'yellow'),
-        ([(2.40, 1.80), (2.55, 1.80), (2.55, 5.71), (3.20, 5.71)], None, False, 'blue'),
-        ([(4.35, 5.24), (4.35, 5.40)], None, False, 'blue'),
-        ([(5.80, 4.30), (6.05, 4.30), (6.05, 3.12), (6.30, 3.12)], None, False, 'green'),
-        ([(5.80, 4.38), (6.30, 4.38)], None, False, 'green'),
+        ([(2.40, 1.60), (2.65, 1.60)], None, False, 'yellow'),
+        ([(4.75, 1.60), (4.50, 1.60)], None, False, 'yellow'),
+        ([(6.85, 1.60), (7.10, 1.60)], None, False, 'yellow'),
+        ([(9.30, 1.60), (9.05, 1.60)], None, False, 'yellow'),
+        ([(2.40, 3.12), (2.65, 3.12)], None, False, 'yellow'),
+        ([(5.20, 1.96), (5.20, 2.38), (3.57, 2.38), (3.57, 2.66)], None, False, 'yellow'),
+        ([(2.40, 1.88), (2.55, 1.88), (2.55, 5.65), (3.20, 5.65)], None, False, 'blue'),
+        ([(4.35, 5.40), (4.35, 5.56)], None, False, 'blue'),
+        ([(5.80, 4.46), (6.05, 4.46), (6.05, 3.12), (6.30, 3.12)], None, False, 'green'),
+        ([(5.80, 4.54), (6.30, 4.54)], None, False, 'green'),
         ([(8.45, 3.12), (8.70, 3.12)], None, False, 'green'),
-        ([(8.45, 4.38), (8.70, 4.38)], None, False, 'green'),
-        ([(5.80, 4.14), (6.15, 4.14), (6.15, 3.78), (10.98, 3.78), (10.98, 3.28), (11.10, 3.28)], None, False, 'purple'),
-        ([(5.80, 4.90), (5.95, 4.90), (5.95, 5.08), (10.98, 5.08), (10.98, 4.38), (11.10, 4.38)], None, False, 'purple'),
-        ([(0.30, 6.88), (0.18, 6.88), (0.18, 1.80), (0.30, 1.80)], None, True, 'gray'),
+        ([(8.45, 4.54), (8.70, 4.54)], None, False, 'green'),
+        ([(5.80, 4.26), (6.15, 4.26), (6.15, 3.78), (10.98, 3.78), (10.98, 3.28), (11.10, 3.28)], None, False, 'purple'),
+        ([(5.80, 5.02), (5.95, 5.02), (5.95, 5.18), (10.98, 5.18), (10.98, 4.54), (11.10, 4.54)], None, False, 'purple'),
+        ([(0.30, 7.00), (0.18, 7.00), (0.18, 1.88), (0.30, 1.88)], None, True, 'gray'),
     ],
-    chip=(4.85, 2.95, 1.18, 0.52, 'sync_job / query_config\n子域见下页 →'),
-    chip2=(8.84, 6.42, 4.21, 0.80),
+    chip=(4.85, 2.80, 1.18, 0.52, 'sync_job / query_config\n子域见下页 →'),
+    chip2=(8.84, 6.26, 4.21, 0.58),
     extra=[('弱关联', 0.03, 3.55, 0.16, 0.62, True)],
 )
 
@@ -1031,75 +1031,75 @@ ER_B = dict(
     title='元数据库 ER 图（下）· 同步归档 / 动态查询 / 保留销毁',
     note='17 表 + 1 跨页引用（虚线†见上页）\n记号：[PK]/[FK]/[UK] · 连线 1—N 为一对多',
     bands=[
-        ('⑤ 同步与归档（含 ⑥ 附件索引）', 0.30, 0.62, 10.20, 'blue'),
-        ('⑧ 生命周期与保留 · ⑨ 销毁审批', 10.55, 0.62, 2.10, 'red'),
-        ('⑦ 动态查询', 0.30, 5.30, 10.20, 'yellow'),
+        ('⑤ 同步与归档（含 ⑥ 附件索引）', 0.30, 0.58, 10.20, 'blue'),
+        ('⑧ 生命周期与保留 · ⑨ 销毁审批', 10.55, 0.58, 2.10, 'red'),
+        ('⑦ 动态查询', 0.30, 5.10, 10.20, 'yellow'),
     ],
     entities=[
-        ('decommission_system†', 0.30, 0.98, 2.30, 0.62, [('bigint', 'id', 'PK'), ('varchar', 'system_code', 'UK')]),
-        ('sync_job', 3.30, 0.98, 2.40, 1.07, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('bigint', 'assignment_id', 'FK'), ('varchar', 'job_type', ''), ('varchar', 'status', '')]),
-        ('sync_job_config', 6.10, 0.98, 2.05, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'cron_expr', ''), ('tinyint', 'enabled', '')]),
-        ('retention_policy', 10.55, 0.98, 2.10, 0.92, [('bigint', 'id', 'PK'), ('varchar', 'policy_code', 'UK'), ('varchar', 'policy_name', ''), ('int', 'period_days', '')]),
-        ('sync_table_config', 0.30, 2.55, 2.15, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'source_table_id', 'FK'), ('tinyint', 'enabled', ''), ('int', 'retain_years', '')]),
-        ('attachment_index', 2.75, 2.55, 2.30, 1.07, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'table·business_key', ''), ('varchar', 'object_key', ''), ('varchar', 'sha256', '')]),
-        ('sync_table_stat', 5.20, 2.55, 2.15, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'sync_job_id', 'FK'), ('bigint', 'source_table_id', 'FK'), ('bigint', 'row_count', '')]),
-        ('archive_batch', 7.65, 2.55, 2.15, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'sync_job_id', 'FK'), ('int', 'batch_year', ''), ('bigint', 'rows_out', '')]),
-        ('retention_assignment', 10.55, 2.55, 2.10, 1.07, [('bigint', 'id', 'PK'), ('bigint', 'policy_id', 'FK'), ('varchar', 'object_type', ''), ('date', 'start·due_date', ''), ('varchar', 'status', '')]),
-        ('archive_set_item', 2.75, 4.05, 2.30, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'archive_set_id', 'FK'), ('varchar', 'original_name', ''), ('varchar', 'blob_url', '')]),
-        ('archive_set', 5.20, 4.05, 2.15, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'archive_batch_id', 'FK'), ('varchar', 'set_name', ''), ('int', 'items·bytes', '')]),
-        ('archive_file', 7.65, 4.05, 2.15, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'archive_batch_id', 'FK'), ('varchar', 'blob_url', ''), ('varchar', 'checksum', '')]),
-        ('legal_hold_event', 10.55, 4.05, 2.10, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'assignment_id', 'FK'), ('varchar', 'action', ''), ('varchar', 'reason', '')]),
-        ('query_config', 0.30, 5.62, 2.40, 1.07, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'name', ''), ('varchar', 'base_table', ''), ('varchar', 'status', '')]),
-        ('query_field', 3.30, 5.70, 2.15, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'query_config_id', 'FK'), ('varchar', 'column_name', ''), ('tinyint', 'is_pii', '')]),
-        ('query_join', 5.75, 5.70, 2.15, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'query_config_id', 'FK'), ('varchar', 'join_type', ''), ('varchar', 'left→right', '')]),
-        ('drill_config', 8.20, 5.70, 2.30, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'query_config_id', 'FK'), ('bigint', 'schema_id', 'FK'), ('varchar', 'parent→child', '')]),
-        ('destroy_approval', 10.55, 5.62, 2.10, 0.92, [('bigint', 'id', 'PK'), ('bigint', 'sync_job_id', 'FK'), ('bigint', 'approver_id', 'FK'), ('varchar', 'decision', '')]),
+        ('decommission_system†', 0.30, 0.96, 2.30, 0.70, [('bigint', 'id', 'PK'), ('varchar', 'system_code', 'UK')]),
+        ('sync_job', 3.30, 0.96, 2.40, 1.15, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('bigint', 'assignment_id', 'FK'), ('varchar', 'job_type', ''), ('varchar', 'status', '')]),
+        ('sync_job_config', 6.10, 0.96, 2.05, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'cron_expr', ''), ('tinyint', 'enabled', '')]),
+        ('retention_policy', 10.55, 0.96, 2.10, 1.00, [('bigint', 'id', 'PK'), ('varchar', 'policy_code', 'UK'), ('varchar', 'policy_name', ''), ('int', 'period_days', '')]),
+        ('sync_table_config', 0.30, 2.35, 2.15, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'source_table_id', 'FK'), ('tinyint', 'enabled', ''), ('int', 'retain_years', '')]),
+        ('attachment_index', 2.75, 2.35, 2.30, 1.15, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'table·business_key', ''), ('varchar', 'object_key', ''), ('varchar', 'sha256', '')]),
+        ('sync_table_stat', 5.20, 2.35, 2.15, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'sync_job_id', 'FK'), ('bigint', 'source_table_id', 'FK'), ('bigint', 'row_count', '')]),
+        ('archive_batch', 7.65, 2.35, 2.15, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'sync_job_id', 'FK'), ('int', 'batch_year', ''), ('bigint', 'rows_out', '')]),
+        ('retention_assignment', 10.55, 2.35, 2.10, 1.15, [('bigint', 'id', 'PK'), ('bigint', 'policy_id', 'FK'), ('varchar', 'object_type', ''), ('date', 'start·due_date', ''), ('varchar', 'status', '')]),
+        ('archive_set_item', 2.75, 3.85, 2.30, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'archive_set_id', 'FK'), ('varchar', 'original_name', ''), ('varchar', 'blob_url', '')]),
+        ('archive_set', 5.20, 3.85, 2.15, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'archive_batch_id', 'FK'), ('varchar', 'set_name', ''), ('int', 'items·bytes', '')]),
+        ('archive_file', 7.65, 3.85, 2.15, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'archive_batch_id', 'FK'), ('varchar', 'blob_url', ''), ('varchar', 'checksum', '')]),
+        ('legal_hold_event', 10.55, 3.85, 2.10, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'assignment_id', 'FK'), ('varchar', 'action', ''), ('varchar', 'reason', '')]),
+        ('query_config', 0.30, 5.46, 2.40, 1.15, [('bigint', 'id', 'PK'), ('bigint', 'system_id', 'FK'), ('varchar', 'name', ''), ('varchar', 'base_table', ''), ('varchar', 'status', '')]),
+        ('query_field', 3.30, 5.54, 2.15, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'query_config_id', 'FK'), ('varchar', 'column_name', ''), ('tinyint', 'is_pii', '')]),
+        ('query_join', 5.75, 5.54, 2.15, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'query_config_id', 'FK'), ('varchar', 'join_type', ''), ('varchar', 'left→right', '')]),
+        ('drill_config', 8.20, 5.54, 2.30, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'query_config_id', 'FK'), ('bigint', 'schema_id', 'FK'), ('varchar', 'parent→child', '')]),
+        ('destroy_approval', 10.55, 5.46, 2.10, 1.00, [('bigint', 'id', 'PK'), ('bigint', 'sync_job_id', 'FK'), ('bigint', 'approver_id', 'FK'), ('varchar', 'decision', '')]),
     ],
     edges=[
-        ([(2.60, 1.29), (3.30, 1.29)], None, False, 'blue'),
-        ([(1.45, 1.60), (1.45, 2.55)], None, False, 'blue'),
-        ([(2.60, 1.55), (2.90, 1.55), (2.90, 2.18), (6.60, 2.18), (6.60, 1.90)], None, False, 'blue'),
-        ([(2.60, 1.42), (2.67, 1.42), (2.67, 3.08), (2.75, 3.08)], None, False, 'green'),
-        ([(0.30, 1.30), (0.18, 1.30), (0.18, 6.15), (0.30, 6.15)], None, False, 'yellow'),
-        ([(5.45, 2.05), (5.45, 2.55)], None, False, 'blue'),
-        ([(5.70, 1.60), (5.90, 1.60), (5.90, 2.30), (8.72, 2.30), (8.72, 2.55)], None, False, 'blue'),
-        ([(10.55, 3.10), (10.30, 3.10), (10.30, 2.44), (5.65, 2.44), (5.65, 2.05)], None, False, 'red'),
-        ([(5.70, 1.14), (5.90, 1.14), (5.90, 0.92), (13.00, 0.92), (13.00, 6.15), (12.65, 6.15)], None, False, 'red'),
-        ([(8.72, 3.47), (8.72, 4.05)], None, False, 'blue'),
-        ([(7.80, 3.47), (7.80, 3.76), (6.27, 3.76), (6.27, 4.05)], None, False, 'blue'),
-        ([(5.20, 4.51), (5.05, 4.51)], None, False, 'blue'),
-        ([(11.60, 1.90), (11.60, 2.55)], None, False, 'red'),
-        ([(11.60, 3.62), (11.60, 4.05)], None, False, 'red'),
+        ([(2.60, 1.35), (3.30, 1.35)], None, False, 'blue'),
+        ([(1.45, 1.66), (1.45, 2.35)], None, False, 'blue'),
+        ([(2.60, 1.60), (2.90, 1.60), (2.90, 2.02), (6.60, 2.02), (6.60, 1.74)], None, False, 'blue'),
+        ([(2.60, 1.46), (2.67, 1.46), (2.67, 2.90), (2.75, 2.90)], None, False, 'green'),
+        ([(0.30, 1.30), (0.18, 1.30), (0.18, 6.02), (0.30, 6.02)], None, False, 'yellow'),
+        ([(5.45, 2.12), (5.45, 2.35)], None, False, 'blue'),
+        ([(5.70, 1.74), (5.90, 1.74), (5.90, 2.12), (8.72, 2.12), (8.72, 2.35)], None, False, 'blue'),
+        ([(10.55, 3.22), (10.30, 3.22), (10.30, 2.26), (5.65, 2.26), (5.65, 2.12)], None, False, 'red'),
+        ([(5.70, 1.22), (5.90, 1.22), (5.90, 0.96), (13.00, 0.96), (13.00, 6.02), (12.65, 6.02)], None, False, 'red'),
+        ([(8.72, 3.47), (8.72, 3.85)], None, False, 'blue'),
+        ([(7.80, 3.47), (7.80, 3.70), (6.27, 3.70), (6.27, 3.85)], None, False, 'blue'),
+        ([(5.20, 4.38), (5.05, 4.38)], None, False, 'blue'),
+        ([(11.60, 1.74), (11.60, 2.35)], None, False, 'red'),
+        ([(11.60, 3.47), (11.60, 3.85)], None, False, 'red'),
         ([(2.70, 6.15), (3.30, 6.15)], None, False, 'yellow'),
-        ([(1.37, 6.69), (1.37, 6.90), (6.82, 6.90), (6.82, 6.62)], None, False, 'yellow'),
-        ([(2.20, 6.69), (2.20, 7.10), (9.35, 7.10), (9.35, 6.62)], None, False, 'yellow'),
+        ([(1.37, 6.58), (1.37, 6.80), (6.82, 6.80), (6.82, 6.50)], None, False, 'yellow'),
+        ([(2.20, 6.58), (2.20, 6.98), (9.35, 6.98), (9.35, 6.50)], None, False, 'yellow'),
     ],
     chip=None,
-    extra=[('到期触发销毁', 10.33, 2.52, 0.18, 0.56, True)],
+    extra=[('到期触发销毁', 10.33, 2.32, 0.18, 0.56, True)],
 )
 
 def _er_card2(sl, name, x, y, w, h, rows):
     ghost = name.endswith('†')
     lf, bl, _ec = ER_MODC[ER_MOD[name]]
-    rect(sl, x, y, w, h, 'FFFFFF', bl, 1.2, 0.035,
+    rect(sl, x, y, w, h, 'FFFFFF', bl, 1.4, 0.04,
          dash=MSO_LINE_DASH_STYLE.DASH if ghost else None, shadow=not ghost)
-    rect(sl, x + 0.012, y + 0.012, w - 0.024, 0.235, 'F5F5F5' if ghost else lf, None, 0, 0.03)
-    txt(sl, x + 0.04, y + 0.035, w - 0.08, 0.19, name.replace('†', ''), sz=8.0, b=True,
+    rect(sl, x + 0.014, y + 0.014, w - 0.028, 0.26, 'F5F5F5' if ghost else lf, None, 0, 0.03)
+    txt(sl, x + 0.05, y + 0.045, w - 0.10, 0.22, name.replace('†', ''), sz=8.5, b=True,
         c='7A7A7A' if ghost else '222222', align='c', anchor='m')
-    rect(sl, x + 0.012, y + 0.26, w - 0.024, h - 0.28, 'FAFAFA', None, 0, 0.02)
+    rect(sl, x + 0.014, y + 0.285, w - 0.028, h - 0.30, 'FAFAFA', None, 0, 0.02)
     paras = []
     tagc = {'PK': 'D00000', 'FK': '0049C6', 'UK': 'B26A00'}
     for tp, fn, tag in rows:
         runs = []
         if tag:
-            runs.append((tag + '   ', {'sz': 6.2, 'b': True, 'c': tagc[tag]}))
+            runs.append((tag + '   ', {'sz': 6.4, 'b': True, 'c': tagc[tag]}))
         else:
-            runs.append(('     ', {'sz': 6.2, 'c': 'FAFAFA'}))
-        runs.append((fn, {'sz': 6.3, 'c': '222222'}))
+            runs.append(('     ', {'sz': 6.4, 'c': 'FAFAFA'}))
+        runs.append((fn, {'sz': 6.5, 'c': '222222'}))
         if tp:
-            runs.append((' (' + tp + ')', {'sz': 5.9, 'c': '7A7A7A'}))
-        paras.append(dict(runs=runs, ls=1.0))
-    txt(sl, x + 0.10, y + 0.285, w - 0.16, h - 0.30, paras, leading=1.0)
+            runs.append((' (' + tp + ')', {'sz': 6.0, 'c': '7A7A7A'}))
+        paras.append(dict(runs=runs, ls=1.08))
+    txt(sl, x + 0.12, y + 0.310, w - 0.20, h - 0.34, paras, leading=1.08)
 
 def _er_edge2(sl, pts, color, lw=1.4):
     poly(sl, pts, color, lw, None)
@@ -1123,8 +1123,8 @@ def _er_slide2(prs, D, accent):
     title_bar(sl, D['title'], D['note'], accent)
     for label, bx, by, bw, bmod in D['bands']:
         lf, bl, _ec = ER_MODC[bmod]
-        rect(sl, bx, by, bw, 0.26, lf, bl, 1.0, 0.06)
-        txt(sl, bx + 0.10, by, bw - 0.20, 0.26, label, sz=8.5, b=True, c='333333', anchor='m')
+        rect(sl, bx, by, bw, 0.38, lf, bl, 1.0, 0.06)
+        txt(sl, bx + 0.12, by, bw - 0.24, 0.38, label, sz=9.5, b=True, c='333333', anchor='m')
     for ent in D['entities']:
         _er_card2(sl, *ent)
     for pts, label, dashed, mod in D['edges']:
@@ -1141,26 +1141,62 @@ def _er_slide2(prs, D, accent):
     if D.get('chip2'):
         cx, cy, cw, chh = D['chip2']
         rect(sl, cx, cy, cw, chh, 'FFFFFF', 'A8A8A8', 1.0, 0.05, dash=MSO_LINE_DASH_STYLE.DASH)
-        txt(sl, cx + 0.12, cy + 0.06, cw - 0.24, chh - 0.10,
-            [dict(runs=[('跨页关联（详见卡内 FK 字段）：', {'sz': 5.8, 'b': True, 'c': SLA})], ls=1.25),
-             dict(runs=[('source_table → sync_table_config · sync_table_stat · archive_file', {'sz': 5.6, 'c': MUT})], ls=1.25),
-             dict(runs=[('schema → drill_config　·　user → destroy_approval', {'sz': 5.6, 'c': MUT})], ls=1.25),
-             dict(runs=[('sync_job ⇢ sync_activity（按天预聚合，派生表无 FK）', {'sz': 5.6, 'c': MUT})], ls=1.25)])
+        txt(sl, cx + 0.14, cy + 0.06, cw - 0.28, chh - 0.10,
+            [dict(runs=[('跨页关联（详见卡内 FK）：', {'sz': 6.0, 'b': True, 'c': SLA})], ls=1.2),
+             dict(runs=[('source_table → sync_table_config / sync_table_stat / archive_file', {'sz': 5.8, 'c': MUT})], ls=1.2),
+             dict(runs=[('sync_job ⇢ sync_activity（按天预聚合，派生表无 FK）', {'sz': 5.8, 'c': MUT})], ls=1.2)])
     for ex in D.get('extra') or []:
         t, exx, exy, exw, exh, vert = ex
-        txt(sl, exx, exy, exw, exh, t, sz=5.6, b=True, c=MUT if t == '弱关联' else ROS,
+        txt(sl, exx, exy, exw, exh, t, sz=5.8, b=True, c=MUT if t == '弱关联' else ROS,
             align='c', anchor='m', vert=vert)
     if D.get('chip'):
         cx, cy, cw, chh, ct = D['chip']
         rect(sl, cx, cy, cw, chh, 'FFFFFF', 'B6AEE8', 1.0, 0.05, dash=MSO_LINE_DASH_STYLE.DASH)
-        txt(sl, cx + 0.03, cy, cw - 0.06, chh, ct, sz=5.8, b=True, c=MUT, align='c', anchor='m', leading=1.25)
+        txt(sl, cx + 0.03, cy, cw - 0.06, chh, ct, sz=6.0, b=True, c=MUT, align='c', anchor='m', leading=1.25)
+    # 底部图例
+    _er_legend(sl, D['bands'])
+
+def _er_band_bottom(D):
+    """返回本 slide 内容区（非图例）的最低内容底部 y，用于定位图例。
+    图例放在最低内容的底部下方，留 0.14" 间距。"""
+    y = 0.70  # 内容区顶部基准
+    for _, bx, by, bw, _ in D.get('bands', []):
+        y = max(y, by + 0.38)  # 色带底部
+    for ent in D.get('entities', []):
+        ey = ent[3] + ent[4]  # y + h（底部边缘）
+        y = max(y, ey)
+    return y + 0.14  # 内容底部 + 0.14" 间距
+
+def _er_legend(sl, bands):
+    """页底图例：模块色块 + 连线标注，固定在幻灯片底部，避免与内容重叠。"""
+    legend_y = 7.18  # 固定位置，紧贴幻灯片底部（7.5 - 0.32 = 7.18）
+    rect(sl, 0.22, legend_y, 12.90, 0.32, 'F8FAFC', BORDER, 0.8, 0.04)
+    txt(sl, 0.30, legend_y, 1.4, 0.32, '图例', sz=7.5, b=True, c=INK, anchor='m')
+    # 模块色块
+    xx = 0.80
+    used = set()
+    for label, bx, by, bw, bmod in bands:
+        if bmod in used:
+            continue
+        used.add(bmod)
+        lf, bl, ec = ER_MODC[bmod]
+        oval(sl, xx, legend_y + 0.09, 0.14, 0.14, ec)
+        txt(sl, xx + 0.20, legend_y, bw * 0.28, 0.32, label, sz=6.4, c=MUT, anchor='m')
+        xx += bw * 0.28 + 0.18
+    # 连线说明
+    txt(sl, 10.05, legend_y, 3.0, 0.32,
+        [dict(runs=[('1—N 连线：母端 1 / 子端 N　', {'c': SUB, 'sz': 6.2})], ls=1.15),
+         dict(runs=[('（虚线卡=跨页引用）', {'c': FAINT, 'sz': 6.2})], ls=1.15)],
+        align='r', anchor='m')
 
 def slide_er(prs):
     _er_slide2(prs, ER_A, SLA)       # 第 6 页 · 上篇
     _er_slide2(prs, ER_B, PURD)      # 第 7 页 · 下篇
 
 def emit_er_html(path):
-    mmd = open('/home/user/RimsDecommision/report/元数据库ER图.mmd', encoding='utf-8').read()
+    import os
+    mmd_path = os.path.join(os.path.dirname(__file__), '元数据库ER图.mmd')
+    mmd = open(mmd_path, encoding='utf-8').read()
     html = ('<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">'
             '<title>元数据库 ER 图 · 35 张表 / 11 模块</title>'
             '<style>body{margin:0;padding:28px;background:#f8fafc;font-family:\'Segoe UI\',\'PingFang SC\',\'Microsoft YaHei\',sans-serif;display:flex;flex-direction:column;align-items:center}'
@@ -1188,11 +1224,13 @@ def build(path):
     slide_lake(prs)
     slide_enc(prs)
     slide_er(prs)
-    prs.save(path)
-    emit_er_html('/home/user/RimsDecommision/report/元数据库ER图.html')
+    import os as _os
+    _report_dir = _os.path.dirname(__file__)
+    prs.save(_os.path.join(_report_dir, '方案B_B2_架构图集.pptx'))
+    emit_er_html(_os.path.join(_report_dir, '元数据库ER图.html'))
     with open('/tmp/arch_ops.json', 'w', encoding='utf-8') as f:
         json.dump(OPS, f, ensure_ascii=False)
-    print('saved', path, '| shapes ops:', len(OPS))
+    print('saved 方案B_B2_架构图集.pptx | shapes ops:', len(OPS))
 
 if __name__ == '__main__':
-    build('/home/user/RimsDecommision/report/方案B_B2_架构图集.pptx')
+    build('.')
