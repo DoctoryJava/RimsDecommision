@@ -194,7 +194,7 @@ tr:hover td{background:#fafbff}
   <tr><td class="dim">并发突发</td><td>小集群排队，审计批量取证慢</td><td>自动横向扩缩，突发并发无感</td></tr>
   <tr><td class="dim">权限/治理</td><td>rules.json 表级授权（三级显式配置）</td><td class="ok">Unity Catalog：表/行/列级 + 血缘 + 审计开箱即用</td></tr>
   <tr><td class="dim">列级脱敏</td><td class="no">完全不可用：带掩码的表直接报错（fail closed），需维护双份数据</td><td class="ok">COLUMN MASK 原生生效，任何客户端绕不过</td></tr>
-  <tr><td class="dim">网络接入</td><td>VNet 注入（host + container 双子网）</td><td>NCC + 托管私有端点（需 Premium 层）</td></tr>
+  <tr><td class="dim">网络接入</td><td>VNet 注入（host + container 双子网）</td><td>NCC + 托管私有端点（新建工作区默认即 Premium 档）</td></tr>
   <tr><td class="dim">节点间加密</td><td class="mid">默认不加密，需显式配置 internal TLS（易踩坑）</td><td class="ok">平台内部链路默认加密</td></tr>
   <tr><td class="dim">引擎中立</td><td class="ok">开放引擎，无厂商绑定</td><td class="mid">绑定 Databricks —— 但存储是开放 Iceberg，数据可随时迁走</td></tr>
 </table>

@@ -365,7 +365,7 @@ def slide_azure(prs):
             txt(sl, 10.80, yy, 2.12, 0.15, s, sz=6.2, c=GRN if (strong and f == 'ECFDF5') else MUT,
                 b=strong, align='c')
             yy += 0.175
-    txt(sl, 10.74, 4.34, 2.24, 0.26, 'Premium 层特性 · NCC 需 Account Admin 配置', sz=6.0, c=PUR,
+    txt(sl, 10.74, 4.34, 2.24, 0.26, 'Premium 档（新建唯一档）· NCC 需 Account Admin', sz=6.0, c=PUR,
         b=True, align='c', anchor='m')
 
     # ---- Azure VNet ----
@@ -482,7 +482,7 @@ def slide_azure(prs):
     pts_r = [
         '元数据与销毁策略存 SQL DB S2 · 审计进 App Insights · 密钥由 Key Vault 托管',
         '相比方案 B：省去 Trino 集群与双子网注入，查询层完全托管、零集群运维',
-        '需 Databricks Premium 层（PE / NCC 均为 Premium 特性）；NCC 需 Account Admin',
+        '新建工作区仅 Premium 档可选（Azure 现行政策），UC / PE / NCC 默认可用；NCC 需 Account Admin',
     ]
     for i, s in enumerate(pts_l):
         txt(sl, 0.36, 6.65 + i * 0.155, 4.55, 0.15,
@@ -602,7 +602,7 @@ def slide_app(prs):
     rect(sl, 8.64, 6.24, 4.22, 0.40, 'FFF7ED', 'FDBA74', 1.0, 0.06)
     txt(sl, 8.82, 6.24, 3.86, 0.40,
         [dict(runs=[('B2 读侧：', {'b': True, 'c': 'B45309', 'sz': 6.8}),
-                    ('Databricks SQL Serverless 完全托管 · 空闲缩 0；代价是引擎绑定 + 需 Premium 层（NCC / PE）',
+                    ('Databricks SQL Serverless 完全托管 · 空闲缩 0；代价是引擎绑定（数据仍为开放 Iceberg 可迁移）',
                      {'c': AMBD, 'sz': 6.8})])], anchor='m')
     # legend
     leg = [('自研应用组件（AKS）', CYN), ('写侧数据链路', GRN), ('读侧查询链路', PUR),
@@ -816,7 +816,7 @@ def slide_lake(prs):
     rect(sl, 8.75, 5.86, 4.36, 0.86, 'FFF7ED', 'FDBA74', 1.1, 0.07)
     txt(sl, 8.89, 5.94, 4.1, 0.15, 'B2 的取舍', sz=8.0, b=True, c='B45309')
     txt(sl, 8.89, 6.12, 4.12, 0.52,
-        [dict(runs=[('读侧完全托管、UC 治理原生；代价是计算引擎绑定 Databricks（数据仍为开放 Iceberg，随时可换引擎），且 Serverless / NCC 需 Premium 层。',
+        [dict(runs=[('读侧完全托管、UC 治理原生；代价是计算引擎绑定 Databricks（数据仍为开放 Iceberg，随时可换引擎）。Premium 为新建工作区唯一档（Azure 现行政策）。',
                      {'c': AMBD, 'sz': 6.1})], ls=1.25)])
 
 
