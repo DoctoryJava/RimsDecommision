@@ -75,5 +75,6 @@ cd backend && mvn flyway:info  # if DB touched
 - API surface: `CLAUDE.md §API` + SpringDoc (`/swagger-ui`), `docs/api/` if present.
 - Phase plans & task CSVs: `docs/PHASE*_TASK_PLAN.md`, `docs/phase*_tasks.csv` (26/63/24 items), `task.csv`.
 - Copilot short rules: `.github/copilot-instructions.md`.
+- MySQL→SQL Server migration notes (dialect map, gotchas, local docker setup): `docs/SQLSERVER_MIGRATION.md`.
 
 > Keep this file **<120 lines**. If Claude still makes a mistake without a rule, add it; otherwise prune. For task-specific deep guides, create `docs/agent-guides/*.md` and reference its path here.
