@@ -2,6 +2,10 @@ server:
   port: 8088
   servlet:
     context-path: /
+  # Tomcat 默认请求头上限 8KB。本地开发时 localhost 上其他项目写入的 Cookie 会被
+  # 一并发到本服务（Cookie 不按端口隔离，见 RFC 6265），容易顶破 8KB 导致
+  # "Request header is too large"。放宽到 32KB。
+  max-http-request-header-size: 32KB
 
 spring:
   datasource:
