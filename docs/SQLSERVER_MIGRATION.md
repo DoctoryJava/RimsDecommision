@@ -93,20 +93,50 @@ url: jdbc:h2:mem:rims_test;MODE=MSSQLServer;DATABASE_TO_LOWER=TRUE
 1. H2 没有 `NVARCHAR(MAX)`，测试里用 `NVARCHAR(4000)`（最长种子数据 200 字符，够用）；
 2. 用 `CREATE TABLE IF NOT EXISTS` 保证重复初始化幂等（T-SQL 无此语法）。
 
+### ⚠️ 为什么测试不能直接跑生产迁移脚本
+
+H2 的 `MODE=MSSQLServer` 只是**部分**模拟 T-SQL。以下三种写法是**合法 T-SQL**
+（已对照 MS Learn `ALTER TABLE` / `CREATE TABLE` 语法定义），但 H2 **解析失败**，
+因此测试改用手写的 `schema.sql`，而不是直接执行 `db/migration/sqlserver/*.sql`：
+
+| 写法 | 生产 SQL Server | H2 MSSQLServer 模式 |
+|------|-----------------|---------------------|
+| `a INT NOT NULL CONSTRAINT df_x DEFAULT 1`（具名默认值约束） | ✅ | ❌ 解析失败 |
+| `ALTER TABLE t ADD b INT NULL, c INT NULL`（单语句多列） | ✅ | ❌ 解析失败（需拆成多条） |
+| `DEFAULT SYSDATETIME()` | ✅ | ❌ 不识别（H2 用 `CURRENT_TIMESTAMP`） |
+| `NVARCHAR(MAX)` | ✅ | ✅（但测试里仍用 `NVARCHAR(4000)`） |
+| 不加引号的 `rows` / `columns` 列名 | ✅ | ✅ 实测通过 |
+
+以上结论均为**实机验证**（H2 2.2.224 + JDK 25，逐条 DDL 隔离测试），不是推断。
+
 ### 已知注意点
 
 - `r_physical_table` 有 `[rows]` / `[columns]` 两列。`ROWS` 在 H2 与 SQL Server 中都属于
-  **保留字 / 上下文相关关键字**，DDL 里已用方括号包裹。MyBatis-Plus 生成 DML 时不加引号，
-  实测语境（`SELECT` 列表、`INSERT` 列清单）下两者均可解析；若后续升级 H2/驱动后出现
-  `Syntax error`，可在实体上改用 `@TableField("[rows]")` 或给数据源加
-  `SET NON_KEYWORDS ROWS`。
+  **保留字 / 上下文相关关键字**，DDL 里已用方括号包裹。MyBatis-Plus 生成 DML 时不加引号——
+  已在 H2 上实测 `SELECT id, name, columns, rows FROM r_physical_table` 可正常执行。
+  若后续升级 H2/驱动后出现 `Syntax error`，可在实体上改用 `@TableField("[rows]")`
+  或给数据源加 `SET NON_KEYWORDS ROWS`。
 
 ---
 
 ## 6. 本次迁移的验证方式与局限
 
-沙箱内无 `java` / `mvn` / `docker`，且 Maven 中央仓库不可达，**未能执行 `mvn test` 或真实 Flyway 迁移**。
-已完成的验证：
+沙箱内无 `mvn` / `docker`，Maven 中央仓库不可达，因此**未运行完整的 `mvn test`
+（Spring 上下文 + MyBatis-Plus 拦截器），也未在真实 SQL Server 上跑过 Flyway**。
+
+但通过 JDK 25 + H2 2.2.224（jar 经 SHA-256 校验，与官方发布件一致）已完成**实机执行**验证：
+
+| 验证项 | 方式 | 结果 |
+|--------|------|------|
+| `schema.sql` 在 `MODE=MSSQLServer` 下建表 | H2 RunScript 实跑 | ✅ 无错误，23 张表 |
+| `data.sql` 种子数据导入 | H2 RunScript 实跑 | ✅ 无错误 |
+| 测试断言依赖的行数 | `SELECT COUNT(*)` | ✅ 系统 6 / 用户 8 / 角色 7 / 活跃度 7 / 查询配置 2 |
+| 中文 `N'...'` 字面量往返 | 库内 `=` 比较 | ✅ 未乱码 |
+| 不加引号的 `rows` / `columns` | 实跑 SELECT | ✅ 通过 |
+| `OFFSET/FETCH` 分页（对应 `DbType.SQL_SERVER`） | 实跑 | ✅ page(1,2) 返回 sys-001/sys-002，total=6 |
+| 两处 `.last("OFFSET 0 ROWS FETCH NEXT n ROWS ONLY")` | 实跑 | ✅ 分别返回 7 行 / 1 行 |
+
+静态验证：
 
 - `sqlglot`（`read='tsql'`）解析全部 18 个迁移脚本 + 测试 schema/data：**0 失败**；
 - 与 MySQL 原脚本做结构化比对（43 张表 / 62 个索引约束 / 183 行种子数据）：**0 差异**；
@@ -114,4 +144,5 @@ url: jdbc:h2:mem:rims_test;MODE=MSSQLServer;DATABASE_TO_LOWER=TRUE
 - 种子数据列数与 schema 逐行核对：**42 行全部一致**；
 - 6 处 `selectPage` 分页查询逐一确认带 `ORDER BY`。
 
-**上线前建议**：先在本地 `docker compose up` 跑一遍 Flyway 迁移与 `mvn test`。
+**上线前仍需**：在真实 SQL Server 上跑一遍 `docker compose up` + Flyway 迁移与 `mvn test`
+（上表的 H2 实跑不能替代——H2 与 SQL Server 的语法覆盖面不同，见上一节的差异表）。
