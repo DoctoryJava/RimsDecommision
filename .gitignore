@@ -39,3 +39,6 @@ docker-compose.override.yml
 coverage/
 *.map
 .cache/
+
+# ===== 临时转换脚本（MySQL -> SQL Server 迁移期使用，不纳入版本管理） =====
+.tmpconv/

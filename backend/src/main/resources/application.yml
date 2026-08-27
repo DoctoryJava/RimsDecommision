@@ -5,18 +5,23 @@ server:
 
 spring:
   datasource:
-    # 生产/开发 MySQL 连接（AiCoder）。可通过 MYSQL_URL/MYSQL_USERNAME/MYSQL_PASSWORD 环境变量覆盖。
-    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}
-    username: ${MYSQL_USERNAME:root}
-    password: ${MYSQL_PASSWORD:root1234}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 元数据库：SQL Server。可通过 SQLSERVER_URL/SQLSERVER_USERNAME/SQLSERVER_PASSWORD 环境变量覆盖。
+    # 本地 Docker 实例示例：
+    #   docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Qq4188.1" \
+    #     -p 1433:1433 --name sql1 --hostname sql1 -d mcr.microsoft.com/mssql/server:2025-latest
+    # 首次使用需先手工建库：CREATE DATABASE RimsDecommission;
+    url: ${SQLSERVER_URL:jdbc:sqlserver://localhost:1433;databaseName=RimsDecommission;encrypt=true;trustServerCertificate=true;loginTimeout=10}
+    username: ${SQLSERVER_USERNAME:sa}
+    password: ${SQLSERVER_PASSWORD:Qq4188.1}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    # SQL Server 版迁移脚本目录（MySQL 版保留在 db/migration/mysql 下作为历史参考）
+    locations: classpath:db/migration/sqlserver
     baseline-on-migrate: true
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss

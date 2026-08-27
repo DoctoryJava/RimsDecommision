@@ -55,5 +55,6 @@ export function buildMainQuerySql({
   }
 
   const from = `FROM ${phys(baseTable)} t0${joinClauses.length ? ' ' + joinClauses.join(' ') : ''}`;
-  return `SELECT ${select} ${from} LIMIT 100`;
+  // SQL Server（T-SQL）无 LIMIT，限制行数用 TOP N
+  return `SELECT TOP 100 ${select} ${from}`;
 }

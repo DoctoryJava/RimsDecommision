@@ -113,10 +113,12 @@ public class QueryController {
         int to = Math.min(from+pageSize, total);
         List<Map<String,Object>> pageRows = rows.subList(from,to);
         PageResult<Map<String,Object>> pr = PageResult.of(total, pageRows, page, pageSize);
+        // 回显给前端的等价 SQL（T-SQL 语法）：SQL Server 用 OFFSET/FETCH 分页，且要求带 ORDER BY
         String sql = "SELECT * FROM orders " +
                 "LEFT JOIN customers ON orders.customer_id = customers.customer_id " +
                 "LEFT JOIN products ON orders.product_id = products.product_id " +
-                "LIMIT " + pageSize + " OFFSET " + from;
+                "ORDER BY " + sortField + " " + ("desc".equals(sortDir) ? "DESC" : "ASC") + " " +
+                "OFFSET " + from + " ROWS FETCH NEXT " + pageSize + " ROWS ONLY";
         return Result.success(pr, sql);
     }
 

@@ -25,6 +25,8 @@
         <databricks-sdk.version>0.33.0</databricks-sdk.version>
         <mysql.version>8.0.33</mysql.version>
     </properties>
+    <!-- 元数据库为 SQL Server（mssql-jdbc + flyway-sqlserver）；
+         mysql-connector-j 仅保留用于连接「被归档的 MySQL 源业务库」，非本应用元数据库。 -->
 
     <dependencies>
         <!-- Web & Validation -->
@@ -50,6 +52,13 @@
             <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
             <version>${mybatis-plus.version}</version>
         </dependency>
+        <!-- 元数据库驱动：SQL Server -->
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- 源业务库驱动：被归档的 MySQL 退役系统（非本应用元数据库） -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
@@ -59,9 +68,10 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
+        <!-- Flyway 8.1.0 起 SQL Server 支持被拆到独立模块，必须显式引入 -->
         <dependency>
             <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-mysql</artifactId>
+            <artifactId>flyway-sqlserver</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

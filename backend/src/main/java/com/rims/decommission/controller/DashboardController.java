@@ -54,10 +54,11 @@ public class DashboardController {
     @GetMapping("/sync/activity")
     @Operation(summary = "同步活跃度（r_sync_activity 表）")
     public Result<List<Map<String,Object>>> activity() {
+        // SQL Server 无 LIMIT，改用 OFFSET/FETCH 取前 7 行（已有 ORDER BY，满足语法要求）
         List<RSyncActivity> rows = syncActivityMapper.selectList(
                 new LambdaQueryWrapper<RSyncActivity>()
                         .orderByAsc(RSyncActivity::getActivityDate)
-                        .last("LIMIT 7"));
+                        .last("OFFSET 0 ROWS FETCH NEXT 7 ROWS ONLY"));
         List<Map<String,Object>> list = rows.stream().map(a -> {
             Map<String,Object> m = new LinkedHashMap<>();
             m.put("day", a.getDayLabel());

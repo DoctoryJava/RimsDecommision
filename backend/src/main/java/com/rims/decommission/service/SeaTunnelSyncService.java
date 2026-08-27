@@ -464,7 +464,8 @@ public class SeaTunnelSyncService {
                 while (rs.next()) {
                     String t = rs.getString("TABLE_NAME");
                     if (t == null) continue;
-                    String q = "SELECT COUNT(*) FROM `" + t.replace("`", "``") + "`";
+                    String schema = rs.getString("TABLE_SCHEM");
+                    String q = "SELECT COUNT(*) FROM " + qualify(c, schema, t);
                     try (Statement st = c.createStatement(); ResultSet cr = st.executeQuery(q)) {
                         if (cr.next()) counts.put(t, cr.getLong(1));
                     } catch (Exception ignored) {}
@@ -472,6 +473,26 @@ public class SeaTunnelSyncService {
             }
         } catch (Exception ignored) {}
         return counts;
+    }
+
+    /**
+     * 按驱动自身的标识符引用符拼「[schema.]table」，兼容不同源库方言。
+     * MySQL 返回 `，SQL Server / PostgreSQL / Oracle 返回 "，避免硬编码反引号。
+     */
+    private String qualify(Connection c, String schema, String table) {
+        String q;
+        try {
+            q = c.getMetaData().getIdentifierQuoteString();
+        } catch (Exception e) {
+            q = "\"";
+        }
+        if (q == null || q.isBlank()) q = "\"";
+        final String quote = q;
+        java.util.function.UnaryOperator<String> wrap =
+                s -> quote + s.replace(quote, quote + quote) + quote;
+        return (schema == null || schema.isBlank())
+                ? wrap.apply(table)
+                : wrap.apply(schema) + "." + wrap.apply(table);
     }
 
     /** 取某表最近一次成功同步的行数。 */
@@ -483,7 +504,8 @@ public class SeaTunnelSyncService {
                             .eq(RSyncTableStat::getDatabaseName, databaseName)
                             .eq(RSyncTableStat::getTableName, tableName)
                             .orderByDesc(RSyncTableStat::getCreatedAt)
-                            .last("LIMIT 1"));
+                            // SQL Server 无 LIMIT，用 OFFSET/FETCH 取首行（已有 ORDER BY，语法要求满足）
+                            .last("OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY"));
             return stat != null ? stat.getRowCount() : null;
         } catch (Exception e) { return null; }
     }
