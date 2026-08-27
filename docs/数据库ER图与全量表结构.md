@@ -4,6 +4,7 @@
 > 覆盖：权限与访问控制、退役系统管理、源/目标数据配置、同步与归档、附件索引、动态查询、生命周期保留、法定保留、销毁审批、通知、审计与监控。
 >
 > **设计原则**
+> 0. 元数据库为 **Microsoft SQL Server 2019+（T-SQL）**；本文表结构中的 `VARCHAR` 实际建表为 `NVARCHAR`，`JSON`/`TEXT` 为 `NVARCHAR(MAX)`，`DATETIME` 为 `DATETIME2(3)`。落地脚本见 `scripts/sql/sqlserver/`。
 > 1. 元数据库只存**配置 / 元数据 / 权限 / 审计**，绝不放归档业务数据（业务数据走湖仓 Databricks SQL）。
 > 2. 优先**多对多关联表**而非 JSON 数组内嵌，保证引用完整性、可 SQL 关联统计。
 > 3. 每张表 `id` 为主键（雪花/BigInt），`deleted` 逻辑删除，`created_at`/`updated_at` 审计字段，**省略在 ER 图属性中以保持简洁，实际建表均应具备**。
@@ -877,7 +878,7 @@ erDiagram
 | 销毁 | 复用 `sync_job`(job_type=DESTROY) + `destroy_approval` | 不单设销毁任务表，销毁执行与审批挂靠同步任务体系 |
 | 通知 | 独立 `notification` 表 | 到期提醒/审批通知留痕 |
 | 审计 | 独立 `audit_log` | 全局操作留痕，可溯源 |
-| 业务数据 | 不进元数据库 | 一律走湖仓 Databricks SQL，MySQL 只存元数据 |
+| 业务数据 | 不进元数据库 | 一律走湖仓 Databricks SQL，SQL Server 只存元数据 |
 
 ---
 

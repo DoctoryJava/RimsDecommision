@@ -17,7 +17,7 @@ RIMS Decommission is enterprise Lakehouse for decommissioned-system **archive �
 | Layer | Choice | Where |
 |-------|--------|-------|
 | Backend | Java 17 + Spring Boot 3.2, MyBatis-Plus 3.5, Spring Security+JWT, Flyway | `backend/` |
-| Meta DB | MySQL 8.0 (config only), Redis 6 | `docker-compose.yml` |
+| Meta DB | SQL Server 2019+ (config only), Redis 6 | `docker-compose.yml` |
 | Big data | Databricks Java SDK (Jobs + Statement Execution API), UC, Iceberg | `scripts/databricks/` |
 | Storage | ADLS Gen2 (Iceberg) + Azure Blob (attachments) + Key Vault | `storage/` |
 | Frontend | React 19.2.8 + Vite 8.2 + Tailwind 4.3.3 + TypeScript 6 + pnpm | `frontend/src/` |
@@ -30,17 +30,18 @@ cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=dev   # or test
 cd backend && mvn test && mvn flyway:migrate
 cd frontend && pnpm install && pnpm dev          # http://localhost:5173
 cd frontend && pnpm build && pnpm lint --fix && pnpm type-check
-docker-compose up -d mysql redis && docker-compose down -v
+docker-compose up -d sqlserver redis && docker-compose down -v
 ```
 
 ## Architecture notes — non-obvious decisions
 
-- **Lakehouse**: `MySQL (config) | Redis (token) | Databricks (compute) | ADLS Gen2 Iceberg (structured) + Blob (attachments)`. Diagram: `README.md §🏗️`.
+- **Lakehouse**: `SQL Server (config) | Redis (token) | Databricks (compute) | ADLS Gen2 Iceberg (structured) + Blob (attachments)`. Diagram: `README.md §🏗️`.
+- **Meta DB is T-SQL**: migrations live in `db/migration/sqlserver`; MyBatis-Plus paging uses `DbType.SQL_SERVER`, which emits `OFFSET/FETCH` and **requires every paged query to have `ORDER BY`**.
 - Flow: `REGISTERED→CONFIGURED→SYNCING→ARCHIVED→EXPIRING→DESTROYED` (`decomm_system.status`, `decomm_lifecycle_policy`).
 
 ### ⚠️ Red lines — YOU MUST follow (emphasis improves adherence for critical 2-3 rules)
 
-- **NEVER** store or query archived business data in MySQL — **YOU MUST** use `DatabricksSqlExecutor` for reads and `DatabricksJobManager` for writes.
+- **NEVER** store or query archived business data in the metadata DB (SQL Server) — **YOU MUST** use `DatabricksSqlExecutor` for reads and `DatabricksJobManager` for writes.
 - **NEVER** store DB/Storage/Databricks Token in plaintext — **YOU MUST** use Key Vault/Secret Scope/env + `@JsonIgnore`.
 - **NEVER** desensitize in JS/TS or Java — **YOU MUST** configure UC COLUMN MASK; `isPii` columns are masked by UC automatically.
 
@@ -56,7 +57,8 @@ The other two red lines (SAS ≤15 min, 1:1 lakehouse) are in `AGENTS.md §Const
 ## Key files — when to read which
 
 - `README.md §🗄️ 数据库设计` — **SSOT for DDL** (with V1), JSON example, licenses.
-- `scripts/sql/V1__init_schema.sql` — full 12-table DDL; `V2__init_data.sql` — seed data.
+- `scripts/sql/sqlserver/V1__init_schema.sql` — full 12-table T-SQL DDL; `V2__init_data.sql` — seed data.
+- `scripts/sql/mysql/` — pre-migration MySQL scripts, kept for reference only; never execute them.
 - `backend/.../databricks/DatabricksJobManager.java` — job submit/poll.
 - `frontend/src/components/dynamic/` — dynamic rendering; change here if `schema_json` changes.
 - `.env.example` — required envs (never commit `.env`).

@@ -9,9 +9,10 @@ RIMS Decommission = Lakehouse platform (Databricks + ADLS Gen2 Iceberg + Unity C
 ## Repo layout
 
 ```text
-backend/src/main/java/com/rims/decommission/  # Spring Boot 3: controller→service→mapper→MySQL + databricks/storage/schema
+backend/src/main/java/com/rims/decommission/  # Spring Boot 3: controller→service→mapper→SQL Server + databricks/storage/schema
 frontend/src/                                  # React 19 + Vite 8 + Tailwind 4 + TypeScript strict
-scripts/sql/                                   # Flyway V1/V2 — SSOT for DB (README §🗄️ is summary)
+scripts/sql/sqlserver/                         # Flyway T-SQL V1-V18 — SSOT for DB (README §🗄️ is summary)
+scripts/sql/mysql/                             # legacy MySQL scripts, reference only — never run
 scripts/databricks/                            # data_sync/compaction/destroy notebooks
 docs/                                          # PHASE1/2/3_TASK_PLAN.md + phase*_tasks.csv (task.csv subsets)
 ```
@@ -25,7 +26,7 @@ cd backend && mvn test                         # unit tests
 cd backend && mvn flyway:migrate && mvn flyway:info  # DB migrate / status, never manual ALTER
 cd frontend && pnpm install && pnpm dev        # dev http://localhost:5173
 cd frontend && pnpm build && pnpm lint && pnpm type-check
-docker-compose up -d mysql redis               # infra only
+docker-compose up -d sqlserver redis           # infra only（sqlserver-init 负责 CREATE DATABASE）
 ```
 
 ## Conventions — only what linter/code can't tell you
@@ -42,10 +43,12 @@ docker-compose up -d mysql redis               # infra only
 
 ## Constraints — Do NOT (agent guardrails)
 
-- Do NOT edit `scripts/sql/V1__init_schema.sql` or `V2__init_data.sql`; add `V3__*.sql` only.
+- Do NOT edit existing `scripts/sql/sqlserver/V*.sql`; add a new `V19__*.sql` (T-SQL) instead.
+- Do NOT point Flyway at `scripts/sql/mysql/` or `db/migration/mysql/`; those are frozen references.
+- Do NOT write MySQL-only syntax (backticks, `LIMIT`, `AUTO_INCREMENT`, `ON UPDATE CURRENT_TIMESTAMP`); use `[ ]`, `OFFSET/FETCH` or `TOP`, `IDENTITY`, and `FieldFill.INSERT_UPDATE`.
 - Do NOT edit `scripts/databricks/*.py` without updating backend `DatabricksJobManager` param assembly.
 - Do NOT store DB/Storage/Databricks secrets in plaintext; use `KeyVaultService`/`Secret Scope`/env, `@JsonIgnore` on entities.
-- Do NOT query archived business data from MySQL; MySQL holds only config/RBAC/audit.
+- Do NOT query archived business data from the metadata DB; SQL Server holds only config/RBAC/audit.
 - Do NOT bypass `DynamicQueryBuilder` whitelist + parameterized SQL.
 - Do NOT `import` across frontend `decommission/` boundaries; keep `components/dynamic/` generic.
 
@@ -67,7 +70,7 @@ cd backend && mvn flyway:info  # if DB touched
 
 ## Pointers — load only when needed (avoid bloating every session)
 
-- DB schema SSOT: `README.md §🗄️ 数据库设计` + `scripts/sql/V1__init_schema.sql` (24477 bytes). **Never duplicate DDL here.**
+- DB schema SSOT: `README.md §🗄️ 数据库设计` + `scripts/sql/sqlserver/V1__init_schema.sql`. **Never duplicate DDL here.**
 - Business flows (5 logics): `README.md §🧩 核心业务流程` + prior detailed edition archived at `git show HEAD~1:AGENTS.md`.
 - API surface: `CLAUDE.md §API` + SpringDoc (`/swagger-ui`), `docs/api/` if present.
 - Phase plans & task CSVs: `docs/PHASE*_TASK_PLAN.md`, `docs/phase*_tasks.csv` (26/63/24 items), `task.csv`.

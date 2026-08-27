@@ -49,7 +49,7 @@ RIMS Decommission 解决的核心问题：
                 ┌────────────┘      │      │      │      └────────────┐
                 ▼                   ▼      ▼      ▼                   ▼
     ┌───────────────┐   ┌───────┐ ┌────────────────────┐ ┌──────────────────┐
-    │  MySQL 8.0    │   │ Redis │ │  Databricks        │ │  Azure Storage   │
+    │  SQL Server   │   │ Redis │ │  Databricks        │ │  Azure Storage   │
     │  (元数据库)   │   │       │ │                    │ │                  │
     │               │   │       │ │  • Jobs (ETL写入)  │ │  ADLS Gen2       │
     │  • 系统配置   │   │ Token │ │  • SQL Serverless  │ │  (Iceberg/Delta) │
@@ -69,7 +69,7 @@ RIMS Decommission 解决的核心问题：
 | **计算引擎（写）** | Databricks Jobs                          | ETL 抽取、Compaction、数据销毁任务                              |
 | **查询引擎（读）** | Databricks SQL (Statement Execution API) | 所有归档数据查询统一走 Databricks SQL，强制 UC 鉴权             |
 | **数据治理**       | Unity Catalog (UC)                       | 表级权限管控、COLUMN MASK 字段脱敏、全局审计                    |
-| **元数据库**       | MySQL 8.0                                | 仅存配置元数据（系统信息、Schema Registry、销毁策略、审计日志） |
+| **元数据库**       | SQL Server 2019+                         | 仅存配置元数据（系统信息、Schema Registry、销毁策略、审计日志） |
 | **后端 API**       | Java 17 + Spring Boot 3                  | 元数据管理、初始化编排、SAS 签发、查询代理                      |
 | **前端**           | React 19 + Tailwind CSS + TypeScript     | RBAC 管理页 + 动态查询页（Schema Registry 驱动）                |
 
@@ -181,12 +181,15 @@ RIMS Decommission 解决的核心问题：
 
 ---
 
-## 🗄️ 数据库设计（元数据库 — MySQL）
+## 🗄️ 数据库设计（元数据库 — SQL Server）
 
 > **核心原则**: 元数据库仅存储系统配置、Schema 注册、RBAC 权限和审计日志。
 > **绝不**直接存储或查询归档的业务数据。所有业务数据查询统一走 Databricks SQL。
 >
-> **单一数据源**：本节为 AI 与人工查阅的唯一 DDL 说明源，与 `scripts/sql/V1__init_schema.sql` 保持一致。`CLAUDE.md` 与 `AGENTS.md` 不再复制表结构，所有建表/改表必须通过 Flyway 迁移脚本（`V3__*.sql`）实现。
+> **单一数据源**：本节为 AI 与人工查阅的唯一 DDL 说明源，与 `scripts/sql/sqlserver/V1__init_schema.sql` 保持一致。`CLAUDE.md` 与 `AGENTS.md` 不再复制表结构，所有建表/改表必须通过 Flyway 迁移脚本（新增 `V19__*.sql`，T-SQL）实现。
+>
+> **方言说明**：迁移脚本已于 2026-08 由 MySQL 迁移至 T-SQL，生效目录为 `scripts/sql/sqlserver/` 与 `backend/src/main/resources/db/migration/sqlserver/`；
+> 原 MySQL 版本移至同级 `mysql/` 子目录，仅作历史参考、不再执行。下文表结构中的 `VARCHAR` 对应实际的 `NVARCHAR`，`JSON`/`TEXT` 对应 `NVARCHAR(MAX)`。
 
 ### 权限管理模块
 
@@ -216,9 +219,9 @@ RIMS Decommission 解决的核心问题：
 
 ### r\_\* 业务数据表（替代 Mock 数据，后端已接入）
 
-> 原先后端 `MockStore` / `MockUserDetailsService` 返回的演示数据已全部迁移到真实 MySQL 表，表名统一以 `r_` 开头。
-> 完整 DDL 见 `scripts/sql/V3__create_r_tables.sql`，种子数据见 `scripts/sql/V4__seed_r_data.sql`（密码统一 `demo1234`，BCrypt）。
-> 默认数据库连接已配置为 `jdbc:mysql://cq-cdb-9bf4xslt.sql.tencentcdb.com:63819/AiCoder`（可用 `MYSQL_URL`/`MYSQL_USERNAME`/`MYSQL_PASSWORD` 覆盖）。
+> 原先后端 `MockStore` / `MockUserDetailsService` 返回的演示数据已全部迁移到真实数据库表，表名统一以 `r_` 开头。
+> 完整 DDL 见 `scripts/sql/sqlserver/V3__create_r_tables.sql`，种子数据见 `scripts/sql/sqlserver/V4__seed_r_data.sql`（密码统一 `demo1234`，BCrypt）。
+> 默认数据库连接为 `jdbc:sqlserver://localhost:1433;databaseName=RimsDecommission`（可用 `SQLSERVER_URL`/`SQLSERVER_USERNAME`/`SQLSERVER_PASSWORD` 覆盖）。
 
 | 表名               | 说明                                            | 替代的原 Mock                                  |
 | ------------------ | ----------------------------------------------- | ---------------------------------------------- |
@@ -232,7 +235,7 @@ RIMS Decommission 解决的核心问题：
 | `r_physical_table` | 物理表元数据（列定义+示例行，驱动动态查询）     | `MockStore.physicalTables()`                   |
 | `r_query_config`   | 动态查询配置                                    | `MockStore.queryConfigs()`                     |
 
-#### 归档与保留扩展表（对应设计类图，`scripts/sql/V5__create_r_extended_tables.sql` / `V6__seed_r_extended_data.sql`）
+#### 归档与保留扩展表（对应设计类图，`scripts/sql/sqlserver/V5__create_r_extended_tables.sql` / `V6__seed_r_extended_data.sql`）
 
 | 表名                     | 对应类图            | 说明                                           |
 | ------------------------ | ------------------- | ---------------------------------------------- |
@@ -249,7 +252,7 @@ RIMS Decommission 解决的核心问题：
 | `r_tag`                  | Tag                 | 标签键值                                       |
 | `r_object_tag`           | ObjectTag           | 对象-标签关联（多对多）                        |
 
-#### 仪表盘聚合表（`scripts/sql/V7__create_dashboard_tables.sql` / `V8__seed_dashboard_data.sql`）
+#### 仪表盘聚合表（`scripts/sql/sqlserver/V7__create_dashboard_tables.sql` / `V8__seed_dashboard_data.sql`）
 
 | 表名              | 说明                                                                                   |
 | ----------------- | -------------------------------------------------------------------------------------- |
@@ -257,7 +260,7 @@ RIMS Decommission 解决的核心问题：
 
 > 关联约定：`r_source_database/r_unstructured_source/r_unstructured_item` 关联 `r_system`；`r_archive_batch` 关联 `r_sync_job`（ArchiveJob）；`r_archive_file`/`r_archive_set` 关联 `r_archive_batch`；`r_archive_set_item` 关联 `r_archive_set`；`r_retention_assignment` 关联 `r_retention_policy`；`r_legal_hold_event` 关联 `r_retention_assignment`；`r_object_tag` 关联 `r_tag`。
 
-> 完整 DDL 共 12 张表，详见 `scripts/sql/V1__init_schema.sql`（303 行）。以下摘录 3 张退役域核心表的建表语句（已与 `V1` 保持一致，生产以 `V1` 为准）：
+> 完整 DDL 共 12 张表，详见 `scripts/sql/sqlserver/V1__init_schema.sql`。以下摘录 3 张退役域核心表的建表语句（示例为迁移前的 MySQL 写法，字段语义不变，生产以 T-SQL 版 `V1` 为准）：
 
 #### 退役系统注册表 `decomm_system`
 
@@ -342,7 +345,7 @@ CREATE TABLE `decomm_lifecycle_policy` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='数据生命周期策略表';
 ```
 
-> 其他 9 张表（`sys_user`/`sys_role`/`sys_menu`/`sys_permission`/`sys_user_role`/`sys_role_menu`/`sys_role_permission`/`decomm_db_config`/`decomm_storage_config`/`decomm_sync_job`/`decomm_sync_log`/`sys_audit_log` 等）及初始数据 `V2__init_data.sql` 请直接查阅 `scripts/sql/`。**禁止在 `AGENTS.md` / `CLAUDE.md` 中重复复制 DDL。**
+> 其他 9 张表（`sys_user`/`sys_role`/`sys_menu`/`sys_permission`/`sys_user_role`/`sys_role_menu`/`sys_role_permission`/`decomm_db_config`/`decomm_storage_config`/`decomm_sync_job`/`decomm_sync_log`/`sys_audit_log` 等）及初始数据 `V2__init_data.sql` 请直接查阅 `scripts/sql/sqlserver/`。**禁止在 `AGENTS.md` / `CLAUDE.md` 中重复复制 DDL。**
 
 ### Schema Registry JSON 结构示例
 
@@ -399,7 +402,7 @@ CREATE TABLE `decomm_lifecycle_policy` (
 | **ORM**        | MyBatis-Plus                   | 3.5+      | 元数据库操作         |
 | **安全**       | Spring Security + JWT          | —         | 认证授权             |
 | **缓存**       | Redis                          | 6+        | Token/Session 缓存   |
-| **元数据库**   | MySQL                          | 8.0       | 配置元数据           |
+| **元数据库**   | SQL Server                     | 2019+     | 配置元数据           |
 | **数据库迁移** | Flyway                         | —         | Schema 版本管理      |
 | **大数据引擎** | Databricks Java SDK            | —         | ETL + SQL 查询       |
 | **数据格式**   | Apache Iceberg                 | —         | 湖仓一体归档格式     |
@@ -485,7 +488,7 @@ RimsDecommision/
 
 - JDK 17+、Maven 3.8+
 - Node.js 18+、pnpm 8+
-- MySQL 8.0+、Redis 6+
+- SQL Server 2019+（或 Docker 镜像 `mcr.microsoft.com/mssql/server`）、Redis 6+
 - Azure 订阅 (ADLS Gen2, Blob Storage, Key Vault)
 - Databricks Workspace
 
@@ -503,16 +506,16 @@ pnpm install
 pnpm dev
 
 # Docker Compose (仅启动基础设施)
-docker-compose up -d mysql redis
+docker-compose up -d sqlserver redis
 ```
 
 ### 环境变量（.env）
 
 ```properties
-# 元数据库（默认已指向 AiCoder，可按需覆盖）
-MYSQL_URL=jdbc:mysql://cq-cdb-9bf4xslt.sql.tencentcdb.com:63819/AiCoder?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
-MYSQL_USERNAME=AiCoder
-MYSQL_PASSWORD=AiCoder@2025
+# 元数据库（SQL Server，默认指向本地 1433，可按需覆盖）
+SQLSERVER_URL=jdbc:sqlserver://localhost:1433;databaseName=RimsDecommission;encrypt=true;trustServerCertificate=true
+SQLSERVER_USERNAME=sa
+SQLSERVER_PASSWORD=Qq4188.1
 
 # Redis
 REDIS_HOST=localhost
