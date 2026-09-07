@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.rims</groupId>
+    <artifactId>rims-spark-query</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+    <name>RIMS Spark Query Job</name>
+    <description>独立 Spark SQL 查询作业（com.rims.spark.QueryJob），由后端 SparkQueryService 通过 spark-submit 调用</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <!-- 与后端 SparkProperties 的 iceberg-package 保持一致：Spark 3.3 / Scala 2.12 -->
+        <spark.version>3.3.4</spark.version>
+        <scala.binary.version>2.12</scala.binary.version>
+    </properties>
+
+    <dependencies>
+        <!-- 编译期仅依赖 Spark（org.apache.spark.sql.*）。
+             scope=provided：spark-submit 运行期自带 Spark classpath，不打进 jar。
+             注意：不要在此添加 Iceberg 依赖 —— Iceberg runtime 由 spark-submit 通过 jars 参数在运行期注入。 -->
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_${scala.binary.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- 产物名固定为 rims-spark-query.jar，与后端 app.spark.query-job-jar 配置一致 -->
+        <finalName>rims-spark-query</finalName>
+        <!-- 本目录源码布局为 src/com/rims/spark/QueryJob.java（非 Maven 默认的 src/main/java） -->
+        <sourceDirectory>${project.basedir}/src</sourceDirectory>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <!-- 仅为方便 java -jar 直跑；实际由 spark-submit 通过 class 参数指定，不依赖此配置 -->
+                            <mainClass>com.rims.spark.QueryJob</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
