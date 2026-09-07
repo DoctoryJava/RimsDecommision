@@ -14,9 +14,9 @@ spring:
     #   docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Qq4188.1" \
     #     -p 1433:1433 --name sql1 --hostname sql1 -d mcr.microsoft.com/mssql/server:2025-latest
     # 首次使用需先手工建库：CREATE DATABASE RimsDecommission;
-    url: ${SQLSERVER_URL:jdbc:sqlserver://localhost:1433;databaseName=RimsDecommission;encrypt=true;trustServerCertificate=true;loginTimeout=10}
-    username: ${SQLSERVER_USERNAME:sa}
-    password: ${SQLSERVER_PASSWORD:Qq4188.1}
+    url: ${SQLSERVER_URL:jdbc:sqlserver://xlildwxackeakuvb.712bf0179258.database.chinacloudapi.cn:1433;databaseName=RIMS;encrypt=true;trustServerCertificate=true;loginTimeout=10}
+    username: ${SQLSERVER_USERNAME:CHENWX81}
+    password: ${SQLSERVER_PASSWORD:3cbPED^NhZN#fSvMfuL9#Y*6C!bZgYh@}
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   data:
     redis:
@@ -55,29 +55,29 @@ app:
     catalog: lake
   # SeaTunnel 同步引擎配置（同步源库 -> 本地磁盘 Iceberg）
   seatunnel:
-    home: ${SEATUNNEL_HOME:/Users/chenyong/Desktop/BigData/apache-seatunnel-2.3.13}
+    home: ${SEATUNNEL_HOME:C:\Users\adm-chinaadmins1\Downloads\apache-seatunnel-2.3.13}
     # 本地磁盘 Iceberg warehouse 根路径（模拟存储桶）
-    warehouse-dir: ${SEATUNNEL_WAREHOUSE_DIR:/Users/chenyong/Desktop/BigData/archive}
-    conf-dir: ${SEATUNNEL_CONF_DIR:/Users/chenyong/Desktop/BigData/archive/.conf}
+    warehouse-dir: ${SEATUNNEL_WAREHOUSE_DIR:C:\Users\adm-chinaadmins1\Downloads\archive}
+    conf-dir: ${SEATUNNEL_CONF_DIR:C:\Users\adm-chinaadmins1\Downloads\archive\.conf}
     # 是否真正调用 SeaTunnel（true 时调用 seatunnel.sh 执行真实同步）
     enabled: ${SEATUNNEL_ENABLED:true}
   # Spark 查询引擎（读已同步的 Iceberg 落盘数据）
   spark:
-    home: ${SPARK_HOME:/Users/chenyong/Desktop/BigData/spark-3.3.4-bin-hadoop3}
+    home: ${SPARK_HOME:C:\Users\adm-chinaadmins1\Downloads\spark-3.5.9-bin-hadoop3}
     # Iceberg 落盘 warehouse 根路径（与 seatunnel.warehouse-dir 一致）
-    warehouse-dir: ${SPARK_WAREHOUSE_DIR:/Users/chenyong/Desktop/BigData/archive}
+    warehouse-dir: ${SPARK_WAREHOUSE_DIR:C:\Users\adm-chinaadmins1\Downloads\archive}
     # Iceberg spark runtime 依赖（匹配 spark 3.3 / scala 2.12）
     iceberg-package: ${SPARK_ICEBERG_PACKAGE:org.apache.iceberg:iceberg-spark-runtime-3.3_2.12:1.4.3}
     # 是否真正调用 Spark（false 时返回模拟数据，便于无环境调试）
     enabled: ${SPARK_QUERY_ENABLED:true}
     # Iceberg spark runtime jar 本地路径（spark-submit --jars 注入）
-    iceberg-jar: ${SPARK_ICEBERG_JAR:/Users/chenyong/.ivy2/cache/org.apache.iceberg/iceberg-spark-runtime-3.3_2.12/jars/iceberg-spark-runtime-3.3_2.12-1.4.3.jar}
+    iceberg-jar: ${SPARK_ICEBERG_JAR:C:\Users\adm-chinaadmins1\Desktop\code\RimsDecommision\scripts\iceberg-spark-runtime-3.5_2.12-1.7.1.jar}
     # 独立 Spark SQL 查询作业 jar（javac 编译的 scripts/spark/rims-spark-query.jar）
-    query-job-jar: ${SPARK_QUERY_JOB_JAR:/Users/chenyong/Desktop/LLM-AI/RimsDecommision/scripts/spark/rims-spark-query.jar}
+    query-job-jar: ${SPARK_QUERY_JOB_JAR:C:\Users\adm-chinaadmins1\Desktop\code\RimsDecommision\scripts\spark\rims-spark-query.jar}
     # Iceberg catalog 名（设为 defaultCatalog，SQL 可省略 catalog 前缀）
     catalog-name: ${SPARK_CATALOG_NAME:rims}
     # Spark 子进程专用 JDK（Spark 3.3 仅支持 JDK ≤11；后端运行于 17+，故进程隔离）
-    java-home: ${SPARK_JAVA_HOME:/Library/Java/JavaVirtualMachines/jdk-11.jdk/Contents/Home}
+    java-home: ${SPARK_JAVA_HOME:C:\Users\adm-chinaadmins1\.jdks\ms-11.0.32.1}
 
 springdoc:
   api-docs:

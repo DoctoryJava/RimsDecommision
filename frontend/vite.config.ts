@@ -10,10 +10,11 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   optimizeDeps: {
-    exclude: ['lucide-react'],
+    include: ['lucide-react','axios'],
   },
   server: {
     host: true,
+    port: 80,
     allowedHosts: true,
     proxy: {
       '/api': {

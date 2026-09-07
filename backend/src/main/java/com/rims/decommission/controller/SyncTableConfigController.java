@@ -121,8 +121,9 @@ public class SyncTableConfigController {
             DatabaseMetaData md = conn.getMetaData();
             try (ResultSet rs = md.getTables(src.getDatabaseName(), null, "%", new String[]{"TABLE"})) {
                 while (rs.next()) {
+                    String t0 = rs.getString("TABLE_SCHEM");
                     String t = rs.getString("TABLE_NAME");
-                    if (t != null && !t.isBlank()) tables.add(t);
+                    if (t != null && !t.isBlank() && t0.equals("dbo")) tables.add(t);
                 }
             }
         } catch (Exception ignored) {

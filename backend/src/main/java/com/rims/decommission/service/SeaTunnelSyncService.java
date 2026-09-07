@@ -323,16 +323,17 @@ public class SeaTunnelSyncService {
     private long runSeatunnel(RSourceDatabase src, String engine, int port, List<String> tables,
                               List<Map<String,Object>> logs) throws Exception {
         String confFile = writeConf(src, engine, port, tables);
-        String seatunnelSh = props.getHome() + "/bin/seatunnel.sh";
+        String seatunnelSh = props.getHome() + "/bin/seatunnel.cmd";
         // -m local: 本地单机模式（不连 Hazelcast server 集群），适合测试/无集群环境
         ProcessBuilder pb = new ProcessBuilder(seatunnelSh, "--config", confFile, "-m", "local");
+        pb.environment().put("HADOOP_HOME","C:\\Users\\adm-chinaadmins1\\Downloads\\winutils-master\\hadoop-2.8.3");
         pb.redirectErrorStream(true);
         Process p = pb.start();
         StringBuilder out = new StringBuilder();
         try (BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
             while ((line = r.readLine()) != null) {
-                out.append(line).append('\n');
+               out.append(line).append('\n');
                 if (line.contains("Error") || line.contains("ERROR")) addLog(logs, "ERROR", line.trim());
                 else if (line.contains("INFO")) addLog(logs, "INFO", line.trim());
             }
@@ -354,11 +355,12 @@ public class SeaTunnelSyncService {
         // table_list 的 table_path 必须是 "库名.表名"
         StringBuilder tableList = new StringBuilder("table_list = [\n");
         for (String t : tables) {
-            tableList.append("    { table_path = \"").append(esc(db)).append(".").append(esc(t)).append("\" },\n");
+            tableList.append("    { table_path = \"").append(esc("RIMS.dbo")).append(".").append(esc(t)).append("\" },\n");
         }
         tableList.append("  ]");
 
         String warehouse = props.getWarehouseDir() + "/" + safeName(db);
+        warehouse = warehouse.replace("\\","/");
         String conf = "env {\n"
                 + "  parallelism = 1\n"
                 + "  job.mode = \"BATCH\"\n"
@@ -371,6 +373,7 @@ public class SeaTunnelSyncService {
                 + "    password = \"" + esc(src.getPassword()) + "\"\n"
                 + "    database = \"" + esc(db) + "\"\n"
                 + "    " + tableList + "\n"
+//                + "    " + "query=\"select top 1 * from dbo.sys_role_system\"" + "\n"
                 + "  }\n"
                 + "}\n"
                 + "transform {\n}\n"
@@ -379,7 +382,7 @@ public class SeaTunnelSyncService {
                 + "    catalog_name = \"rims_local\"\n"
                 + "    iceberg.catalog.config = {\n"
                 + "      type = \"hadoop\"\n"
-                + "      warehouse = \"file://" + warehouse + "\"\n"
+                + "      warehouse = \"file:///" + warehouse + "\"\n"
                 + "    }\n"
                 + "    namespace = \"archive\"\n"
                 + "    table = \"${table_name}\"\n"

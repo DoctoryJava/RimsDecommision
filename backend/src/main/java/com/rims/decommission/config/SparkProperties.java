@@ -10,21 +10,21 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "app.spark")
 public class SparkProperties {
     /** Spark 安装目录 */
-    private String home = "/Users/chenyong/Desktop/BigData/spark-3.3.4-bin-hadoop3";
+    private String home = "C:\\Users\\adm-chinaadmins1\\Downloads\\spark-3.5.9-bin-hadoop3";
     /** Iceberg 落盘 warehouse 根路径（读已同步数据） */
-    private String warehouseDir = "/Users/chenyong/Desktop/BigData/archive";
+    private String warehouseDir = "C:/Users/adm-chinaadmins1/Downloads/archive";
     /** Iceberg spark runtime 依赖坐标 */
-    private String icebergPackage = "org.apache.iceberg:iceberg-spark-runtime-3.3_2.12:1.4.3";
+    private String icebergPackage = "org.apache.iceberg:iceberg-spark-runtime-3.5_2.12-1.7.1";
     /** 是否真正调用 Spark（false 时返回模拟数据） */
     private boolean enabled = true;
     /** Iceberg spark runtime jar 本地路径（spark-submit --jars 注入，运行期类由 Iceberg 提供） */
-    private String icebergJar = "/Users/chenyong/.ivy2/cache/org.apache.iceberg/iceberg-spark-runtime-3.3_2.12/jars/iceberg-spark-runtime-3.3_2.12-1.4.3.jar";
+    private String icebergJar = "C:\\Users\\adm-chinaadmins1\\Desktop\\code\\RimsDecommision\\scripts\\iceberg-spark-runtime-3.5_2.12-1.7.1.jar";
     /** 独立 Spark SQL 查询作业 jar（scripts/spark/rims-spark-query.jar，含 com.rims.spark.QueryJob） */
-    private String queryJobJar = "/Users/chenyong/Desktop/LLM-AI/RimsDecommision/scripts/spark/rims-spark-query.jar";
+    private String queryJobJar = "C:\\Users\\adm-chinaadmins1\\Desktop\\code\\RimsDecommision\\scripts\\spark\\rims-spark-query.jar";
     /** Iceberg catalog 名（QueryJob 注册为 defaultCatalog，SQL 可省略 catalog 前缀） */
     private String catalogName = "rims";
     /** SeaTunnel/Spark 子进程专用 JDK 路径（Spark 3.3 需 JDK ≤11；后端运行于 17+，故进程隔离） */
-    private String javaHome = "/Library/Java/JavaVirtualMachines/jdk-11.jdk/Contents/Home";
+    private String javaHome = "C:\\Users\\adm-chinaadmins1\\.jdks\\ms-11.0.32.1";
 
     public String getHome() { return home; }
     public void setHome(String home) { this.home = home; }

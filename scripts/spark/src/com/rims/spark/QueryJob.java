@@ -41,7 +41,7 @@ public class QueryJob {
                 .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
                 .config("spark.sql.catalog." + catalogName, "org.apache.iceberg.spark.SparkCatalog")
                 .config("spark.sql.catalog." + catalogName + ".type", "hadoop")
-                .config("spark.sql.catalog." + catalogName + ".warehouse", "file://" + warehouse)
+                .config("spark.sql.catalog." + catalogName + ".warehouse", "file:///" + warehouse)
                 .config("spark.sql.defaultCatalog", catalogName)
                 .config("spark.sql.session.timeZone", "UTC")
                 .getOrCreate();

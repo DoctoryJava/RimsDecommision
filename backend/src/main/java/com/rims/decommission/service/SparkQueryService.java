@@ -182,7 +182,7 @@ public class SparkQueryService {
      * 子进程 JDK 隔离为 ≤11（Spark 3.3 限制），后端自身仍跑 17+。
      */
     private String runSparkSql(String sql) throws Exception {
-        String sparkSubmit = Paths.get(props.getHome(), "bin", "spark-submit").toString();
+        String sparkSubmit = Paths.get(props.getHome(), "bin", "spark-submit.cmd").toString();
         ProcessBuilder pb = new ProcessBuilder(
                 sparkSubmit,
                 "--master", "local[1]",

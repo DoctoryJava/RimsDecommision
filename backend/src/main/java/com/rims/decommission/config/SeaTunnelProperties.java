@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "app.seatunnel")
 public class SeaTunnelProperties {
     /** SeaTunnel 安装目录（含 bin/seatunnel.sh） */
-    private String home = "/Users/chenyong/Desktop/BigData/apache-seatunnel-2.3.13";
+    private String home = "C:\\Users\\adm-chinaadmins1\\Downloads\\apache-seatunnel-2.3.13";
     /** 本地磁盘 Iceberg warehouse 根路径（模拟存储桶） */
-    private String warehouseDir = "/Users/chenyong/Desktop/BigData/archive";
+    private String warehouseDir = "C://Users//adm-chinaadmins1//Downloads//archive";
     /** 生成的 .conf 临时目录 */
-    private String confDir = "/Users/chenyong/Desktop/BigData/archive/.conf";
+    private String confDir = "C:\\Users\\adm-chinaadmins1\\Downloads\\archive\\.conf";
     /** 是否真正调用 SeaTunnel（false 时模拟成功，便于无环境调试） */
     private boolean enabled = true;
 
