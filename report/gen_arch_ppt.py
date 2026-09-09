@@ -258,7 +258,7 @@ def slide_cover(prs):
         ('02', GRN, L_GRN, B_GRN, '应用架构图 · 方案 B2（湖仓一体 · Databricks SQL Serverless 读）', '访问入口 → 自研应用层（AKS）→ 写 / 读 / 附件三条链路 → 数据底座'),
         ('03', PUR, L_PUR, B_PUR, '方案 B2 · 湖仓一体 · 存算分离架构', '源系统 → 接入配置 → 抽取 → Iceberg 冷湖 → Databricks 读写一体计算层 → 消费入口 + 销毁回路'),
         ('04', AZ, L_BLUE, B_BLUE, '方案 B2 · 数据加密设计', '四层加密模型 · aes_encrypt + UC 列掩码 · 信封加密 / Crypto-Shredding'),
-        ('05', ORG, 'FFF7ED', 'FED7AA', 'ETL 引擎对比 · SeaTunnel vs Databricks Serverless', '抽取入湖分工：普通数据走 SeaTunnel · 敏感 / 加密数据走 Databricks 写侧'),
+        ('05', ORG, 'FFF7ED', 'FED7AA', 'ETL 引擎对比 · SeaTunnel vs Databricks Serverless', '抽取入湖分工 + SeaTunnel 约 200 原生连接器生态 · 敏感数据走 Databricks 写侧'),
         ('06', SLA, 'F6F8FA', 'CBD5E1', '元数据库 ER 图（35 表 / 11 模块 · 上下两页）', '上篇：平台 / 权限 / 数据源配置　下篇：同步归档 / 动态查询 / 保留销毁'),
     ]
     y = 3.15
@@ -1293,6 +1293,70 @@ def slide_etl_compare(prs):
         txt(sl, cx + 0.12, 6.57, 3.8, 0.30, s, sz=7.0, b=True, c=cc)
 
 
+# ========================================= SLIDE 9 · SEATUNNEL CONNECTORS ===
+def slide_connectors(prs):
+    sl = prs.slides.add_slide(prs.slide_layouts[6]); _cur['i'] = 8
+    sl.background.fill.solid(); sl.background.fill.fore_color.rgb = _rgb(BG)
+    title_bar(sl, 'Apache SeaTunnel · 约 200 个原生连接器',
+              '数据集成引擎 · 来源 seatunnel.apache.org/zh-CN', ORG)
+
+    # 说明条
+    rect(sl, 0.22, 0.58, 12.89, 0.42, 'FFF7ED', 'FDBA74', 1.2, 0.06)
+    txt(sl, 0.22, 0.58, 12.89, 0.42,
+        '只要你的数据在那里，SeaTunnel 就能连接 —— 覆盖数据库 · 消息系统 · 湖仓 · 搜索系统 · 对象存储等主流数据系统',
+        sz=8.2, b=True, c='C2410C', align='c', anchor='m')
+
+    def cat_card(x, y, w, h, col, fill, bl, title, note, items, hi=None):
+        rect(sl, x, y, w, h, fill, bl, 1.2, 0.07)
+        rect(sl, x, y, 0.04, h, col, rad=0.02)
+        txt(sl, x + 0.16, y + 0.10, w - 0.32, 0.24, title, sz=9.4, b=True, c=INK)
+        txt(sl, x + 0.16, y + 0.35, w - 0.32, 0.15, note, sz=6.2, b=True, c=col)
+        cw = (w - 0.32 - 0.20) / 3.0
+        ch = 0.46
+        for i, it in enumerate(items):
+            cx = x + 0.16 + (i % 3) * (cw + 0.10)
+            cy = y + 0.57 + (i // 3) * (ch + 0.12)
+            if hi is not None and i == hi:
+                rect(sl, cx, cy, cw, ch, 'ECFDF5', '6EE7B7', 1.2, 0.05)
+                txt(sl, cx, cy, cw, ch, it, sz=6.2, b=True, c=GRND, align='c', anchor='m')
+            else:
+                rect(sl, cx, cy, cw, ch, 'FFFFFF', bl, 1.0, 0.05)
+                txt(sl, cx, cy, cw, ch, it, sz=6.2, b=False, c=SUB, align='c', anchor='m')
+
+    # 四类连接器卡片（2×2）
+    cat_card(0.22, 1.10, 6.30, 1.72, AZ, L_BLUE, B_BLUE,
+             'OLTP 数据库', '关系型 · +25 via JDBC',
+             ['MySQL / CDC', 'PostgreSQL', 'Oracle', 'SQL Server', 'TiDB', 'MariaDB'])
+    cat_card(6.71, 1.10, 6.40, 1.72, AMB, L_AMB, B_AMB,
+             '流式与消息系统', '消息发布 / 订阅',
+             ['Apache Kafka', 'Apache Pulsar', 'RabbitMQ', 'RocketMQ', 'AWS SQS', 'ActiveMQ'])
+    cat_card(0.22, 2.96, 6.30, 1.72, PUR, L_PUR, B_PUR,
+             'OLAP 与分析', '分析型 OLAP 引擎',
+             ['ClickHouse', 'Apache Doris', 'StarRocks', 'Snowflake', 'Amazon Redshift', 'Cloudberry'])
+    cat_card(6.71, 2.96, 6.40, 1.72, GRN, L_GRN, B_GRN,
+             '数据湖与存储', 'Open Table · 对象存储',
+             ['Amazon S3', 'Alibaba OSS', 'HDFS / LocalFile', 'Apache Iceberg', 'Delta Lake', 'Apache Paimon'],
+             hi=3)
+
+    # 底部：全量清单节选
+    rect(sl, 0.22, 4.84, 12.89, 2.02, 'FFFFFF', BORDER, 1.2, 0.07)
+    txt(sl, 0.38, 4.94, 12.5, 0.22,
+        [dict(runs=[('其余连接器 · 全量约 200 个（节选）', {'c': INK, 'sz': 8.5, 'b': True})])])
+    foot = [
+        '数据库：MySQL · PostgreSQL · Oracle · SQL Server · TiDB · MariaDB · MongoDB · DynamoDB · Cassandra · HBase · Neo4j · DB2 · Greenplum · OceanBase · Redis · Aerospike',
+        '消息 / 检索 / 向量：Kafka · Pulsar · RabbitMQ · RocketMQ · ActiveMQ · SQS · Elasticsearch · Druid · Typesense · Milvus · Qdrant · Lance · HugeGraph · InfluxDB · IoTDB · TDengine',
+        '文件 / 协作 / 其他：FTP · SFTP · HTTP · GraphQL · Google Sheets · Firestore · Slack · DingTalk · Feishu · Email · MaxCompute · Prometheus · SLS · Sentry · Web3j …',
+    ]
+    fy = 5.24
+    for s in foot:
+        txt(sl, 0.38, fy, 12.5, 0.42, s, sz=6.3, c=MUT, leading=1.25)
+        fy += 0.46
+    txt(sl, 0.38, 6.66, 12.5, 0.14,
+        [dict(runs=[('★ ', {'c': GRN, 'sz': 6.4, 'b': True}),
+                    ('Apache Iceberg', {'c': GRND, 'sz': 6.4, 'b': True}),
+                    (' 为本项目归档落地格式 · SeaTunnel 可将其作为 Sink 直接写湖', {'c': MUT, 'sz': 6.4})])])
+
+
 # ------------------------------------------------------------------- build --
 def build(path):
     prs = Presentation()
@@ -1307,6 +1371,7 @@ def build(path):
     slide_enc(prs)
     slide_er(prs)
     slide_etl_compare(prs)
+    slide_connectors(prs)
     import os as _os
     _report_dir = _os.path.dirname(__file__)
     prs.save(_os.path.join(_report_dir, '方案B_B2_架构图集.pptx'))
