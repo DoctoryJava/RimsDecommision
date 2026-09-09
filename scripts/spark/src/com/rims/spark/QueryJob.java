@@ -4,6 +4,8 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
+import java.util.Iterator;
+
 /**
  * 独立 Spark SQL 查询作业，由后端 SparkQueryService 通过 spark-submit 调用。
  * 读取已同步落盘的 Iceberg 数据，执行任意 SQL（SELECT / WHERE / JOIN / 聚合），
@@ -48,14 +50,30 @@ public class QueryJob {
 
         try {
             Dataset<Row> df = spark.sql(sql);
-            String[] columns = df.columns();
-            System.out.println("RESULT_COLUMNS:" + String.join("\t", columns));
+
+            System.out.println("RESULT_COLUMNS:" + String.join("\t", df.columns()));
+
+
+            long count = 0;
+
+            Iterator<String> it =df.limit(10)
+                            .toJSON()
+                            .toLocalIterator();
+            while (it.hasNext()) {
+                String row = it.next();
+                System.out.println("RESULT_ROW:" + row);
+            }
+
+            System.out.println("RESULT_COUNT:" + count);
+
+            /*Dataset<Row> df = spark.sql(sql);
+            System.out.println("RESULT_COLUMNS:" + String.join("\t", df.columns()));
 
             String[] rows = (String[]) df.toJSON().collect();
             for (String row : rows) {
                 System.out.println("RESULT_ROW:" + row);
             }
-            System.out.println("RESULT_COUNT:" + rows.length);
+            System.out.println("RESULT_COUNT:" + rows.length);*/
         } catch (Exception e) {
             String msg = e.getMessage() == null ? e.toString() : e.getMessage();
             System.out.println("RESULT_ERROR:" + msg.replace("\n", " ").replace("\r", " "));

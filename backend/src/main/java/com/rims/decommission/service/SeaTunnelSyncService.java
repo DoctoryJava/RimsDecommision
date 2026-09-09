@@ -333,7 +333,7 @@ public class SeaTunnelSyncService {
         try (BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
             while ((line = r.readLine()) != null) {
-               out.append(line).append('\n');
+                out.append(line).append('\n');
                 if (line.contains("Error") || line.contains("ERROR")) addLog(logs, "ERROR", line.trim());
                 else if (line.contains("INFO")) addLog(logs, "INFO", line.trim());
             }
@@ -355,7 +355,10 @@ public class SeaTunnelSyncService {
         // table_list 的 table_path 必须是 "库名.表名"
         StringBuilder tableList = new StringBuilder("table_list = [\n");
         for (String t : tables) {
-            tableList.append("    { table_path = \"").append(esc("RIMS.dbo")).append(".").append(esc(t)).append("\" },\n");
+            tableList.append("    { table_path = \"")
+                    .append(esc(db))
+                    .append(esc(".dbo"))
+                    .append(".").append(esc(t)).append("\" },\n");
         }
         tableList.append("  ]");
 

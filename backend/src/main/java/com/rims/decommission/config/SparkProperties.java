@@ -20,11 +20,11 @@ public class SparkProperties {
     /** Iceberg spark runtime jar 本地路径（spark-submit --jars 注入，运行期类由 Iceberg 提供） */
     private String icebergJar = "C:\\Users\\adm-chinaadmins1\\Desktop\\code\\RimsDecommision\\scripts\\iceberg-spark-runtime-3.5_2.12-1.7.1.jar";
     /** 独立 Spark SQL 查询作业 jar（scripts/spark/rims-spark-query.jar，含 com.rims.spark.QueryJob） */
-    private String queryJobJar = "C:\\Users\\adm-chinaadmins1\\Desktop\\code\\RimsDecommision\\scripts\\spark\\rims-spark-query.jar";
+    private String queryJobJar = "C:\\Users\\adm-chinaadmins1\\Desktop\\code\\RimsDecommision\\scripts\\spark\\target\\rims-spark-query.jar";
     /** Iceberg catalog 名（QueryJob 注册为 defaultCatalog，SQL 可省略 catalog 前缀） */
     private String catalogName = "rims";
     /** SeaTunnel/Spark 子进程专用 JDK 路径（Spark 3.3 需 JDK ≤11；后端运行于 17+，故进程隔离） */
-    private String javaHome = "C:\\Users\\adm-chinaadmins1\\.jdks\\ms-11.0.32.1";
+    private String javaHome = "C:\\Users\\adm-chinaadmins1\\.jdks\\temurin-17.0.20.1";
 
     public String getHome() { return home; }
     public void setHome(String home) { this.home = home; }

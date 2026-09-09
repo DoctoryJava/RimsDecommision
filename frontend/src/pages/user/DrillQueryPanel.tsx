@@ -269,7 +269,7 @@ export default function DrillQueryPanel({ systemId, database, configId, mainTabl
       if (conds.length) where = ' WHERE ' + conds.join(' AND ');
     }
 
-    const sql = `SELECT ${select} ${from}${where} LIMIT 500`;
+    const sql = `SELECT ${select} ${from}${where} LIMIT 20`;
     sparkExecuteQuery({ systemId, database, sql, page: 1, pageSize: 500 })
       .then((res: any) => {
         setMainRows(res?.rows ?? []);

@@ -77,7 +77,7 @@ app:
     # Iceberg catalog 名（设为 defaultCatalog，SQL 可省略 catalog 前缀）
     catalog-name: ${SPARK_CATALOG_NAME:rims}
     # Spark 子进程专用 JDK（Spark 3.3 仅支持 JDK ≤11；后端运行于 17+，故进程隔离）
-    java-home: ${SPARK_JAVA_HOME:C:\Users\adm-chinaadmins1\.jdks\ms-11.0.32.1}
+    java-home: ${SPARK_JAVA_HOME:C:\Users\adm-chinaadmins1\.jdks\temurin-17.0.20.1}
 
 springdoc:
   api-docs:
