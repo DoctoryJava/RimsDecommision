@@ -251,23 +251,24 @@ def slide_cover(prs):
     txt(sl, 0.9, 1.55, 6.6, 0.3, 'RIMS 退役归档平台 · 方案 B2', sz=11, c=MUT, spc=300, b=True)
     txt(sl, 0.88, 1.92, 6.9, 0.85, '湖仓一体架构图集', sz=33, b=True, c=INK)
     rect(sl, 0.92, 2.86, 0.62, 0.045, AZ)
-    txt(sl, 0.92, 3.02, 6.4, 0.3, '架构图 · 数据加密设计 · 元数据库 ER 图 · 全部以 PPT 原生形状绘制',
+    txt(sl, 0.92, 3.02, 6.4, 0.3, '架构图 · 数据加密设计 · ETL 引擎对比 · 元数据库 ER 图 · 全部以 PPT 原生形状绘制',
         sz=10.5, c=MUT)
     items = [
         ('01', AZ, L_BLUE, B_BLUE, 'Azure 基础设施部署架构 · 方案 B2', 'VNet · AKS · Databricks Serverless · NCC 私有端点 · 六大 PaaS 服务'),
         ('02', GRN, L_GRN, B_GRN, '应用架构图 · 方案 B2（湖仓一体 · Databricks SQL Serverless 读）', '访问入口 → 自研应用层（AKS）→ 写 / 读 / 附件三条链路 → 数据底座'),
         ('03', PUR, L_PUR, B_PUR, '方案 B2 · 湖仓一体 · 存算分离架构', '源系统 → 接入配置 → 抽取 → Iceberg 冷湖 → Databricks 读写一体计算层 → 消费入口 + 销毁回路'),
         ('04', AZ, L_BLUE, B_BLUE, '方案 B2 · 数据加密设计', '四层加密模型 · aes_encrypt + UC 列掩码 · 信封加密 / Crypto-Shredding'),
-        ('05', SLA, 'F6F8FA', 'CBD5E1', '元数据库 ER 图（35 表 / 11 模块 · 上下两页）', '上篇：平台 / 权限 / 数据源配置　下篇：同步归档 / 动态查询 / 保留销毁'),
+        ('05', ORG, 'FFF7ED', 'FED7AA', 'ETL 引擎对比 · SeaTunnel vs Databricks Serverless', '抽取入湖分工：普通数据走 SeaTunnel · 敏感 / 加密数据走 Databricks 写侧'),
+        ('06', SLA, 'F6F8FA', 'CBD5E1', '元数据库 ER 图（35 表 / 11 模块 · 上下两页）', '上篇：平台 / 权限 / 数据源配置　下篇：同步归档 / 动态查询 / 保留销毁'),
     ]
-    y = 3.24
+    y = 3.15
     for no, col, lf, bl, t, d in items:
-        rect(sl, 0.92, y, 6.35, 0.66, 'FFFFFF', BORDER, 1.2, 0.09, shadow=True)
-        rect(sl, 1.06, y + 0.09, 0.48, 0.48, lf, bl, 1.2, 0.08)
-        txt(sl, 1.06, y + 0.09, 0.48, 0.48, no, sz=12, b=True, c=col, align='c', anchor='m', mono=True)
-        txt(sl, 1.68, y + 0.08, 5.5, 0.24, t, sz=10, b=True, c=INK)
-        txt(sl, 1.68, y + 0.35, 5.5, 0.22, d, sz=7.2, c=MUT)
-        y += 0.74
+        rect(sl, 0.92, y, 6.35, 0.57, 'FFFFFF', BORDER, 1.2, 0.09, shadow=True)
+        rect(sl, 1.06, y + 0.075, 0.42, 0.42, lf, bl, 1.2, 0.08)
+        txt(sl, 1.06, y + 0.075, 0.42, 0.42, no, sz=11, b=True, c=col, align='c', anchor='m', mono=True)
+        txt(sl, 1.68, y + 0.05, 5.5, 0.21, t, sz=9.5, b=True, c=INK)
+        txt(sl, 1.68, y + 0.30, 5.5, 0.20, d, sz=7.0, c=MUT)
+        y += 0.62
     rect(sl, 0.92, 6.98, 6.35, 0.035, BORDER)
     txt(sl, 0.92, 7.08, 6.4, 0.25, '整理自 report/Architecture.html · docs/数据库ER图与全量表结构.md', sz=8, c=FAINT)
 
@@ -1211,6 +1212,87 @@ def emit_er_html(path):
     with open(path, 'w', encoding='utf-8') as f:
         f.write(html)
 
+# ========================================= SLIDE 8 · ETL ENGINE COMPARE ====
+def slide_etl_compare(prs):
+    sl = prs.slides.add_slide(prs.slide_layouts[6]); _cur['i'] = 7
+    sl.background.fill.solid(); sl.background.fill.fore_color.rgb = _rgb(BG)
+    title_bar(sl, 'ETL 引擎对比 · Apache SeaTunnel vs Databricks Serverless',
+              '写侧抽取与入湖的分工与选型', ORG)
+
+    LX, LW = 0.22, 1.56          # 维度标签列
+    SX, SW = 1.90, 5.25          # SeaTunnel 列
+    DX, DW = 7.25, 5.86          # Databricks 列
+
+    # ---- 表头 ----
+    rect(sl, LX, 0.62, LW, 0.62, 'F8FAFC', BORDER, 1.1, 0.06)
+    txt(sl, LX, 0.62, LW, 0.62, '对比维度', sz=8.5, b=True, c=SUB, align='c', anchor='m')
+
+    rect(sl, SX, 0.62, SW, 0.62, 'FFF7ED', ORG, 1.4, 0.06)
+    txt(sl, SX, 0.66, SW, 0.24, 'Apache SeaTunnel', sz=11, b=True, c=ORG, align='c')
+    txt(sl, SX, 0.92, SW, 0.24, '开源数据集成引擎 · 结构化抽取入湖', sz=6.8, c=MUT, align='c')
+
+    rect(sl, DX, 0.62, DW, 0.62, 'F5F3FF', PUR, 1.4, 0.06)
+    txt(sl, DX, 0.66, DW, 0.24, 'Databricks Serverless · Jobs', sz=11, b=True, c=PUR, align='c')
+    txt(sl, DX, 0.92, DW, 0.24, '托管湖仓计算 · 分层加工与治理', sz=6.8, c=MUT, align='c')
+
+    # ---- 对比行：维度 / SeaTunnel(标题, 说明) / Databricks(标题, 说明) ----
+    rows = [
+        ('定位',
+         '开源数据集成引擎', 'Apache 开源 · 免费', False,
+         '托管湖仓计算引擎', '商业化 · 按 DBU 计费', False),
+        ('连接与能力',
+         '200+ 连接器 · JDBC → Iceberg', '类型映射 · 对账 · 仅读权限抽取', False,
+         'Spark 批处理 · JDBC → Iceberg', 'Z-Order · Compaction · VACUUM', False),
+        ('ETL 职责',
+         '结构化数据 1:1 原样入湖', 'RAW 原始落地 · sys_id / ingest_date 分区', False,
+         'RAW→CURATED→LAKE→SERVE 分层加工', '到期销毁 · DROP PARTITION + VACUUM', False),
+        ('数据分级',
+         '普通 / 非敏感数据', '轻量链路 · 本地或 ADLS 落盘', False,
+         '敏感 / 加密数据', '合规要求高 · 需全程加密', True),
+        ('加密与合规',
+         '凭据自管 · 无原生加密治理', '连接串需自行脱敏 / 加密', False,
+         'Secret Scope + Key Vault', '全程加密 · UC 列掩码 · 零明文', True),
+        ('治理',
+         '元数据自建台账', '无内置表格式治理', False,
+         'Unity Catalog 原生治理', '表 / 行 / 列级授权 + 审计', False),
+        ('运维',
+         '自部署 · ADF 编排调度', '需自行运维', False,
+         'Serverless 零运维', '空闲缩 0 · 故障自动重建', False),
+        ('成本',
+         '开源免费 · 仅算力', '≈¥0 许可费', False,
+         '写侧 ≈¥0.4–0.8 万/月', '按需拉起 · 只为使用付费', True),
+    ]
+    y0, rh, gap = 1.36, 0.48, 0.055
+    for i, (dim, st_t, st_d, st_h, db_t, db_d, db_h) in enumerate(rows):
+        y = y0 + i * (rh + gap)
+        rect(sl, LX, y, LW, rh, 'F8FAFC', BORDER, 1.0, 0.05)
+        txt(sl, LX, y, LW, rh, dim, sz=7.6, b=True, c=INK, align='c', anchor='m')
+
+        rect(sl, SX, y, SW, rh, 'FFFFFF', 'FED7AA', 1.0, 0.05)
+        rect(sl, SX, y, 0.035, rh, ORG, rad=0.017)
+        txt(sl, SX + 0.12, y + 0.04, SW - 0.24, 0.16, st_t, sz=6.9, b=True, c=ORG if st_h else SUB)
+        txt(sl, SX + 0.12, y + 0.22, SW - 0.24, 0.22, st_d, sz=5.9, c=ORG if st_h else MUT, b=st_h)
+
+        rect(sl, DX, y, DW, rh, 'FFFFFF', 'DDD6FE', 1.0, 0.05)
+        rect(sl, DX, y, 0.035, rh, PUR, rad=0.017)
+        txt(sl, DX + 0.12, y + 0.04, DW - 0.24, 0.16, db_t, sz=6.9, b=True, c=PUR if db_h else SUB)
+        txt(sl, DX + 0.12, y + 0.22, DW - 0.24, 0.22, db_d, sz=5.9, c=PUR if db_h else MUT, b=db_h)
+
+    # ---- 选型结论 · 分流策略 ----
+    rect(sl, 0.22, 5.98, 12.89, 1.12, 'ECFDF5', '6EE7B7', 1.4, 0.08)
+    txt(sl, 0.38, 6.06, 6.0, 0.2, '选型结论 · 分流策略', sz=9.2, b=True, c=GRND)
+    txt(sl, 8.9, 6.06, 4.1, 0.2, '按数据敏感度自动分流', sz=6.8, c='047857', align='r')
+    cblocks = [
+        (0.38, '普通 / 非敏感数据', '→ SeaTunnel 抽取入湖', ORG, 'FFF7ED', 'FED7AA'),
+        (4.59, '敏感 / 加密数据', '→ Databricks 写侧 ETL', PUR, 'F5F3FF', 'DDD6FE'),
+        (8.80, '统一底座 · 读侧', '→ Iceberg 冷湖 · SQL Serverless', GRN, 'ECFDF5', 'A7F3D0'),
+    ]
+    for cx, t, s, cc, cf, cl in cblocks:
+        rect(sl, cx, 6.32, 4.05, 0.64, cf, cl, 1.2, 0.06)
+        txt(sl, cx + 0.12, 6.37, 3.8, 0.17, t, sz=7.0, b=True, c=INK)
+        txt(sl, cx + 0.12, 6.57, 3.8, 0.30, s, sz=7.0, b=True, c=cc)
+
+
 # ------------------------------------------------------------------- build --
 def build(path):
     prs = Presentation()
@@ -1224,6 +1306,7 @@ def build(path):
     slide_lake(prs)
     slide_enc(prs)
     slide_er(prs)
+    slide_etl_compare(prs)
     import os as _os
     _report_dir = _os.path.dirname(__file__)
     prs.save(_os.path.join(_report_dir, '方案B_B2_架构图集.pptx'))
